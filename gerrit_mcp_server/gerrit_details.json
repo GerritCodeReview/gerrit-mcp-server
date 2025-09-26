@@ -1,0 +1,3 @@
+{
+  "toolOverallDescription": "A tool to interact with Gerrit code review systems. Use it to view changes, check the status of a CL, review comments, see the diff of a file, and add reviewers."
+}

@@ -1,0 +1,13 @@
+{
+  "gerrit": {
+    "server_type": "stdio",
+    "command": "%%REPO_ROOT%%/gerrit/.venv/bin/python",
+    "args": [
+      "%%REPO_ROOT%%/gerrit/gerrit_mcp_server/main.py",
+      "stdio"
+    ],
+    "env": {
+      "PYTHONPATH": "%%REPO_ROOT%%/gerrit/"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+**/.gemini/
+gerrit_mcp_server.egg-info
+__pycache__/
+server.log
+server.pid
+uv.lock
+context/

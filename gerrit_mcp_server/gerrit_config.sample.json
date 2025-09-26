@@ -1,0 +1,39 @@
+{
+  "default_gerrit_base_url": "https://fuchsia-review.googlesource.com/",
+  "gerrit_hosts": [
+    {
+      "name": "Fuchsia Open Source",
+      "external_url": "https://fuchsia-review.googlesource.com/",
+      "authentication": {
+        "type": "http_basic",
+        "username": "your-username",
+        "auth_token": "your-auth-token"
+      }
+    },
+    {
+      "name": "Fuchsia Open Source [Googlers]",
+      "internal_url": "https://fuchsia-review.git.private.corporation.com/",
+      "external_url": "https://fuchsia-review.googlesource.com/",
+      "authentication": {
+        "type": "gob_curl"
+      }
+    },
+    {
+      "name": "AOSP",
+      "external_url": "https://android-review.googlesource.com/",
+      "authentication": {
+        "type": "http_basic",
+        "username": "your-aosp-user",
+        "auth_token": "your-aosp-http-token"
+      }
+    },
+    {
+      "name": "GitCookies Auth Example",
+      "external_url": "https://another-gerrit.com/",
+      "authentication": {
+        "type": "git_cookies",
+        "gitcookies_path": "~/.gitcookies"
+      }
+    }
+  ]
+}
