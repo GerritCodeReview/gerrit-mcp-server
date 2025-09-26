@@ -1,0 +1,7 @@
+{
+  "gerrit_base_url": "https://fuchsia-review.googlesource.com",
+  "known_cl": "12345",
+  "known_user": "dannyrosen@google.com",
+  "test_project": "fuchsia",
+  "test_reviewer": "user@google.com"
+}

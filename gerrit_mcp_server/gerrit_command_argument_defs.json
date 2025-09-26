@@ -1,0 +1,216 @@
+{
+  "query_changes": {
+    "description": "Searches for CLs matching a given query string.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "query": {
+        "type": "string",
+        "description": "The search query string, using standard Gerrit search operators.",
+        "required": true
+      },
+      "limit": {
+        "type": "number",
+        "description": "The maximum number of changes to return."
+      },
+      "options": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "A list of additional data fields to return (e.g., [\"LABELS\", \"DETAILED_ACCOUNTS\"])."
+      }
+    }
+  },
+  "get_change_details": {
+    "description": "Retrieves a comprehensive summary of a single CL.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      },
+      "options": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "A list of additional data fields to return (e.g., [\"MESSAGES\", \"DETAILED_ACCOUNTS\"])."
+      }
+    }
+  },
+  "get_commit_message": {
+    "description": "Gets the full commit message of a change from the current patch set.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the GERRIT_BASE_URL environment variable, which defaults to https://fuchsia-review.googlesource.com/.",
+        "required": false,
+        "default": "https://fuchsia-review.googlesource.com/"
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      }
+    }
+  },
+  "list_change_files": {
+    "description": "Lists all files modified in the most recent patch set of a CL.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      }
+    }
+  },
+  "get_file_diff": {
+    "description": "Retrieves the diff for a single, specified file within a CL.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      },
+      "file_path": {
+        "type": "string",
+        "description": "The full path of the file to retrieve the diff for.",
+        "required": true
+      }
+    }
+  },
+  "list_change_comments": {
+    "description": "Fetches all published comments for a CL.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      }
+    }
+  },
+  "add_reviewer": {
+    "description": "Adds a user or a group to a CL as either a reviewer or a CC.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      },
+      "reviewer": {
+        "type": "string",
+        "description": "The email address of the user or the name of the group to add.",
+        "required": true
+      },
+      "state": {
+        "type": "string",
+        "description": "The role to assign. Either 'REVIEWER' or 'CC'. Defaults to 'REVIEWER'."
+      }
+    }
+  },
+  "get_most_recent_cl": {
+    "description": "Gets the most recent CL for a user.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "user": {
+        "type": "string",
+        "description": "The user's email or username.",
+        "required": true
+      }
+    }
+  },
+  "get_bugs_from_cl": {
+    "description": "Extracts bug IDs from the commit message of a CL.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      }
+    }
+  },
+  "abandon_change": {
+    "description": "Abandons a change.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      },
+      "message": {
+        "type": "string",
+        "description": "An optional message to include with the abandonment."
+      }
+    }
+  },
+  "post_review_comment": {
+    "description": "Posts a review comment on a specific line of a file in a CL.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      },
+      "file_path": {
+        "type": "string",
+        "description": "The full path of the file to comment on.",
+        "required": true
+      },
+      "line_number": {
+        "type": "number",
+        "description": "The line number to post the comment on.",
+        "required": true
+      },
+      "message": {
+        "type": "string",
+        "description": "The content of the comment.",
+        "required": true
+      }
+    }
+  }
+}
+
