@@ -152,7 +152,7 @@ async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     config = load_gerrit_config()
     command = get_curl_command_for_gerrit_url(gerrit_base_url, config) + args
     with open(LOG_FILE_PATH, "a") as log_file:
-        log_file.write(f"[gerrit-mcp-server] Executing: {" ".join(command)}\n")
+        log_file.write(f"[gerrit-mcp-server] Executing: {' '.join(command)}\n")
 
     process = await asyncio.create_subprocess_exec(
         *command,
@@ -237,7 +237,7 @@ async def query_changes(
     output = f'Found {len(changes)} changes for query "{query}":\n'
     for change in changes:
         wip_prefix = "[WIP] " if change.get("work_in_progress") else ""
-        output += f"- {change["_number"]}: {wip_prefix}{change["subject"]}\n"
+        output += f"- {change['_number']}: {wip_prefix}{change['subject']}\n"
 
     return [{"type": "text", "text": output}]
 
@@ -1038,7 +1038,7 @@ async def get_most_recent_cl(
     change = changes[0]
     wip_prefix = "[WIP] " if change.get("work_in_progress") else ""
     output = f"Most recent CL for {user}:\n"
-    output += f"- {change["_number"]}: {wip_prefix}{change["subject"]}\n"
+    output += f"- {change['_number']}: {wip_prefix}{change['subject']}\n"
 
     return [{"type": "text", "text": output}]
 
