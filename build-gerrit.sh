@@ -68,7 +68,7 @@ fi
 
 # Use uv to install the gerrit_mcp_server package in editable mode
 echo "Installing the gerrit_mcp_server package..."
-if ! uv pip install -e .; then
+if ! uv pip install -e . --no-deps; then
     echo -e "\n${RED}Failed to install the gerrit_mcp_server package.${NC}"
     exit 1
 fi

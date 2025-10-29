@@ -23,6 +23,18 @@ NC='\033[0m' # No Color
 
 # --- Virtual Environment ---
 VENV_DIR=".venv"
+CONFIG_FILE="gerrit_mcp_server/gerrit_config.json"
+SAMPLE_CONFIG_FILE="gerrit_mcp_server/gerrit_config.sample.json"
+
+# --- Config Bootstrap ---
+# Create the config file from the sample if it doesn't exist
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo -e "${YELLOW}Configuration file not found. Creating from sample...${NC}"
+    if ! cp "$SAMPLE_CONFIG_FILE" "$CONFIG_FILE"; then
+        echo -e "${RED}Failed to create configuration file. Aborting tests.${NC}"
+        exit 1
+    fi
+fi
 
 # Check if the virtual environment exists
 if [ ! -d "$VENV_DIR" ]; then
