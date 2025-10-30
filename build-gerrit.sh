@@ -66,12 +66,26 @@ if ! uv pip sync ${REQUIREMENTS_FILE}; then
     exit 1
 fi
 
-# Use uv to install the gerrit_mcp_server package in editable mode
-echo "Installing the gerrit_mcp_server package..."
-if ! uv pip install -e . --no-deps; then
-    echo -e "\n${RED}Failed to install the gerrit_mcp_server package.${NC}"
+# Use uv to install the gerrit_mcp_server package securely with hash verification
+echo "Building and installing the gerrit_mcp_server package..."
+if ! uv build; then
+    echo -e "\n${RED}Failed to build the gerrit_mcp_server package.${NC}"
     exit 1
 fi
+
+WHEEL_FILE=$(ls dist/*.whl | head -n 1)
+WHEEL_HASH=$(sha256sum "${WHEEL_FILE}" | awk '{print $1}')
+echo "${WHEEL_FILE} --hash=sha256:${WHEEL_HASH}" > local-requirements.txt
+
+if ! uv pip install -r local-requirements.txt --no-deps --require-hashes; then
+    echo -e "\n${RED}Failed to install the gerrit_mcp_server package.${NC}"
+    rm local-requirements.txt
+    exit 1
+fi
+
+rm local-requirements.txt
+# Optionally keep dist/ for debugging or remove it:
+# rm -rf dist/
 
 
 echo -e "\n${GREEN}Successfully set up the Gerrit MCP server environment.${NC}"
