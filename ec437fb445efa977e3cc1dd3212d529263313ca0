@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dd6f2d0b_2be10b2e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1155610
+      },
+      "writtenOn": "2025-10-30T15:08:04Z",
+      "side": 1,
+      "message": "If this was a more established project I\u0027d probably recommend splitting this in 3 separate changes.\n\nAs its relatively new and with little community adoption, its probably fine to get it through in one?",
+      "range": {
+        "startLine": 7,
+        "startChar": 1,
+        "endLine": 7,
+        "endChar": 129
+      },
+      "revId": "ec437fb445efa977e3cc1dd3212d529263313ca0",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e05a906_754a7ddd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1155610
+      },
+      "writtenOn": "2025-10-30T15:08:04Z",
+      "side": 1,
+      "message": "I\u0027ve only got +1 permissions.",
+      "revId": "ec437fb445efa977e3cc1dd3212d529263313ca0",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
