@@ -63,6 +63,7 @@ jsonschema-specifications==2025.4.1 \
 mcp==1.19.0 \
     --hash=sha256:213de0d3cd63f71bc08ffe9cc8d4409cc87acffd383f6195d2ce0457c021b5c1 \
     --hash=sha256:f5907fe1c0167255f916718f376d05f09a830a215327a3ccdd5ec8a519f2e572
+    # via gerrit-mcp-server (pyproject.toml)
 pydantic==2.11.7 \
     --hash=sha256:d989c3c6cb79469287b1569f7447a17848c998458d49ebe294e975b9baf0f0db \
     --hash=sha256:dde5df002701f6de26248661f6835bbe296a47bf73990135c7d07ce741b9623b
@@ -364,7 +365,9 @@ typing-inspection==0.4.1 \
 uvicorn==0.38.0 \
     --hash=sha256:48c0afd214ceb59340075b4a052ea1ee91c16fbc2a9b1469cca0e54566977b02 \
     --hash=sha256:fd97093bdd120a2609fc0d3afe931d4d4ad688b6e75f0f929fde1bc36fe0e91d
-    # via mcp
+    # via
+    #   gerrit-mcp-server (pyproject.toml)
+    #   mcp
 websockets==15.0.1 \
     --hash=sha256:0701bc3cfcb9164d04a14b149fd74be7347a530ad3bbf15ab2c678a2cd3dd9a2 \
     --hash=sha256:0a34631031a8f05657e8e90903e656959234f3a04552259458aac0b0f9ae6fd9 \
@@ -435,3 +438,4 @@ websockets==15.0.1 \
     --hash=sha256:f29d80eb9a9263b8d109135351caf568cc3f80b9928bccde535c235de55c22d9 \
     --hash=sha256:f7a866fbc1e97b5c617ee4116daaa09b722101d4a3c170c787450ba409f9736f \
     --hash=sha256:fcd5cf9e305d7b8338754470cf69cf81f420459dbae8a3b40cee57417f4614a7
+    # via gerrit-mcp-server (pyproject.toml)
