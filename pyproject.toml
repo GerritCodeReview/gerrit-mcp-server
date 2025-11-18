@@ -9,9 +9,20 @@ dependencies = [
     "websockets"
 ]
 
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-env"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--asyncio-mode=auto -v --ignore=tests/e2e"
+env = [
+    "GERRIT_CONFIG_PATH=tests/test_config.json"
+]
 
 [tool.setuptools]
 packages = ["gerrit_mcp_server"]
