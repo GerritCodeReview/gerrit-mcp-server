@@ -476,11 +476,11 @@ class TestGerritMCP(unittest.IsolatedAsyncioTestCase):
     async def test_tool_functions_with_malformed_json(self, mock_run_curl):
         mock_run_curl.return_value = "this is not json"
 
-        with self.assertRaises(json.JSONDecodeError):
-            await main.query_changes(
-                gerrit_base_url="https://fuchsia-review.googlesource.com",
-                query="status:open",
-            )
+        result = await main.query_changes(
+            gerrit_base_url="https://fuchsia-review.googlesource.com",
+            query="status:open",
+        )
+        self.assertIn("Failed to parse JSON", result[0]["text"])
 
     @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
     async def test_tool_functions_with_unexpected_json(self, mock_run_curl):

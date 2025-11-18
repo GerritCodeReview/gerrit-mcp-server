@@ -51,6 +51,7 @@ source "$VENV_DIR/bin/activate"
 # --- Test Execution ---
 # Set PYTHONPATH to include the project root
 export PYTHONPATH=$(pwd)
+export GERRIT_CONFIG_PATH="$(pwd)/tests/test_config.json"
 
 # Run tests using the python from the virtual environment
 # The original script had logic to differentiate between E2E and other tests.
