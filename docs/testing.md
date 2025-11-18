@@ -1,61 +1,61 @@
 # Testing the Gerrit MCP Server
 
-This project includes a comprehensive test suite to ensure the server functions correctly and remains stable. The tests are divided into three categories: unit, integration, and end-to-end (E2E).
+This project includes a comprehensive test suite to ensure the server functions correctly and remains stable. We use **pytest** as our testing framework.
 
-## Running the Tests
+## Quick Start
 
-The easiest way to run the core test suite is to use the provided script from the root of the `gerrit-mcp-server` project directory.
+The easiest way to run the tests is to use `pytest` from the root of the project.
 
-Before running the tests for the first time, you must build the environment:
-```bash
-./build-gerrit.sh
-```
+1.  **Build the Environment**:
+    Run the build script to set up the virtual environment and install dependencies:
+    ```bash
+    ./build-gerrit.sh
+    ```
 
-Once the environment is built, you can run the tests:
-```bash
-./test.sh
-```
+2.  **Activate Virtual Environment**:
+    ```bash
+    source .venv/bin/activate
+    ```
 
-This command will automatically:
-1.  Activate the Python virtual environment (`.venv`).
-2.  Discover and run all **unit tests** located in `tests/unit/`.
-3.  Discover and run all **integration tests** located in `tests/integration/`.
+3.  **Run Tests**:
+    ```bash
+    pytest
+    ```
 
 ## Test Structure
 
 The tests are organized as follows:
 
-*   `tests/unit/`: These tests are designed to be fast and isolated. They test individual functions and classes without making any real network requests. Dependencies like `curl` are mocked to ensure predictable behavior.
-*   `tests/integration/`: These tests verify that different parts of the server work together correctly. For example, the `test_build_and_run.py` test simulates the entire build and server startup process in a temporary directory to ensure the scripts are working as expected.
-*   `tests/e2e/`: These are optional, manually-run tests that make real network requests to a live Gerrit instance.
+*   `tests/unit/`: **Fast, isolated tests.** These tests verify individual functions and classes in isolation. External dependencies like `curl` and file system operations are mocked to ensure speed and determinism. They are the first line of defense.
+*   `tests/integration/`: **Component interaction tests.** These tests verify that different parts of the application work together correctly. While they still mock external network calls (to avoid flakiness), they test the flow of data through the system, including configuration loading and command execution logic.
+*   `tests/e2e/`: **End-to-End tests.** These tests run against a live Gerrit instance. They are optional and require specific configuration. They verify that the server can actually communicate with a real Gerrit server and perform actions like querying changes and posting comments.
+
+## Writing Tests
+
+Tests should be simple, readable, and follow the "Arrange, Act, Assert" pattern. We use `pytest` fixtures for setup and dependency injection.
+
+### Example: Unit Test
+```python
+import pytest
+from unittest.mock import patch
+from gerrit_mcp_server import main
+
+@pytest.mark.asyncio
+async def test_get_bugs_from_cl():
+    """The hero finds the bugs hidden in the message."""
+    with patch("gerrit_mcp_server.main.run_curl") as mock_run_curl:
+        mock_run_curl.return_value = '{"message": "Fixes: b/12345"}'
+        result = await main.get_bugs_from_cl("123")
+        assert "Found bug(s): 12345" in result[0]["text"]
+```
 
 ## End-to-End (E2E) Tests
 
-The E2E tests are designed to verify the server's functionality against a real, live Gerrit instance. They are not run by default.
+To run E2E tests, you need a `tests/e2e/e2e_config.json` file (see `tests/e2e/e2e_config.sample.json`).
 
-### Running the E2E Tests
+**Note:** This configuration file is **required** for E2E tests to know which Gerrit instance to target and what credentials to use.
 
-To run the E2E test suite, use the `--e2e` flag with the test script:
-
+Run them with:
 ```bash
-./test.sh --e2e
+pytest tests/e2e
 ```
-
-### E2E Prerequisites
-
-Before running the E2E tests, you must configure the following:
-
-*   **Main Configuration**: Ensure you have a valid `gerrit_mcp_server/gerrit_config.json`. Your E2E tests will authenticate using the methods defined in this file. See the **[Configuration Guide](configuration.md)** for details.
-
-*   **E2E Test Data**: You must create a `tests/e2e/e2e_config.json` file. A template is provided at `tests/e2e/e2e_config.sample.json`. This file tells the test suite which Gerrit instance to target and what data to use for read-only tests.
-
-    ```bash
-    cp tests/e2e/e2e_config.sample.json tests/e2e/e2e_config.json
-    ```
-
-    Fill in the values in your new `e2e_config.json`:
-    *   `gerrit_base_url`: The URL of the Gerrit instance to test against. This must match a host defined in your main `gerrit_config.json`.
-    *   `known_cl`: A known, public CL number for read-only tests.
-    *   `known_user`: A known user for user-specific queries.
-    *   `test_project`: **(Optional)** A project where you have permission to create changes. If this is not set, write tests (like creating a new CL) will be skipped.
-    *   `test_reviewer`: **(Optional)** A user you can add as a reviewer during write tests.

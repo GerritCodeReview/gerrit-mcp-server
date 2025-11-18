@@ -53,12 +53,9 @@ source "$VENV_DIR/bin/activate"
 export PYTHONPATH=$(pwd)
 export GERRIT_CONFIG_PATH="$(pwd)/tests/test_config.json"
 
-# Run tests using the python from the virtual environment
-# The original script had logic to differentiate between E2E and other tests.
-# This version simplifies to run all tests discovered under 'tests/'.
-# If E2E tests are needed, the script would need to be modified to handle the --e2e flag.
-echo -e "\n${YELLOW}Running unit and integration tests...${NC}"
-if ! python -m unittest discover tests; then
+# Run tests using pytest
+echo -e "\n${YELLOW}Running tests with pytest...${NC}"
+if ! python -m pytest; then
     echo -e "${RED}Tests failed.${NC}"
     exit 1
 fi
