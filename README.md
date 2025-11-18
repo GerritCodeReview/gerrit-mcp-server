@@ -25,6 +25,9 @@ Before you begin, ensure you have the following tools installed and available in
 *   **Python 3.11+**: The build script requires a modern version of Python.
 *   **curl**: The standard command-line tool for transferring data with URLs.
 
+*   **Project Changes**: [View on Gerrit](https://gerrit-review.googlesource.com/q/project:gerrit-mcp-server)
+*   **Source Hosting**: [View on Gerrit Code](https://gerrit.googlesource.com/gerrit-mcp-server)
+
 ### 2. Build the Environment
 
 Run the build script from the root of the `gerrit-mcp-server` project directory. This will create a Python virtual environment, install all dependencies, and make the server ready to run.

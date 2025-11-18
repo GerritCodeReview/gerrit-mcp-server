@@ -1,0 +1,14 @@
+{
+  "default_gerrit_base_url": "https://fuchsia-review.googlesource.com",
+  "gerrit_hosts": [
+    {
+      "name": "Fuchsia Open Source",
+      "external_url": "https://fuchsia-review.googlesource.com",
+      "authentication": {
+        "type": "http_basic",
+        "username": "test-user",
+        "auth_token": "test-token"
+      }
+    }
+  ]
+}

@@ -30,11 +30,12 @@ class TestGerritConfig(unittest.TestCase):
                 }
             ]
         }
-        self.assertEqual(_normalize_gerrit_url("foo.internal"), "https://external.foo")
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
+        self.assertEqual(_normalize_gerrit_url("foo.internal", gerrit_hosts), "https://external.foo")
         self.assertEqual(
-            _normalize_gerrit_url("https://foo.internal"), "https://external.foo"
+            _normalize_gerrit_url("https://foo.internal", gerrit_hosts), "https://external.foo"
         )
-        self.assertEqual(_normalize_gerrit_url("external.foo"), "https://external.foo")
+        self.assertEqual(_normalize_gerrit_url("external.foo", gerrit_hosts), "https://external.foo")
 
     @patch("gerrit_mcp_server.main.load_gerrit_config")
     def test_normalize_gerrit_url_with_internal_only_mapping(self, mock_load_config):
@@ -43,8 +44,9 @@ class TestGerritConfig(unittest.TestCase):
                 {"name": "Internal", "internal_url": "https://internal2.foo/"}
             ]
         }
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
         self.assertEqual(
-            _normalize_gerrit_url("internal2.foo"), "https://internal2.foo"
+            _normalize_gerrit_url("internal2.foo", gerrit_hosts), "https://internal2.foo"
         )
 
     @patch("gerrit_mcp_server.main.load_gerrit_config")
@@ -54,15 +56,17 @@ class TestGerritConfig(unittest.TestCase):
                 {"name": "External", "external_url": "https://another.gerrit.com/"}
             ]
         }
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
         self.assertEqual(
-            _normalize_gerrit_url("another.gerrit.com"), "https://another.gerrit.com"
+            _normalize_gerrit_url("another.gerrit.com", gerrit_hosts), "https://another.gerrit.com"
         )
 
     @patch("gerrit_mcp_server.main.load_gerrit_config")
     def test_normalize_gerrit_url_no_mapping(self, mock_load_config):
         mock_load_config.return_value = {"gerrit_hosts": []}
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
         self.assertEqual(
-            _normalize_gerrit_url("unmapped.url.com"), "https://unmapped.url.com"
+            _normalize_gerrit_url("unmapped.url.com", gerrit_hosts), "https://unmapped.url.com"
         )
 
     @patch("gerrit_mcp_server.main.load_gerrit_config")
@@ -78,15 +82,16 @@ class TestGerritConfig(unittest.TestCase):
                 {"name": "Another", "external_url": "https://another.gerrit.com/"},
             ]
         }
-        self.assertEqual(_normalize_gerrit_url("foo.internal"), "https://external.foo")
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
+        self.assertEqual(_normalize_gerrit_url("foo.internal", gerrit_hosts), "https://external.foo")
         self.assertEqual(
-            _normalize_gerrit_url("internal2.foo"), "https://internal2.foo"
+            _normalize_gerrit_url("internal2.foo", gerrit_hosts), "https://internal2.foo"
         )
         self.assertEqual(
-            _normalize_gerrit_url("another.gerrit.com"), "https://another.gerrit.com"
+            _normalize_gerrit_url("another.gerrit.com", gerrit_hosts), "https://another.gerrit.com"
         )
         self.assertEqual(
-            _normalize_gerrit_url("unmapped.url.com"), "https://unmapped.url.com"
+            _normalize_gerrit_url("unmapped.url.com", gerrit_hosts), "https://unmapped.url.com"
         )
 
 

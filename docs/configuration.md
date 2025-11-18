@@ -34,46 +34,8 @@ Each host object has the following structure:
 
 The `authentication` object is the most important part of the configuration. It tells the server how to authenticate its `curl` requests to the Gerrit API. You must specify a `type` for each host. There are three supported types.
 
-### 1. `http_basic` (Recommended)
 
-This is the standard and most common method for authenticating with a Gerrit instance's REST API. It uses a generated HTTP password or token.
-
-*   **`type`**: `"http_basic"`
-*   **`username`**: Your Gerrit username.
-*   **`auth_token`**: Your Gerrit HTTP password/token. You can usually generate this from your Gerrit user settings page under "HTTP Password".
-
-**Example:**
-```json
-{
-  "name": "Fuchsia Open Source",
-  "external_url": "https://fuchsia-review.googlesource.com/",
-  "authentication": {
-    "type": "http_basic",
-    "username": "your-username",
-    "auth_token": "your-auth-token"
-  }
-}
-```
-
-### 2. `gob_curl` (Google Internal)
-
-This method is for developers working within Google's corporate network. `gob-curl` is a tool that automatically handles authentication for internal services.
-
-*   **`type`**: `"gob_curl"`
-
-**Example:**
-```json
-{
-  "name": "Fuchsia Open Source [Googlers]",
-  "internal_url": "https://fuchsia-review.git.private.corporation.com/",
-  "external_url": "https://fuchsia-review.googlesource.com/",
-  "authentication": {
-    "type": "gob_curl"
-  }
-}
-```
-
-### 3. `git_cookies`
+### 1. `git_cookies` (Recommended)
 
 This method authenticates requests using the same `.gitcookies` file that Git uses to authenticate command-line operations like `git push`. This is a convenient option if you already have this set up.
 
@@ -94,6 +56,45 @@ To generate or update your credentials, log in to your Gerrit instance, navigate
 }
 ```
 If a matching cookie is not found in the file, the server will fall back to making an unauthenticated request.
+
+### 2. `gob_curl` (Google Internal)
+
+This method is for developers working within Google's corporate network. `gob-curl` is a tool that automatically handles authentication for internal services.
+
+*   **`type`**: `"gob_curl"`
+
+**Example:**
+```json
+{
+  "name": "Fuchsia Open Source [Googlers]",
+  "internal_url": "https://fuchsia-review.git.private.corporation.com/",
+  "external_url": "https://fuchsia-review.googlesource.com/",
+  "authentication": {
+    "type": "gob_curl"
+  }
+}
+```
+
+### 3. `http_basic` (Not Recommended)
+
+This is the standard and most common method for authenticating with a Gerrit instance's REST API. It uses a generated HTTP password or token.
+
+*   **`type`**: `"http_basic"`
+*   **`username`**: Your Gerrit username.
+*   **`auth_token`**: Your Gerrit HTTP password/token. You can usually generate this from your Gerrit user settings page under "HTTP Credentials - Obtain Password".
+
+**Example:**
+```json
+{
+  "name": "Fuchsia Open Source",
+  "external_url": "https://fuchsia-review.googlesource.com/",
+  "authentication": {
+    "type": "http_basic",
+    "username": "your-username",
+    "auth_token": "your-auth-token"
+  }
+}
+```
 
 ## Complete Configuration Example
 

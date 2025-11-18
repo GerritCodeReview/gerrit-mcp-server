@@ -45,28 +45,29 @@ class TestMain(unittest.TestCase):
                 }
             ]
         }
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
         self.assertEqual(
-            main._normalize_gerrit_url("fuchsia-review.git.private.corporation.com"),
+            main._normalize_gerrit_url("fuchsia-review.git.private.corporation.com", gerrit_hosts),
             "https://fuchsia-review.googlesource.com",
         )
         self.assertEqual(
-            main._normalize_gerrit_url("https://fuchsia-review.git.private.corporation.com"),
+            main._normalize_gerrit_url("https://fuchsia-review.git.private.corporation.com", gerrit_hosts),
             "https://fuchsia-review.googlesource.com",
         )
         self.assertEqual(
-            main._normalize_gerrit_url("fuchsia-review.googlesource.com"),
+            main._normalize_gerrit_url("fuchsia-review.googlesource.com", gerrit_hosts),
             "https://fuchsia-review.googlesource.com",
         )
         self.assertEqual(
-            main._normalize_gerrit_url("another-gerrit.com"),
+            main._normalize_gerrit_url("another-gerrit.com", gerrit_hosts),
             "https://another-gerrit.com",
         )
         self.assertEqual(
-            main._normalize_gerrit_url("http://another-gerrit.com"),
+            main._normalize_gerrit_url("http://another-gerrit.com", gerrit_hosts),
             "https://another-gerrit.com",
         )
         self.assertEqual(
-            main._normalize_gerrit_url("https://another-gerrit.com"),
+            main._normalize_gerrit_url("https://another-gerrit.com", gerrit_hosts),
             "https://another-gerrit.com",
         )
 
@@ -90,10 +91,55 @@ class TestMain(unittest.TestCase):
         mock_open.assert_called_once_with(Path("/fake/path/gerrit_config.json"), "r")
 
     @patch.dict(os.environ, {}, clear=True)
-    def test_get_gerrit_base_url_with_no_env_var(self):
+    @patch("gerrit_mcp_server.main.load_gerrit_config")
+    def test_get_gerrit_base_url_with_no_env_var(self, mock_load_config):
+        mock_load_config.return_value = {
+            "default_gerrit_base_url": "https://fuchsia-review.googlesource.com",
+            "gerrit_hosts": [
+                {"external_url": "https://fuchsia-review.googlesource.com"}
+            ]
+        }
         self.assertEqual(
-            main._get_gerrit_base_url(), "https://fuchsia-review.googlesource.com/"
+            main._get_gerrit_base_url(), "https://fuchsia-review.googlesource.com"
         )
+    @patch("gerrit_mcp_server.main.Path.exists", return_value=True)
+    @patch("builtins.open", new_callable=unittest.mock.mock_open)
+    def test_load_gerrit_config_valid_default(self, mock_open, mock_exists):
+        config_data = {
+            "default_gerrit_base_url": "https://example.com/",
+            "gerrit_hosts": [
+                {"external_url": "https://example.com"}
+            ]
+        }
+        mock_open.return_value.read.return_value = json.dumps(config_data)
+        config = main.load_gerrit_config()
+        self.assertEqual(config, config_data)
+
+    @patch("gerrit_mcp_server.main.Path.exists", return_value=True)
+    @patch("builtins.open", new_callable=unittest.mock.mock_open)
+    def test_load_gerrit_config_invalid_default(self, mock_open, mock_exists):
+        config_data = {
+            "default_gerrit_base_url": "https://nonexistent.com/",
+            "gerrit_hosts": [
+                {"external_url": "https://example.com"}
+            ]
+        }
+        mock_open.return_value.read.return_value = json.dumps(config_data)
+        with self.assertRaisesRegex(ValueError, "does not match any 'external_url' or 'internal_url'"):
+            main.load_gerrit_config()
+
+    @patch("gerrit_mcp_server.main.Path.exists", return_value=True)
+    @patch("builtins.open", new_callable=unittest.mock.mock_open)
+    def test_load_gerrit_config_valid_default_internal(self, mock_open, mock_exists):
+        config_data = {
+            "default_gerrit_base_url": "https://internal.example.com/",
+            "gerrit_hosts": [
+                {"internal_url": "https://internal.example.com"}
+            ]
+        }
+        mock_open.return_value.read.return_value = json.dumps(config_data)
+        config = main.load_gerrit_config()
+        self.assertEqual(config, config_data)
 
     @patch("gerrit_mcp_server.main.load_gerrit_config")
     @patch("asyncio.create_subprocess_exec", new_callable=AsyncMock)
