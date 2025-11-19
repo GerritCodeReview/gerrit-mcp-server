@@ -209,6 +209,10 @@
         "type": "string",
         "description": "The content of the comment.",
         "required": true
+      },
+      "labels": {
+        "type": "object",
+        "description": "A dictionary of labels to apply to the review (e.g., {'Verified': 1})."
       }
     }
   }

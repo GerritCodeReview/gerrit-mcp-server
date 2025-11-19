@@ -1,0 +1,13 @@
+{
+  "default_gerrit_base_url": "https://gerrit-review.googlesource.com",
+  "gerrit_hosts": [
+    {
+      "name": "Gerrit MCP Server",
+      "external_url": "https://gerrit-review.googlesource.com",
+      "authentication": {
+        "type": "git_cookies",
+        "gitcookies_path": "~/.gitcookies"
+      }
+    }
+  ]
+}
