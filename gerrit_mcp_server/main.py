@@ -1155,6 +1155,7 @@ async def post_review_comment(
     message: str,
     unresolved: bool = True,
     gerrit_base_url: Optional[str] = None,
+    labels: Optional[Dict[str, int]] = None,
 ):
     """
     Posts a review comment on a specific line of a file in a CL.
@@ -1166,22 +1167,24 @@ async def post_review_comment(
 
     payload = {
         "comments": {
-            file_path:
-                [
-                    {
-                        "line": line_number,
-                        "message": message,
-                        "unresolved": unresolved,
-                    }
-                ],
-        }
+            file_path: [
+                {
+                    "line": line_number,
+                    "message": message,
+                    "unresolved": unresolved,
+                }
+            ]
+        },
     }
+    if labels:
+        payload["labels"] = labels
+    
     args = _create_post_args(url, payload)
 
     try:
         result_str = await run_curl(args, base_url)
         # A successful response should contain the updated review information
-        if "comments" in result_str:
+        if '"done": true' in result_str or '"labels"' in result_str or '"comments"' in result_str:
             return [
                 {
                     "type": "text",
