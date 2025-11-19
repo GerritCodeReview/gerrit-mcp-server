@@ -119,6 +119,23 @@
       "message": "Done",
       "revId": "270ad29609d5023f911eb3e466237bb665eb83b6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cc090fc7_b8882ef9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 4267594
+      },
+      "writtenOn": "2025-11-19T07:23:42Z",
+      "side": 1,
+      "message": "Setting Verified +1",
+      "revId": "270ad29609d5023f911eb3e466237bb665eb83b6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
