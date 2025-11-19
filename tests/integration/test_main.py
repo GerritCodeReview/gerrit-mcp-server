@@ -476,3 +476,38 @@ async def test_command_injection(mock_exec):
     command_str = " ".join(command_list)
     assert ";" not in command_str
     assert "rm" not in command_str
+
+@pytest.mark.asyncio
+async def test_post_review_comment_with_labels(mock_run_curl):
+    """Tests posting a review comment with labels."""
+    mock_run_curl.return_value = ')]}\'\\n{"done": true}'
+
+    result = await main.post_review_comment(
+        gerrit_base_url="https://fuchsia-review.googlesource.com",
+        change_id="123",
+        file_path="/COMMIT_MSG",
+        line_number=1,
+        message="Setting Verified to +1",
+        labels={"Verified": 1}
+    )
+    assert "Successfully posted comment" in result[0]["text"]
+    
+    # Verify the JSON payload sent to Gerrit
+    expected_payload = {
+        "comments": {
+            "/COMMIT_MSG": [{
+                "line": 1,
+                "message": "Setting Verified to +1",
+                "unresolved": True
+            }]
+        },
+        "labels": {"Verified": 1}
+    }    
+    # The payload is passed as the argument after '--data'
+    curl_args = mock_run_curl.call_args[0][0]
+    data_index = curl_args.index("--data")
+    actual_payload_str = curl_args[data_index + 1]
+    actual_payload = json.loads(actual_payload_str)
+    
+    assert actual_payload == expected_payload
+
