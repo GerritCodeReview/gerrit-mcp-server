@@ -54,7 +54,7 @@ fi
 
 # Use uv to compile dependencies into a requirements.txt file with hashes
 echo "Compiling dependencies and generating hashes..."
-if ! uv pip compile pyproject.toml --generate-hashes --output-file ${REQUIREMENTS_FILE} --extra-index-url https://pypi.org/simple; then
+if ! uv pip compile pyproject.toml --generate-hashes --output-file ${REQUIREMENTS_FILE} --extra dev --extra-index-url https://pypi.org/simple; then
     echo -e "\n${RED}Failed to compile dependencies.${NC}"
     exit 1
 fi
