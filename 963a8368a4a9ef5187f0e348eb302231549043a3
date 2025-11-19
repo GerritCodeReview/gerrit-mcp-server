@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "40734f1f_14c9665c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 4267594
+      },
+      "writtenOn": "2025-11-19T06:53:46Z",
+      "side": 1,
+      "message": "Setting Verified to +1",
+      "revId": "963a8368a4a9ef5187f0e348eb302231549043a3",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
