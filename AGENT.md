@@ -45,7 +45,7 @@ We use **pytest** as our testing framework.
 Ensure your virtual environment is activated, then run:
 
 ```bash
-pytest
+./test.sh
 ```
 
 ## Runtime & Configuration
@@ -78,3 +78,22 @@ python -m gerrit_mcp_server
 
 ## Debugging
 - **Logs:** The server outputs logs to stderr.
+
+## Contributing
+
+### Creating a CL
+This project uses Gerrit for code reviews. The primary development branch is `master`.
+
+1.  **Create a new branch:**
+    ```bash
+    git checkout -b <your-feature-branch>
+    ```
+2.  **Commit your changes:**
+    ```bash
+    git commit -m "Your descriptive commit message"
+    ```
+3.  **Push for review:**
+    Changes must be pushed to `refs/for/master` to create a CL. Direct pushes to `master` are not permitted.
+    ```bash
+    git push origin HEAD:refs/for/master
+    ```
