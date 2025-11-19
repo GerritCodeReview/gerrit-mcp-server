@@ -1,6 +1,17 @@
 # Gemini CLI Configuration
 
-You can configure the Gemini CLI to use this MCP server, allowing you to interact with Gerrit directly from your terminal. The server can be run in two modes: **HTTP** or **STDIO**.
+You can configure the Gemini CLI to use this MCP server, allowing you to interact with Gerrit directly from your terminal. The server can be installed as a **Gemini Extension**, or run in **HTTP** or **STDIO** modes.
+
+## Gemini Extension (recommended)
+
+This method is recommended as it is easy and requires only one step. You do not need to manually modify the Gemini settings file.
+
+Run the following command:
+```bash
+gemini extension install <path-to-gerrit-mcp-server>
+```
+
+> Read more about Gemini extensions in [https://geminicli.com/docs/extensions/](https://geminicli.com/docs/extensions/).
 
 ## HTTP Mode
 
