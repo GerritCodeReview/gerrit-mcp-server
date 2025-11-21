@@ -1,7 +1,9 @@
 # Gerrit MCP Server Development Guide
 
 ## Overview
-This document serves as the comprehensive guide for developing, testing, and maintaining the `gerrit-mcp-server`. It provides practical instructions for all stages of the development lifecycle.
+This document serves as the comprehensive guide for developing, testing, and
+maintaining the `gerrit-mcp-server`. It provides practical instructions for all
+stages of the development lifecycle.
 
 ## Development Environment
 
@@ -11,7 +13,8 @@ This document serves as the comprehensive guide for developing, testing, and mai
 - `virtualenv` (recommended)
 
 ### Setup
-The project includes a build script that handles the creation of the virtual environment and installation of dependencies using `uv`.
+The project includes a build script that handles the creation of the virtual
+environment and installation of dependencies using `uv`.
 
 1.  **Run the build script:**
     ```bash

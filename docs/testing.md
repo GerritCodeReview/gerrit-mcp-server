@@ -1,13 +1,15 @@
 # Testing the Gerrit MCP Server
 
-This project includes a comprehensive test suite to ensure the server functions correctly and remains stable. We use **pytest** as our testing framework.
+This project includes a comprehensive test suite to ensure the server functions
+correctly and remains stable. We use **pytest** as our testing framework.
 
 ## Quick Start
 
 The easiest way to run the tests is to use `pytest` from the root of the project.
 
 1.  **Build the Environment**:
-    Run the build script to set up the virtual environment and install dependencies:
+    Run the build script to set up the virtual environment and install
+    dependencies:
     ```bash
     ./build-gerrit.sh
     ```
@@ -26,13 +28,24 @@ The easiest way to run the tests is to use `pytest` from the root of the project
 
 The tests are organized as follows:
 
-*   `tests/unit/`: **Fast, isolated tests.** These tests verify individual functions and classes in isolation. External dependencies like `curl` and file system operations are mocked to ensure speed and determinism. They are the first line of defense.
-*   `tests/integration/`: **Component interaction tests.** These tests verify that different parts of the application work together correctly. While they still mock external network calls (to avoid flakiness), they test the flow of data through the system, including configuration loading and command execution logic.
-*   `tests/e2e/`: **End-to-End tests.** These tests run against a live Gerrit instance. They are optional and require specific configuration. They verify that the server can actually communicate with a real Gerrit server and perform actions like querying changes and posting comments.
+*   `tests/unit/`: **Fast, isolated tests.** These tests verify individual
+    functions and classes in isolation. External dependencies like `curl` and
+    file system operations are mocked to ensure speed and determinism. They are
+    the first line of defense.
+*   `tests/integration/`: **Component interaction tests.** These tests verify
+    that different parts of the application work together correctly. While they
+    still mock external network calls (to avoid flakiness), they test the flow
+    of data through the system, including configuration loading and command
+    execution logic.
+*   `tests/e2e/`: **End-to-End tests.** These tests run against a live Gerrit
+    instance. They are optional and require specific configuration. They verify
+    that the server can actually communicate with a real Gerrit server and
+    perform actions like querying changes and posting comments.
 
 ## Writing Tests
 
-Tests should be simple, readable, and follow the "Arrange, Act, Assert" pattern. We use `pytest` fixtures for setup and dependency injection.
+Tests should be simple, readable, and follow the "Arrange, Act, Assert" pattern.
+We use `pytest` fixtures for setup and dependency injection.
 
 ### Example: Unit Test
 ```python
@@ -51,9 +64,11 @@ async def test_get_bugs_from_cl():
 
 ## End-to-End (E2E) Tests
 
-To run E2E tests, you need a `tests/e2e/e2e_config.json` file (see `tests/e2e/e2e_config.sample.json`).
+To run E2E tests, you need a `tests/e2e/e2e_config.json` file (see
+`tests/e2e/e2e_config.sample.json`).
 
-**Note:** This configuration file is **required** for E2E tests to know which Gerrit instance to target and what credentials to use.
+**Note:** This configuration file is **required** for E2E tests to know which
+Gerrit instance to target and what credentials to use.
 
 Run them with:
 ```bash

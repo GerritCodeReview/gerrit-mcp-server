@@ -1,6 +1,9 @@
 # 🐍 Gerrit MCP Server
 
-An MCP (Model Context Protocol) server for interacting with the Gerrit code review system. This server allows a language model like Gemini to query changes, retrieve details, and manage reviews by executing `curl` commands against the Gerrit REST API.
+An MCP (Model Context Protocol) server for interacting with the Gerrit code
+review system. This server allows a language model like Gemini to query changes,
+retrieve details, and manage reviews by executing `curl` commands against the
+Gerrit REST API.
 
 This server can be run as a persistent **HTTP server** or on-demand via **STDIO**.
 
@@ -20,7 +23,8 @@ For detailed information, please see the documents in the `docs/` directory:
 
 ### 1. Prerequisites
 
-Before you begin, ensure you have the following tools installed and available in your system's `PATH`.
+Before you begin, ensure you have the following tools installed and available in
+your system's `PATH`.
 
 *   **Python 3.11+**: The build script requires a modern version of Python.
 *   **curl**: The standard command-line tool for transferring data with URLs.
@@ -30,7 +34,9 @@ Before you begin, ensure you have the following tools installed and available in
 
 ### 2. Build the Environment
 
-Run the build script from the root of the `gerrit-mcp-server` project directory. This will create a Python virtual environment, install all dependencies, and make the server ready to run.
+Run the build script from the root of the `gerrit-mcp-server` project directory.
+This will create a Python virtual environment, install all dependencies, and
+make the server ready to run.
 
 ```bash
 ./build-gerrit.sh
@@ -38,7 +44,11 @@ Run the build script from the root of the `gerrit-mcp-server` project directory.
 
 ### 3. Configure the Server
 
-You will need to create a `gerrit_config.json` file inside the `gerrit_mcp_server` directory. Copy the provided sample file `gerrit_mcp_server/gerrit_config.sample.json` and customize it for your environment. See the **[Configuration Guide](docs/configuration.md)** for details on all available options.
+You will need to create a `gerrit_config.json` file inside the
+`gerrit_mcp_server` directory. Copy the provided sample file
+`gerrit_mcp_server/gerrit_config.sample.json` and customize it for your
+environment. See the **[Configuration Guide](docs/configuration.md)** for
+details on all available options.
 
 ```bash
 cp gerrit_mcp_server/gerrit_config.sample.json gerrit_mcp_server/gerrit_config.json

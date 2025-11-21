@@ -1,10 +1,13 @@
 # Gemini CLI Configuration
 
-You can configure the Gemini CLI to use this MCP server, allowing you to interact with Gerrit directly from your terminal. The server can be installed as a **Gemini Extension**, or run in **HTTP** or **STDIO** modes.
+You can configure the Gemini CLI to use this MCP server, allowing you to
+interact with Gerrit directly from your terminal. The server can be installed as
+a **Gemini Extension**, or run in **HTTP** or **STDIO** modes.
 
 ## Gemini Extension (recommended)
 
-This method is recommended as it is easy and requires only one step. You do not need to manually modify the Gemini settings file.
+This method is recommended as it is easy and requires only one step. You do not
+need to manually modify the Gemini settings file.
 
 Run the following command:
 ```bash
@@ -15,7 +18,8 @@ gemini extension install <path-to-gerrit-mcp-server>
 
 ## HTTP Mode
 
-In HTTP mode, the server runs as a persistent background process. This is recommended for frequent use.
+In HTTP mode, the server runs as a persistent background process. This is
+recommended for frequent use.
 
 1.  **Start the Server:**
     From the `gerrit-mcp-server` project directory, run:
@@ -24,7 +28,8 @@ In HTTP mode, the server runs as a persistent background process. This is recomm
     ```
 
 2.  **Configure Gemini CLI:**
-    Add the following to your `$HOME/.gemini/settings.json` file. This tells the CLI to connect to the running HTTP server.
+    Add the following to your `$HOME/.gemini/settings.json` file. This tells the
+    CLI to connect to the running HTTP server.
 
     ```json
     {
@@ -39,10 +44,12 @@ In HTTP mode, the server runs as a persistent background process. This is recomm
 
 ## STDIO Mode
 
-In STDIO mode, the Gemini CLI starts the MCP server on-demand for each request. This is useful if you don't want a server running in the background.
+In STDIO mode, the Gemini CLI starts the MCP server on-demand for each request.
+This is useful if you don't want a server running in the background.
 
-**Configure Gemini CLI:**
-Add the following to your `$HOME/.gemini/settings.json` file. Make sure to replace `<path_to_project>` with the absolute path to your `gerrit-mcp-server` project directory.
+**Configure Gemini CLI:** Add the following to your
+`$HOME/.gemini/settings.json` file. Make sure to replace `<path_to_project>`
+with the absolute path to your `gerrit-mcp-server` project directory.
 
 ```json
 {

@@ -1,8 +1,11 @@
 # Gerrit MCP Server Configuration (`gerrit_config.json`)
 
-The `gerrit_mcp_server` is configured via a central JSON file located at `gerrit_mcp_server/gerrit_config.json`. This file allows you to define connection and authentication details for multiple Gerrit instances.
+The `gerrit_mcp_server` is configured via a central JSON file located at
+`gerrit_mcp_server/gerrit_config.json`. This file allows you to define
+connection and authentication details for multiple Gerrit instances.
 
-A sample file is provided at `gerrit_mcp_server/gerrit_config.sample.json` which you can copy and customize.
+A sample file is provided at `gerrit_mcp_server/gerrit_config.sample.json` which
+you can copy and customize.
 
 ## Top-Level Configuration
 
@@ -17,7 +20,9 @@ The configuration file has two main properties at its root:
 
 ## The `gerrit_hosts` Array
 
-This is a list where you define each Gerrit instance you want to interact with. The server will look through this list to find a host that matches the URL of a given request.
+This is a list where you define each Gerrit instance you want to interact with.
+The server will look through this list to find a host that matches the URL of a
+given request.
 
 Each host object has the following structure:
 
@@ -32,14 +37,21 @@ Each host object has the following structure:
 
 ## Authentication Methods
 
-The `authentication` object is the most important part of the configuration. It tells the server how to authenticate its `curl` requests to the Gerrit API. You must specify a `type` for each host. There are three supported types.
+The `authentication` object is the most important part of the configuration. It
+tells the server how to authenticate its `curl` requests to the Gerrit API. You
+must specify a `type` for each host. There are three supported types.
 
 
 ### 1. `git_cookies` (Recommended)
 
-This method authenticates requests using the same `.gitcookies` file that Git uses to authenticate command-line operations like `git push`. This is a convenient option if you already have this set up.
+This method authenticates requests using the same `.gitcookies` file that Git
+uses to authenticate command-line operations like `git push`. This is a
+convenient option if you already have this set up.
 
-To generate or update your credentials, log in to your Gerrit instance, navigate to **Settings** (the gear icon), and find the **HTTP Credentials** section. Gerrit will provide a script or commands to run that will configure your `.gitcookies` file with the correct authentication token.
+To generate or update your credentials, log in to your Gerrit instance, navigate
+to **Settings** (the gear icon), and find the **HTTP Credentials** section.
+Gerrit will provide a script or commands to run that will configure your
+`.gitcookies` file with the correct authentication token.
 
 *   **`type`**: `"git_cookies"`
 *   **`gitcookies_path`**: The path to your `.gitcookies` file (e.g., `~/.gitcookies`).
@@ -55,11 +67,14 @@ To generate or update your credentials, log in to your Gerrit instance, navigate
   }
 }
 ```
-If a matching cookie is not found in the file, the server will fall back to making an unauthenticated request.
+If a matching cookie is not found in the file, the server will fall back to
+making an unauthenticated request.
 
 ### 2. `gob_curl` (Google Internal)
 
-This method is for developers working within Google's corporate network. `gob-curl` is a tool that automatically handles authentication for internal services.
+This method is for developers working within Google's corporate network.
+`gob-curl` is a tool that automatically handles authentication for internal
+services.
 
 *   **`type`**: `"gob_curl"`
 
@@ -77,7 +92,8 @@ This method is for developers working within Google's corporate network. `gob-cu
 
 ### 3. `http_basic` (Not Recommended)
 
-This is the standard and most common method for authenticating with a Gerrit instance's REST API. It uses a generated HTTP password or token.
+This is the standard and most common method for authenticating with a Gerrit
+instance's REST API. It uses a generated HTTP password or token.
 
 *   **`type`**: `"http_basic"`
 *   **`username`**: Your Gerrit username.
@@ -98,7 +114,8 @@ This is the standard and most common method for authenticating with a Gerrit ins
 
 ## Complete Configuration Example
 
-Here is an example of a `gerrit_config.json` file that defines multiple hosts using all available authentication methods.
+Here is an example of a `gerrit_config.json` file that defines multiple hosts
+using all available authentication methods.
 
 ```json
 {
