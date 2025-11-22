@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4cb4d7db_e791e8b9",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1155599
+      },
+      "writtenOn": "2025-11-22T13:27:00Z",
+      "side": 0,
+      "message": "AFAIK, these aren\u0027t prerequisites. Happy to be told otherwise.",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 0
+      },
+      "revId": "f6e2fdb3b2411d3a6e32af1004ce04c7737f2881",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
