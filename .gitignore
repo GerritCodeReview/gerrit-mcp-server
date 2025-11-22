@@ -5,3 +5,4 @@ server.log
 server.pid
 uv.lock
 context/
+gerrit_mcp_server/gerrit_config.json
