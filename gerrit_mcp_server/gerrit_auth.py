@@ -48,6 +48,8 @@ def _get_auth_for_gitcookies(gerrit_base_url: str, config: Dict[str, Any]) -> Li
         raise ValueError("Authentication method requires 'gitcookies_path' to be set.")
 
     gitcookies_path = os.path.expanduser(gitcookies_path_str)
+
+    last_found_cookie = None
     if os.path.exists(gitcookies_path):
         domain = (
             gerrit_base_url.replace("https://", "").replace("http://", "").split("/")[0]
@@ -57,8 +59,10 @@ def _get_auth_for_gitcookies(gerrit_base_url: str, config: Dict[str, Any]) -> Li
                 if domain in line:
                     parts = line.strip().split("\t")
                     if len(parts) == 7:
-                        cookie = f"{parts[5]}={parts[6]}"
-                        return ["curl", "-b", cookie, "-L"]
+                        last_found_cookie = f"{parts[5]}={parts[6]}"
+
+        if last_found_cookie:
+            return ["curl", "-b", last_found_cookie, "-L"]
 
     # Fallback for when the cookie file doesn't exist or has no matching cookie.
     return ["curl", "-s", "-L"]
