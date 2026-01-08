@@ -68,6 +68,23 @@ class TestGerritAuth(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "requires 'gitcookies_path'"):
             gerrit_auth._get_auth_for_gitcookies("https://a.com", {})
 
+    @patch("os.path.exists", return_value=True)
+    def test_get_auth_for_gitcookies_selects_last_entry(self, mock_exists):
+        """Tests that _get_auth_for_gitcookies selects the last matching cookie entry."""
+        config = {"gitcookies_path": "~/.gitcookies"}
+        url = "https://my-gerrit.com"
+        multi_cookie_content = (
+            "other-gerrit.com\tFALSE\t/\tTRUE\t2147483647\to\tgit-oldtoken\n"
+            "my-gerrit.com\tFALSE\t/\tTRUE\t2147483647\to\tgit-firsttoken\n"
+            "another-gerrit.com\tFALSE\t/\tTRUE\t2147483647\to\tgit-anothertoken\n"
+            "my-gerrit.com\tFALSE\t/\tTRUE\t2147483647\to\tgit-lasttoken"
+        )
+        m = mock_open(read_data=multi_cookie_content)
+        with patch("builtins.open", m):
+            command = gerrit_auth._get_auth_for_gitcookies(url, config)
+        self.assertEqual(command, ["curl", "-b", "o=git-lasttoken", "-L"])
+
 
 if __name__ == "__main__":
     unittest.main()
+
