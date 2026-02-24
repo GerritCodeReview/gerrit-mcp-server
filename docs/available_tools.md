@@ -36,4 +36,5 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 -   **get_most_recent_cl**: Gets the most recent CL for a user.
 -   **get_bugs_from_cl**: Extracts bug IDs from the commit message of a CL.
 -   **post_review_comment**: Posts a review comment on a specific line of a file
-    in a CL.
+    in a CL. Supports replying to existing comment threads via `in_reply_to`.
+    Use `/PATCHSET_LEVEL` as `file_path` for patchset-level comments.

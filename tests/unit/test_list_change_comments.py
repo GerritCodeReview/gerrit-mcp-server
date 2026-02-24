@@ -29,6 +29,7 @@ class TestListChangeComments(unittest.TestCase):
             mock_response = {
                 "src/main.py": [
                     {
+                        "id": "abc123",
                         "line": 10,
                         "author": {"name": "user1@example.com"},
                         "message": "This is a comment.",
@@ -36,6 +37,8 @@ class TestListChangeComments(unittest.TestCase):
                         "updated": "2025-07-15T10:00:00Z",
                     },
                     {
+                        "id": "def456",
+                        "in_reply_to": "abc123",
                         "line": 15,
                         "author": {"name": "user2@example.com"},
                         "message": "This is resolved.",
@@ -45,6 +48,7 @@ class TestListChangeComments(unittest.TestCase):
                 ],
                 "README.md": [
                     {
+                        "id": "ghi789",
                         "author": {"name": "user1@example.com"},
                         "message": "Another unresolved comment.",
                         "unresolved": True,
@@ -64,18 +68,18 @@ class TestListChangeComments(unittest.TestCase):
             self.assertIn("Comments for CL 11223", result[0]["text"])
             self.assertIn("File: src/main.py", result[0]["text"])
             self.assertIn(
-                "L10: [user1@example.com] (2025-07-15T10:00:00Z) - UNRESOLVED",
+                "L10 [id: abc123]: [user1@example.com] (2025-07-15T10:00:00Z) - UNRESOLVED",
                 result[0]["text"],
             )
             self.assertIn("This is a comment.", result[0]["text"])
             self.assertIn(
-                "L15: [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED",
+                "L15 [id: def456] (in_reply_to: abc123): [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED",
                 result[0]["text"],
             )
             self.assertIn("This is resolved.", result[0]["text"])
             self.assertIn("File: README.md", result[0]["text"])
             self.assertIn(
-                "LFile: [user1@example.com] (2025-07-15T10:10:00Z) - UNRESOLVED",
+                "LFile [id: ghi789]: [user1@example.com] (2025-07-15T10:10:00Z) - UNRESOLVED",
                 result[0]["text"],
             )
             self.assertIn("Another unresolved comment.", result[0]["text"])
@@ -90,6 +94,7 @@ class TestListChangeComments(unittest.TestCase):
             mock_response = {
                 "src/main.py": [
                     {
+                        "id": "xyz999",
                         "line": 15,
                         "author": {"name": "user2@example.com"},
                         "message": "This is resolved.",
@@ -109,9 +114,57 @@ class TestListChangeComments(unittest.TestCase):
             # Assert
             self.assertIn("Comments for CL 11223", result[0]["text"])
             self.assertIn(
-                "L15: [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED",
+                "L15 [id: xyz999]: [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED",
                 result[0]["text"],
             )
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_list_change_comments_patchset_level(self, mock_run_curl):
+        """Tests that /PATCHSET_LEVEL comments are displayed correctly."""
+
+        async def run_test():
+            change_id = "11223"
+            gerrit_base_url = "https://gerrit-review.googlesource.com"
+            mock_response = {
+                "/PATCHSET_LEVEL": [
+                    {
+                        "id": "ps_comment_1",
+                        "author": {"name": "reviewer@example.com"},
+                        "message": "Overall looks good, a few nits.",
+                        "unresolved": True,
+                        "updated": "2025-07-15T12:00:00Z",
+                    },
+                    {
+                        "id": "ps_comment_2",
+                        "in_reply_to": "ps_comment_1",
+                        "author": {"name": "author@example.com"},
+                        "message": "Thanks, will fix.",
+                        "unresolved": False,
+                        "updated": "2025-07-15T12:05:00Z",
+                    },
+                ],
+            }
+            mock_run_curl.return_value = json.dumps(mock_response)
+
+            result = await main.list_change_comments(
+                change_id, gerrit_base_url=gerrit_base_url
+            )
+
+            # Assert
+            self.assertIn("Comments for CL 11223", result[0]["text"])
+            self.assertIn("File: /PATCHSET_LEVEL", result[0]["text"])
+            self.assertIn(
+                "LFile [id: ps_comment_1]: [reviewer@example.com] (2025-07-15T12:00:00Z) - UNRESOLVED",
+                result[0]["text"],
+            )
+            self.assertIn("Overall looks good, a few nits.", result[0]["text"])
+            self.assertIn(
+                "LFile [id: ps_comment_2] (in_reply_to: ps_comment_1): [author@example.com] (2025-07-15T12:05:00Z) - RESOLVED",
+                result[0]["text"],
+            )
+            self.assertIn("Thanks, will fix.", result[0]["text"])
 
         asyncio.run(run_test())
 

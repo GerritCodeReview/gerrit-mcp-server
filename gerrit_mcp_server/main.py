@@ -532,12 +532,16 @@ async def list_change_comments(
         output += f"---\nFile: {file_path}\n"
         found_comments = True
         for comment in comments:
+            comment_id = comment.get("id", "")
+            in_reply_to = comment.get("in_reply_to", "")
             line = comment.get("line", "File")
             author = comment.get("author", {}).get("name", "Unknown")
             timestamp = comment.get("updated", "No date")
             message = comment["message"]
             status = "UNRESOLVED" if comment.get("unresolved", False) else "RESOLVED"
-            output += f"L{line}: [{author}] ({timestamp}) - {status}\n"
+            id_info = f" [id: {comment_id}]" if comment_id else ""
+            reply_info = f" (in_reply_to: {in_reply_to})" if in_reply_to else ""
+            output += f"L{line}{id_info}{reply_info}: [{author}] ({timestamp}) - {status}\n"
             output += f"  {message}\n"
 
     if not found_comments:
@@ -1151,44 +1155,52 @@ async def get_bugs_from_cl(
 async def post_review_comment(
     change_id: str,
     file_path: str,
-    line_number: int,
-    message: str,
+    line_number: Optional[int] = None,
+    message: str = "",
+    in_reply_to: Optional[str] = None,
     unresolved: bool = True,
     gerrit_base_url: Optional[str] = None,
     labels: Optional[Dict[str, int]] = None,
 ):
     """
     Posts a review comment on a specific line of a file in a CL.
+    To reply to an existing comment thread, first call list_change_comments
+    to find the id of the comment you want to reply to, then pass it as
+    in_reply_to. Without in_reply_to, the comment is posted as a new thread.
+    For patchset-level comments, use file_path='/PATCHSET_LEVEL' and omit
+    line_number. For file-level comments, set line_number to 0 or omit it.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
     url = f"{base_url}/changes/{change_id}/revisions/current/review"
 
-    payload = {
-        "comments": {
-            file_path: [
-                {
-                    "line": line_number,
-                    "message": message,
-                    "unresolved": unresolved,
-                }
-            ]
-        },
+    comment_input: Dict[str, Any] = {
+        "message": message,
+        "unresolved": unresolved,
+    }
+    if line_number is not None:
+        comment_input["line"] = line_number
+    if in_reply_to:
+        comment_input["in_reply_to"] = in_reply_to
+
+    payload: Dict[str, Any] = {
+        "comments": {file_path: [comment_input]},
     }
     if labels:
         payload["labels"] = labels
-    
+
     args = _create_post_args(url, payload)
 
     try:
         result_str = await run_curl(args, base_url)
         # A successful response should contain the updated review information
         if '"done": true' in result_str or '"labels"' in result_str or '"comments"' in result_str:
+            location = f" at line {line_number}" if line_number else ""
             return [
                 {
                     "type": "text",
-                    "text": f"Successfully posted comment to CL {change_id} on file {file_path} at line {line_number}.",
+                    "text": f"Successfully posted comment to CL {change_id} on file {file_path}{location}.",
                 }
             ]
         else:
