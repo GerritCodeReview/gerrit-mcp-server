@@ -16,6 +16,108 @@
       "message": "Improve products",
       "revId": "a2984393177767d406d56fb37ebb9fb8d38452b6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2b0b22b_c83fd382",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 4190391
+      },
+      "writtenOn": "2026-03-05T16:31:32Z",
+      "side": 1,
+      "message": "**Issue 2: Flattened Comment DataFrame**\n* **Concern**: `list_change_comments` strings together all comments in a flat list with `in_reply_to` UUIDs. This forces the LLM to internally reconstruct the conversation tree, risking context confusion.\n* **Explanation**: Rather than grouping the conversations, the code iterates over a file\u0027s comments and prints them out chronologically, appending `(in_reply_to: uuid)`. An AI agent has to hold this entire list in its context and cross-reference UUIDs to determine if a thread is resolved. Pre-formatting it as an indented tree would be much safer and reduce hallucinations.\n* **Recommendation (2A):** Pre-process parsed comments into a visually indented string tree in `main.py` before converting to string text.",
+      "revId": "a2984393177767d406d56fb37ebb9fb8d38452b6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eb2ea7dd_0690f9b6",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1159,
+      "author": {
+        "id": 4190391
+      },
+      "writtenOn": "2026-03-05T16:31:32Z",
+      "side": 1,
+      "message": "**Issue 4: Unhandled missing-argument edge cases for `message` and `labels`.**\n* **Concern**: Calling the tool with neither a `message` nor `labels` triggers a silent or deceptive Gerrit failure.\n* **Explanation**: The new signature sets `message\u003d\"\"` and `labels\u003dNone` as defaults. Posting to the Gerrit `/review` endpoint with no text and no votes is invalid. An AI agent could easily try to do this and get confusing errors. Missing early validation handling means the error is caught blindly by Gerrit instead of giving a useful error early on our server.\n* **Recommendation (4A):** Add an explicit guard clause (`if not message and not labels: return {\"error\":...}`) at the top of the function to catch the edge case before invoking `curl`.",
+      "revId": "a2984393177767d406d56fb37ebb9fb8d38452b6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3fee76e9_38e19ff1",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1159,
+      "author": {
+        "id": 4190391
+      },
+      "writtenOn": "2026-03-05T16:31:32Z",
+      "side": 1,
+      "message": "**Issue 1: Spam Risk from Atomic `post_review_comment` API**\n* **Concern**: Calling the tool multiple times for a single CL sequentially hits Gerrit\u0027s `/review` endpoint. This immediately publishes separate reviews rather than batching them, spamming reviewers with multiple emails.\n* **Explanation**: The API is currently structured to accept a single comment action per invocation (`post_review_comment(change_id, file_path, line_number, message...`). Since this hits Gerrit\u0027s `/changes/.../review` endpoint, every call instantly sends an email to everyone on the thread. A batch-update tool that accepts a list of changes natively maps to Gerrit\u0027s intended data flow.\n* **Recommendation (1A):** Update the MCP tool schema to accept a list of comments so it batches in a single `curl` POST.",
+      "revId": "a2984393177767d406d56fb37ebb9fb8d38452b6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "be92bdd7_e557b5fb",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1198,
+      "author": {
+        "id": 4190391
+      },
+      "writtenOn": "2026-03-05T16:31:32Z",
+      "side": 1,
+      "message": "**Issue 3: Fragile JSON validation via substring matching.**\n* **Concern**: Checking for success by substring matching (`if \u0027\"done\": true\u0027 in result_str...`) is highly fragile, bug-prone, and a code smell.\n* **Explanation**: Scanning the raw HTTP response string for JSON keys instead of parsing it allows edge cases (like a user typing \u0027\"labels\"\u0027 in their text comment) to false-positive a success check when Gerrit returns a 400 error string reflecting the query.\n* **Recommendation (3A):** Parse `result_str` cleanly using `json.loads(result_str)` and check the dictionary structure explicitly (bias toward explicit over clever).",
+      "revId": "a2984393177767d406d56fb37ebb9fb8d38452b6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ea7f693b_51aa8318",
+        "filename": "tests/unit/test_post_review_comment.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 4190391
+      },
+      "writtenOn": "2026-03-05T16:31:32Z",
+      "side": 1,
+      "message": "**Issue 5: Broken mock return types causing false-positive test passes.**\n* **Concern**: The tests are passing by sheer luck due to a type mismatch in mock return values, masking potential bugs if the implementation changes.\n* **Explanation**: `run_curl` in `main.py` returns a `str`. However, in this test, `mock_run_curl.return_value` is explicitly set to a tuple: `(0, \u0027{\"done\": true}\u0027, \u0027\u0027)`. Because the success check in `main.py` currently uses `if \u0027\"done\": true\u0027 in result_str`, Python checks if the exact string `\u0027{\"done\": true}\u0027` is an *element* of that mocked tuple, which evaluates to `True`. Because of this, the tests pass. If we fix Issue 3 to properly parse the string using `json.loads()`, these tests will instantly fail with a `TypeError`.\n* **Recommendation (5A):** Fix the mock implementations across `test_post_review_comment.py` so exactly `mock_run_curl.return_value \u003d \u0027{\"done\": true}\u0027` instead, to properly match the actual string return type of `run_curl`.",
+      "revId": "a2984393177767d406d56fb37ebb9fb8d38452b6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2adc756e_8813d9e0",
+        "filename": "tests/unit/test_post_review_comment.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 4190391
+      },
+      "writtenOn": "2026-03-05T16:31:32Z",
+      "side": 1,
+      "message": "**Issue 6: Missing negative test coverage for `in_reply_to`.**\n* **Concern**: The unit tests only cover the golden \"happy path\", leaving failure modes untested.\n* **Explanation**: A core part of this CL relies on Gerrit accepting our `in_reply_to` UUIDs. What happens if the AI agent hallucinates an invalid UUID or provides one from a different file? The tests currently only mock a successful `{\"done\": true}` from Gerrit. We need to assert our error handling catches things gracefully if Gerrit returns a `400 Bad Request` or a string error message because `in_reply_to` was bad.\n* **Recommendation (6A):** Add a negative test case simulating an error response string from Gerrit when an invalid `in_reply_to` ID is provided, to ensure it doesn\u0027t crash the plugin.",
+      "revId": "a2984393177767d406d56fb37ebb9fb8d38452b6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
