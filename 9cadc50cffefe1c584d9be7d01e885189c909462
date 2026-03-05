@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9b8c2f0a_a20036ec",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4687910
+      },
+      "writtenOn": "2026-03-05T21:12:46Z",
+      "side": 1,
+      "message": "Hey @dannyrosen@google.com, all presubmit checks are completed. Do I need to trigger another workflow or can you vote +1 on the verified?",
+      "revId": "9cadc50cffefe1c584d9be7d01e885189c909462",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
