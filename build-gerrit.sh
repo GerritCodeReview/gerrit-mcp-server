@@ -18,6 +18,9 @@
 # --- Prepend common user binary paths to PATH for cross-platform compatibility ---
 # This helps find tools like pipx and uv if they were installed by the user.
 export PATH="$HOME/.local/bin:$HOME/Library/Python/3.9/bin:$PATH"
+export PIP_INDEX_URL="https://pypi.org/simple"
+export UV_INDEX_URL="https://pypi.org/simple"
+export UV_DEFAULT_INDEX="https://pypi.org/simple"
 
 # --- Color Codes ---
 GREEN='\033[0;32m'
@@ -47,7 +50,7 @@ source "${VENV_DIR}/bin/activate"
 
 # Install uv into the virtual environment
 echo "Installing uv..."
-if ! pip3 install -r uv-requirements.txt --require-hashes; then
+if ! pip3 install --index-url https://pypi.org/simple -r uv-requirements.txt --require-hashes; then
     echo -e "${RED}Failed to install uv.${NC}"
     exit 1
 fi
