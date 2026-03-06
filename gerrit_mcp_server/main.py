@@ -500,13 +500,71 @@ async def get_file_diff(
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
     encoded_file_path = quote(file_path, safe="")
-    url = f"{base_url}/changes/{change_id}/revisions/current/patch?path={encoded_file_path}"
+    url = f"{base_url}/changes/{change_id}/revisions/current/files/{encoded_file_path}/diff"
 
-    diff_base64 = await run_curl([url], base_url)
-    # The response is a base64 encoded string, we need to decode it.
-    # The result from run_curl is already a string, so we encode it back to bytes for b64decode
-    diff_text = base64.b64decode(diff_base64.encode("utf-8")).decode("utf-8")
-    return [{"type": "text", "text": diff_text}]
+    result_str = await run_curl([url], base_url)
+    try:
+        diff_json = json.loads(result_str)
+    except json.JSONDecodeError:
+        return [{"type": "text", "text": f"Failed to parse diff response.\n{result_str}"}]
+
+    return [{"type": "text", "text": _format_structured_diff(file_path, diff_json)}]
+
+
+def _build_diff_header(file_path: str, diff_json: dict) -> str:
+    meta_a = diff_json.get("meta_a")
+    meta_b = diff_json.get("meta_b")
+    change_type = diff_json.get("change_type", "MODIFIED")
+
+    header = f"diff {file_path} ({change_type})"
+    if meta_a:
+        header += f"\nold: {meta_a.get('name', file_path)} ({meta_a.get('lines', '?')} lines)"
+    if meta_b:
+        header += f"\nnew: {meta_b.get('name', file_path)} ({meta_b.get('lines', '?')} lines)"
+    return header
+
+
+def _format_structured_diff(file_path: str, diff_json: dict) -> str:
+    """Formats Gerrit's structured diff JSON into annotated text with line numbers.
+
+    We pre-compute line numbers instead of returning raw JSON or unified diffs
+    because LLMs frequently miscalculate line numbers from hunk headers
+    (e.g. @@ -10,5 +12,7 @@), leading to review comments posted on wrong lines.
+
+    Each line is prefixed with its new-file line number so that consumers can
+    directly use it when posting review comments via post_draft_comment/post_review_comment.
+
+    Format:
+        <new_line_number>:  unchanged line
+        <new_line_number>: +added line
+                         : -deleted line
+    """
+    lines = [_build_diff_header(file_path, diff_json), ""]
+
+    old_line = 1
+    new_line = 1
+
+    for chunk in diff_json.get("content", []):
+        for text in chunk.get("ab", []):
+            lines.append(f"{new_line:>6}:  {text}")
+            old_line += 1
+            new_line += 1
+
+        for text in chunk.get("a", []):
+            lines.append(f"      : -{text}")
+            old_line += 1
+
+        for text in chunk.get("b", []):
+            lines.append(f"{new_line:>6}: +{text}")
+            new_line += 1
+
+        if "skip" in chunk:
+            skip_count = chunk["skip"]
+            lines.append(f"  ... ({skip_count} unchanged lines omitted)")
+            old_line += skip_count
+            new_line += skip_count
+
+    return "\n".join(lines)
 
 
 @mcp.tool()
