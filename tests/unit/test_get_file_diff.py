@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import unittest
 from unittest.mock import patch, AsyncMock
 import asyncio
-import base64
 
 from gerrit_mcp_server import main
 
@@ -27,11 +27,16 @@ class TestGetFileDiff(unittest.TestCase):
             # Arrange
             change_id = "54321"
             file_path = "src/main.py"
-            diff_content = "diff --git a/src/main.py b/src/main.py\n--- a/src/main.py\n+++ b/src/main.py\n@@ -1,1 +1,1 @@\n-old line\n+new line"
-            encoded_diff = base64.b64encode(diff_content.encode("utf-8")).decode(
-                "utf-8"
-            )
-            mock_run_curl.return_value = encoded_diff
+            diff_json = {
+                "meta_a": {"name": "src/main.py", "content_type": "text/x-python", "lines": 3},
+                "meta_b": {"name": "src/main.py", "content_type": "text/x-python", "lines": 3},
+                "change_type": "MODIFIED",
+                "content": [
+                    {"ab": ["import os", ""]},
+                    {"a": ["old line"], "b": ["new line"]},
+                ],
+            }
+            mock_run_curl.return_value = json.dumps(diff_json)
             gerrit_base_url = "https://my-gerrit.com"
 
             # Act
@@ -40,7 +45,75 @@ class TestGetFileDiff(unittest.TestCase):
             )
 
             # Assert
-            self.assertEqual(result[0]["text"], diff_content)
+            text = result[0]["text"]
+            self.assertIn("src/main.py (MODIFIED)", text)
+            # Unchanged lines should have new-file line numbers
+            self.assertIn("     1:  import os", text)
+            self.assertIn("     2:  ", text)
+            # Deleted line has no new-file line number
+            self.assertIn("      : -old line", text)
+            # Added line has new-file line number
+            self.assertIn("     3: +new line", text)
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_get_file_diff_new_file(self, mock_run_curl):
+        async def run_test():
+            change_id = "99999"
+            file_path = "new_file.py"
+            diff_json = {
+                "meta_b": {"name": "new_file.py", "content_type": "text/x-python", "lines": 3},
+                "change_type": "ADDED",
+                "content": [
+                    {"b": ["line one", "line two", "line three"]},
+                ],
+            }
+            mock_run_curl.return_value = json.dumps(diff_json)
+
+            result = await main.get_file_diff(
+                change_id, file_path, gerrit_base_url="https://my-gerrit.com"
+            )
+
+            text = result[0]["text"]
+            self.assertIn("new_file.py (ADDED)", text)
+            self.assertIn("     1: +line one", text)
+            self.assertIn("     2: +line two", text)
+            self.assertIn("     3: +line three", text)
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_get_file_diff_with_skip(self, mock_run_curl):
+        async def run_test():
+            change_id = "11111"
+            file_path = "big_file.py"
+            diff_json = {
+                "meta_a": {"name": "big_file.py", "content_type": "text/x-python", "lines": 200},
+                "meta_b": {"name": "big_file.py", "content_type": "text/x-python", "lines": 201},
+                "change_type": "MODIFIED",
+                "content": [
+                    {"ab": ["first line"]},
+                    {"skip": 95},
+                    {"a": ["old middle"], "b": ["new middle 1", "new middle 2"]},
+                    {"skip": 100},
+                    {"ab": ["last line"]},
+                ],
+            }
+            mock_run_curl.return_value = json.dumps(diff_json)
+
+            result = await main.get_file_diff(
+                change_id, file_path, gerrit_base_url="https://my-gerrit.com"
+            )
+
+            text = result[0]["text"]
+            self.assertIn("     1:  first line", text)
+            self.assertIn("(95 unchanged lines omitted)", text)
+            self.assertIn("      : -old middle", text)
+            self.assertIn("    97: +new middle 1", text)
+            self.assertIn("    98: +new middle 2", text)
+            self.assertIn("(100 unchanged lines omitted)", text)
+            self.assertIn("   199:  last line", text)
 
         asyncio.run(run_test())
 
