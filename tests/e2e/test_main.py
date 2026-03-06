@@ -21,6 +21,17 @@ from gerrit_mcp_server import main
 
 # --- Fixtures ---
 
+# Override integration test mock fixtures that might leak due to pytest collection
+@pytest.fixture(autouse=True)
+def unmock_for_e2e(monkeypatch):
+    """
+    Integration tests have `autouse=True` fixtures that mock run_curl and os.environ.
+    This fixture ensures those mocks are undone/overridden for E2E tests which need real network access.
+    Additionally, overrides the pyproject.toml env var for GERRIT_CONFIG_PATH to use the real config
+    for E2E tests instead of the mocked test_config.
+    """
+    monkeypatch.setenv("GERRIT_CONFIG_PATH", str(os.path.abspath("gerrit_mcp_server/gerrit_config.json")))
+
 @pytest.fixture(scope="module")
 def e2e_config():
     """
@@ -71,7 +82,7 @@ async def created_change(gerrit_base_url):
     """
     created_cl_ids = []
 
-    async def _create(project, subject, branch="main"):
+    async def _create(project, subject, branch="master"):
         result = await main.create_change(
             project=project,
             subject=subject,
