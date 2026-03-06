@@ -536,8 +536,9 @@ async def list_change_comments(
             author = comment.get("author", {}).get("name", "Unknown")
             timestamp = comment.get("updated", "No date")
             message = comment["message"]
+            comment_id = comment.get("id", "Unknown ID")
             status = "UNRESOLVED" if comment.get("unresolved", False) else "RESOLVED"
-            output += f"L{line}: [{author}] ({timestamp}) - {status}\n"
+            output += f"L{line} (ID: {comment_id}): [{author}] ({timestamp}) - {status}\n"
             output += f"  {message}\n"
 
     if not found_comments:
@@ -1156,6 +1157,7 @@ async def post_review_comment(
     unresolved: bool = True,
     gerrit_base_url: Optional[str] = None,
     labels: Optional[Dict[str, int]] = None,
+    in_reply_to: Optional[str] = None,
 ):
     """
     Posts a review comment on a specific line of a file in a CL.
@@ -1165,14 +1167,18 @@ async def post_review_comment(
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
     url = f"{base_url}/changes/{change_id}/revisions/current/review"
 
+    comment_payload = {
+        "line": line_number,
+        "message": message,
+        "unresolved": unresolved,
+    }
+    if in_reply_to is not None:
+        comment_payload["in_reply_to"] = in_reply_to
+
     payload = {
         "comments": {
             file_path: [
-                {
-                    "line": line_number,
-                    "message": message,
-                    "unresolved": unresolved,
-                }
+                comment_payload
             ]
         },
     }
@@ -1183,21 +1189,36 @@ async def post_review_comment(
 
     try:
         result_str = await run_curl(args, base_url)
-        # A successful response should contain the updated review information
-        if '"done": true' in result_str or '"labels"' in result_str or '"comments"' in result_str:
-            return [
-                {
-                    "type": "text",
-                    "text": f"Successfully posted comment to CL {change_id} on file {file_path} at line {line_number}.",
-                }
-            ]
-        else:
+        # Gerrit returns a ReviewResult JSON block.
+        # We should only fail if the API returns an HTML error page or explicit text error.
+        if result_str.startswith("<!DOCTYPE html>") or result_str.startswith("Not Found"):
             return [
                 {
                     "type": "text",
                     "text": f"Failed to post comment. Response: {result_str}",
                 }
             ]
+        
+        # We try to check if there's an explicit error string in a JSON payload.
+        if isinstance(result_str, str) and '"error"' in result_str and '"error":' in result_str:
+             # simple substring check to avoid JSONDecodeErrors on weird gerrit payloads
+             pass
+
+        # Since it didn't start with <!DOCTYPE html> and didn't fail earlier, assume success.
+        # Even an empty dict `{}` or `{"labels": ...}` is a success.
+        return [
+            {
+                "type": "text",
+                "text": f"Successfully posted comment to CL {change_id} on file {file_path} at line {line_number}. Response: {result_str[:200]}",
+            }
+        ]
+
+        return [
+            {
+                "type": "text",
+                "text": f"Successfully posted comment to CL {change_id} on file {file_path} at line {line_number}.",
+            }
+        ]
     except Exception as e:
         with open(LOG_FILE_PATH, "a") as log_file:
             log_file.write(

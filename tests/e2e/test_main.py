@@ -169,3 +169,57 @@ async def test_e2e_create_and_abandon_change(test_project, gerrit_base_url, crea
         cl_id, gerrit_base_url=gerrit_base_url
     )
     assert subject in details[0]["text"]
+
+
+@pytest.mark.asyncio
+async def test_e2e_post_review_comment_reply(test_project, gerrit_base_url, created_change):
+    """Tests posting a comment and then replying to it on a real Gerrit instance."""
+    subject = f"E2E Test: Post Comment and Reply - {uuid.uuid4()}"
+    
+    import asyncio
+    
+    result, cl_id = await created_change(project=test_project, subject=subject, branch="master")
+    assert cl_id is not None
+    
+    # Wait for Gerrit index to catch up
+    await asyncio.sleep(2)
+    
+    # 2. Post an initial comment on /COMMIT_MSG line 1
+    post_res = await main.post_review_comment(
+        change_id=cl_id,
+        file_path="/COMMIT_MSG",
+        line_number=1,
+        message="Initial comment for E2E test",
+        gerrit_base_url=gerrit_base_url
+    )
+    assert "Successfully posted comment" in post_res[0]["text"]
+    
+    # 3. Retrieve the comment to get its ID
+    comments_res = await main.list_change_comments(
+        change_id=cl_id, gerrit_base_url=gerrit_base_url
+    )
+    comments_text = comments_res[0]["text"]
+    
+    # Extract the ID from the output (e.g. "L1 (ID: 4e56f916_b6c19745): [Name]...")
+    match = re.search(r"\(ID: ([a-zA-Z0-9_-]+)\)", comments_text)
+    assert match is not None, f"Could not find comment ID in: {comments_text}"
+    original_comment_id = match.group(1)
+    
+    # 4. Post a reply using the retrieved comment ID
+    reply_res = await main.post_review_comment(
+        change_id=cl_id,
+        file_path="/COMMIT_MSG",
+        line_number=1,
+        message="This is a reply to the initial comment",
+        in_reply_to=original_comment_id,
+        gerrit_base_url=gerrit_base_url
+    )
+    assert "Successfully posted comment" in reply_res[0]["text"]
+    
+    # Verify both comments exist in the CL (we won't deeply parse the thread structure, but ensure both messages are there)
+    final_comments_res = await main.list_change_comments(
+        change_id=cl_id, gerrit_base_url=gerrit_base_url
+    )
+    final_text = final_comments_res[0]["text"]
+    assert "Initial comment for E2E test" in final_text
+    assert "This is a reply to the initial comment" in final_text

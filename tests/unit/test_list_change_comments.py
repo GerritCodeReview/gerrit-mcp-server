@@ -64,18 +64,18 @@ class TestListChangeComments(unittest.TestCase):
             self.assertIn("Comments for CL 11223", result[0]["text"])
             self.assertIn("File: src/main.py", result[0]["text"])
             self.assertIn(
-                "L10: [user1@example.com] (2025-07-15T10:00:00Z) - UNRESOLVED",
+                "L10 (ID: Unknown ID): [user1@example.com] (2025-07-15T10:00:00Z) - UNRESOLVED",
                 result[0]["text"],
             )
             self.assertIn("This is a comment.", result[0]["text"])
             self.assertIn(
-                "L15: [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED",
+                "L15 (ID: Unknown ID): [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED",
                 result[0]["text"],
             )
             self.assertIn("This is resolved.", result[0]["text"])
             self.assertIn("File: README.md", result[0]["text"])
             self.assertIn(
-                "LFile: [user1@example.com] (2025-07-15T10:10:00Z) - UNRESOLVED",
+                "LFile (ID: Unknown ID): [user1@example.com] (2025-07-15T10:10:00Z) - UNRESOLVED",
                 result[0]["text"],
             )
             self.assertIn("Another unresolved comment.", result[0]["text"])
@@ -109,7 +109,7 @@ class TestListChangeComments(unittest.TestCase):
             # Assert
             self.assertIn("Comments for CL 11223", result[0]["text"])
             self.assertIn(
-                "L15: [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED",
+                "L15 (ID: Unknown ID): [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED",
                 result[0]["text"],
             )
 

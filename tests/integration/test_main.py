@@ -214,12 +214,12 @@ async def test_list_change_comments(mock_run_curl):
     text = result[0]["text"]
     assert "Comments for CL 123" in text
     assert "File: file1.txt" in text
-    assert "L10: [user1@example.com] (2025-07-15T11:00:00Z) - UNRESOLVED" in text
+    assert "L10 (ID: Unknown ID): [user1@example.com] (2025-07-15T11:00:00Z) - UNRESOLVED" in text
     assert "Comment 1" in text
-    assert "L12: [user2@example.com] (2025-07-15T11:05:00Z) - RESOLVED" in text
+    assert "L12 (ID: Unknown ID): [user2@example.com] (2025-07-15T11:05:00Z) - RESOLVED" in text
     assert "Comment 2" in text
     assert "File: file2.txt" in text
-    assert "L5: [user1@example.com] (2025-07-15T11:10:00Z) - UNRESOLVED" in text
+    assert "L5 (ID: Unknown ID): [user1@example.com] (2025-07-15T11:10:00Z) - UNRESOLVED" in text
     assert "Comment 3" in text
 
 @pytest.mark.asyncio
@@ -241,7 +241,7 @@ async def test_list_change_comments_no_unresolved(mock_run_curl):
     )
     text = result[0]["text"]
     assert "Comments for CL 123" in text
-    assert "L12: [user2@example.com] (2025-07-15T11:05:00Z) - RESOLVED" in text
+    assert "L12 (ID: Unknown ID): [user2@example.com] (2025-07-15T11:05:00Z) - RESOLVED" in text
 
 @pytest.mark.asyncio
 async def test_list_change_comments_json_decode_error(mock_run_curl):
@@ -511,3 +511,37 @@ async def test_post_review_comment_with_labels(mock_run_curl):
     
     assert actual_payload == expected_payload
 
+
+@pytest.mark.asyncio
+async def test_post_review_comment_with_in_reply_to(mock_run_curl):
+    """Tests posting a review comment as a reply to another comment."""
+    mock_run_curl.return_value = ')]}\'\\n{"done": true}'
+
+    result = await main.post_review_comment(
+        gerrit_base_url="https://fuchsia-review.googlesource.com",
+        change_id="123",
+        file_path="/COMMIT_MSG",
+        line_number=1,
+        message="Replying to your comment",
+        in_reply_to="abc123def456"
+    )
+    assert "Successfully posted comment" in result[0]["text"]
+    
+    # Verify the JSON payload sent to Gerrit
+    expected_payload = {
+        "comments": {
+            "/COMMIT_MSG": [{
+                "line": 1,
+                "message": "Replying to your comment",
+                "unresolved": True,
+                "in_reply_to": "abc123def456"
+            }]
+        }
+    }    
+    # The payload is passed as the argument after '--data'
+    curl_args = mock_run_curl.call_args[0][0]
+    data_index = curl_args.index("--data")
+    actual_payload_str = curl_args[data_index + 1]
+    actual_payload = json.loads(actual_payload_str)
+    
+    assert actual_payload == expected_payload
