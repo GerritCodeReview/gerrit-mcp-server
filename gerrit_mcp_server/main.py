@@ -168,6 +168,13 @@ def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
 async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     """Executes a curl command and returns the output."""
     config = load_gerrit_config()
+    # Gerrit requires /a/ prefix in the URL path for authenticated API access.
+    args = [
+        arg.replace(f"{gerrit_base_url}/", f"{gerrit_base_url}/a/", 1)
+        if arg.startswith(gerrit_base_url)
+        else arg
+        for arg in args
+    ]
     command = get_curl_command_for_gerrit_url(gerrit_base_url, config) + args
     with open(LOG_FILE_PATH, "a") as log_file:
         log_file.write(f"[gerrit-mcp-server] Executing: {" ".join(command)}\n")
@@ -222,6 +229,11 @@ def _create_put_args(url: str, payload: Optional[Dict[str, Any]] = None) -> List
         args.extend(["-H", "Content-Type: application/json", "--data", payload_json])
     args.append(url)
     return args
+
+
+def _create_delete_args(url: str) -> List[str]:
+    """Creates the argument list for a curl DELETE request."""
+    return ["-X", "DELETE", url]
 
 
 # --- Tool Implementations ---
@@ -495,13 +507,71 @@ async def get_file_diff(
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
     encoded_file_path = quote(file_path, safe="")
-    url = f"{base_url}/changes/{change_id}/revisions/current/patch?path={encoded_file_path}"
+    url = f"{base_url}/changes/{change_id}/revisions/current/files/{encoded_file_path}/diff"
 
-    diff_base64 = await run_curl([url], base_url)
-    # The response is a base64 encoded string, we need to decode it.
-    # The result from run_curl is already a string, so we encode it back to bytes for b64decode
-    diff_text = base64.b64decode(diff_base64.encode("utf-8")).decode("utf-8")
-    return [{"type": "text", "text": diff_text}]
+    result_str = await run_curl([url], base_url)
+    try:
+        diff_json = json.loads(result_str)
+    except json.JSONDecodeError:
+        return [{"type": "text", "text": f"Failed to parse diff response.\n{result_str}"}]
+
+    return [{"type": "text", "text": _format_structured_diff(file_path, diff_json)}]
+
+
+def _format_structured_diff(file_path: str, diff_json: dict) -> str:
+    """Formats Gerrit's structured diff JSON into annotated text with line numbers.
+
+    Each line is prefixed with its file line number so that consumers can
+    reference the correct line when posting review comments.
+
+    Format:
+        NEW_LINE:  unchanged line
+        NEW_LINE: +added line
+              OLD: -deleted line
+    """
+    meta_a = diff_json.get("meta_a")
+    meta_b = diff_json.get("meta_b")
+    change_type = diff_json.get("change_type", "MODIFIED")
+    content = diff_json.get("content", [])
+
+    header = f"diff {file_path} ({change_type})"
+    if meta_a:
+        header += f"\nold: {meta_a.get('name', file_path)} ({meta_a.get('lines', '?')} lines)"
+    if meta_b:
+        header += f"\nnew: {meta_b.get('name', file_path)} ({meta_b.get('lines', '?')} lines)"
+
+    lines = [header, ""]
+
+    old_line = 1
+    new_line = 1
+
+    for chunk in content:
+        # Common lines (unchanged)
+        if "ab" in chunk:
+            for text in chunk["ab"]:
+                lines.append(f"{new_line:>6}:  {text}")
+                old_line += 1
+                new_line += 1
+
+        # Changed section
+        if "a" in chunk:
+            for text in chunk["a"]:
+                lines.append(f"      : -{text}")
+                old_line += 1
+
+        if "b" in chunk:
+            for text in chunk["b"]:
+                lines.append(f"{new_line:>6}: +{text}")
+                new_line += 1
+
+        # Skip lines (context omission)
+        if "skip" in chunk:
+            skip_count = chunk["skip"]
+            lines.append(f"  ... ({skip_count} unchanged lines omitted)")
+            old_line += skip_count
+            new_line += skip_count
+
+    return "\n".join(lines)
 
 
 @mcp.tool()
@@ -1205,6 +1275,163 @@ async def post_review_comment(
             )
         raise e
 
+
+@mcp.tool()
+async def post_draft_comment(
+    change_id: str,
+    file_path: str,
+    line_number: int,
+    message: str,
+    unresolved: bool = True,
+    gerrit_base_url: Optional[str] = None,
+    start_line: Optional[int] = None,
+    start_character: Optional[int] = None,
+    end_line: Optional[int] = None,
+    end_character: Optional[int] = None,
+    suggestion: Optional[str] = None,
+):
+    """
+    Creates a draft review comment on a specific line of a file in a CL.
+    Draft comments are only visible to the author until explicitly published.
+
+    Optional range highlighting: provide start_line, start_character, end_line,
+    and end_character to highlight a specific code range. Character offsets are
+    0-based from the start of the line.
+
+    Optional suggestion: provide replacement code in the suggestion parameter.
+    This renders as an applicable "Suggest edit" in the Gerrit UI that the
+    author can apply with one click. When suggestion is provided, the range
+    parameters must also be set to indicate which code is being replaced.
+    """
+    if suggestion is not None:
+        message = message + f"\n```suggestion\n{suggestion}\n```"
+
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
+    url = f"{base_url}/changes/{change_id}/revisions/current/drafts"
+
+    payload: Dict[str, Any] = {
+        "path": file_path,
+        "line": line_number,
+        "message": message,
+        "unresolved": unresolved,
+    }
+
+    if all(v is not None for v in [start_line, start_character, end_line, end_character]):
+        payload["range"] = {
+            "start_line": start_line,
+            "start_character": start_character,
+            "end_line": end_line,
+            "end_character": end_character,
+        }
+        # Gerrit requires line to equal end_line when a range is provided.
+        payload["line"] = end_line
+
+    args = _create_put_args(url, payload)
+
+    try:
+        result_str = await run_curl(args, base_url)
+        result = json.loads(result_str)
+        if "id" in result:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Draft comment created on CL {change_id}, file {file_path} at line {line_number}.",
+                }
+            ]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Failed to create draft comment. Response: {result_str}",
+                }
+            ]
+    except Exception as e:
+        with open(LOG_FILE_PATH, "a") as log_file:
+            log_file.write(
+                f"[gerrit-mcp-server] Error creating draft comment on CL {change_id}: {e}\n"
+            )
+        raise e
+
+
+@mcp.tool()
+async def list_draft_comments(
+    change_id: str, gerrit_base_url: Optional[str] = None
+):
+    """
+    Lists all draft comments on a CL for the authenticated user.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
+    url = f"{base_url}/changes/{change_id}/revisions/current/drafts"
+
+    result_str = await run_curl([url], base_url)
+    try:
+        drafts_by_file = json.loads(result_str)
+    except json.JSONDecodeError:
+        return [{"type": "text", "text": f"Failed to parse drafts response.\n{result_str}"}]
+
+    if not drafts_by_file:
+        return [{"type": "text", "text": f"No draft comments on CL {change_id}."}]
+
+    output = f"Draft comments on CL {change_id}:\n"
+    total = 0
+    for file_path, drafts in drafts_by_file.items():
+        output += f"---\nFile: {file_path}\n"
+        for draft in drafts:
+            draft_id = draft.get("id", "?")
+            line = draft.get("line", "file")
+            message = draft.get("message", "")
+            preview = message[:120].replace("\n", " ")
+            output += f"  [{draft_id}] L{line}: {preview}\n"
+            total += 1
+
+    output += f"---\nTotal: {total} draft(s)\n"
+    return [{"type": "text", "text": output}]
+
+
+@mcp.tool()
+async def delete_draft_comments(
+    change_id: str, gerrit_base_url: Optional[str] = None
+):
+    """
+    Deletes ALL draft comments on a CL for the authenticated user.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
+
+    # First, list all drafts
+    list_url = f"{base_url}/changes/{change_id}/revisions/current/drafts"
+    result_str = await run_curl([list_url], base_url)
+    try:
+        drafts_by_file = json.loads(result_str)
+    except json.JSONDecodeError:
+        return [{"type": "text", "text": f"Failed to parse drafts response.\n{result_str}"}]
+
+    if not drafts_by_file:
+        return [{"type": "text", "text": f"No draft comments to delete on CL {change_id}."}]
+
+    deleted = 0
+    errors = []
+    for file_path, drafts in drafts_by_file.items():
+        for draft in drafts:
+            draft_id = draft.get("id")
+            if not draft_id:
+                continue
+            delete_url = f"{base_url}/changes/{change_id}/revisions/current/drafts/{draft_id}"
+            try:
+                await run_curl(_create_delete_args(delete_url), base_url)
+                deleted += 1
+            except Exception as e:
+                errors.append(f"  Failed to delete {draft_id} on {file_path}: {e}")
+
+    output = f"Deleted {deleted} draft comment(s) on CL {change_id}."
+    if errors:
+        output += f"\n{len(errors)} error(s):\n" + "\n".join(errors)
+    return [{"type": "text", "text": output}]
 
 
 def cli_main(argv: List[str]):
