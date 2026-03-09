@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b7d2c91a_64628f9f",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1221,
+      "author": {
+        "id": 4190391
+      },
+      "writtenOn": "2026-03-09T13:22:58Z",
+      "side": 1,
+      "message": "AFAICT - There are two sequential return blocks here. PTAL, thank you!",
+      "range": {
+        "startLine": 1216,
+        "startChar": 1,
+        "endLine": 1221,
+        "endChar": 9
+      },
+      "revId": "17e836ef86211a12c28e8657fc08b0fdbcfc7dd2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
