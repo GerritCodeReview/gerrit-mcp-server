@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -119,6 +119,8 @@ check_status() {
         echo "Server is RUNNING with PID $(cat "$PID_FILE")."
     else
         echo "Server is STOPPED."
+        # according to LSB init script guidelines, return code 3 indicates the service is not running
+        exit 3
     fi
 }
 
