@@ -15,7 +15,9 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 - **list_change_files**: Lists all files modified in the most recent patch set
   of a CL.
 - **get_file_diff**: Retrieves the diff for a single, specified file within a
-  CL.
+  CL, each line with its number in the new file. Unchanged lines more than
+  `context_lines` (default 10) away from a change are folded; `-1` shows the
+  whole file.
 - **list_change_comments**: list_change_comments is useful for reviewing
   feedback, reading comments on a change, analyzing comments, and responding to
   comments.
