@@ -517,13 +517,83 @@ async def get_file_diff(
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
     encoded_file_path = quote(file_path, safe="")
-    url = f"{base_url}/changes/{change_id}/revisions/current/patch?path={encoded_file_path}"
+    url = f"{base_url}/changes/{change_id}/revisions/current/files/{encoded_file_path}/diff"
 
-    diff_base64 = await run_curl([url], base_url)
-    # The response is a base64 encoded string, we need to decode it.
-    # The result from run_curl is already a string, so we encode it back to bytes for b64decode
-    diff_text = base64.b64decode(diff_base64.encode("utf-8")).decode("utf-8")
-    return [{"type": "text", "text": diff_text}]
+    result_str = await run_curl([url], base_url)
+    try:
+        diff_json = json.loads(result_str)
+    except json.JSONDecodeError:
+        return [{"type": "text", "text": f"Failed to parse diff response.\n{result_str}"}]
+
+    return [{"type": "text", "text": DiffFormatter(file_path, diff_json).format()}]
+
+
+class DiffFormatter:
+    """Formats Gerrit's structured /diff JSON into annotated text with line numbers.
+
+    Pre-computes new-file line numbers so consumers can use them directly
+    with post_draft_comment/post_review_comment (LLMs frequently miscalculate
+    line numbers from unified diff hunk headers like @@ -10,5 +12,7 @@).
+
+    Output format:
+             1:  unchanged line
+             2: +added line
+              : -deleted line
+      ... (N unchanged lines omitted)
+    """
+
+    _LINE_WIDTH = 6
+
+    def __init__(self, file_path: str, diff_json: dict):
+        self._file_path = file_path
+        self._diff_json = diff_json
+        self._line_number = 1
+        self._lines: list[str] = []
+
+    def format(self) -> str:
+        self._append_header()
+        self._lines.append("")
+        for chunk in self._diff_json.get("content", []):
+            self._format_chunk(chunk)
+        return "\n".join(self._lines)
+
+    def _append_header(self) -> None:
+        change_type = self._diff_json.get("change_type", "MODIFIED")
+        self._lines.append(f"diff {self._file_path} ({change_type})")
+        self._append_meta("old", self._diff_json.get("meta_a"))
+        self._append_meta("new", self._diff_json.get("meta_b"))
+
+    def _append_meta(self, label: str, meta: dict | None) -> None:
+        if meta:
+            name = meta.get("name", self._file_path)
+            lines = meta.get("lines", "?")
+            self._lines.append(f"{label}: {name} ({lines} lines)")
+
+    def _format_chunk(self, chunk: dict) -> None:
+        self._emit_unchanged(chunk.get("ab", []))
+        self._emit_deleted(chunk.get("a", []))
+        self._emit_added(chunk.get("b", []))
+        self._emit_skip(chunk.get("skip"))
+
+    def _emit_unchanged(self, texts: list[str]) -> None:
+        for text in texts:
+            self._lines.append(f"{self._line_number:>{self._LINE_WIDTH}}:  {text}")
+            self._line_number += 1
+
+    def _emit_deleted(self, texts: list[str]) -> None:
+        pad = " " * self._LINE_WIDTH
+        for text in texts:
+            self._lines.append(f"{pad}: -{text}")
+
+    def _emit_added(self, texts: list[str]) -> None:
+        for text in texts:
+            self._lines.append(f"{self._line_number:>{self._LINE_WIDTH}}: +{text}")
+            self._line_number += 1
+
+    def _emit_skip(self, count: int | None) -> None:
+        if count:
+            self._lines.append(f"  ... ({count} unchanged lines omitted)")
+            self._line_number += count
 
 
 @mcp.tool()
