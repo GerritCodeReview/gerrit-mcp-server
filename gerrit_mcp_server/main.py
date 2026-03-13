@@ -168,6 +168,13 @@ def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
 async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     """Executes a curl command and returns the output."""
     config = load_gerrit_config()
+    # Gerrit requires /a/ prefix in the URL path for authenticated API access.
+    args = [
+        arg.replace(f"{gerrit_base_url}/", f"{gerrit_base_url}/a/", 1)
+        if arg.startswith(gerrit_base_url) and "/a/" not in arg
+        else arg
+        for arg in args
+    ]
     command = get_curl_command_for_gerrit_url(gerrit_base_url, config) + args
     with open(LOG_FILE_PATH, "a") as log_file:
         log_file.write(f"[gerrit-mcp-server] Executing: {" ".join(command)}\n")
