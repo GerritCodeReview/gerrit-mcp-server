@@ -197,22 +197,26 @@ async def test_list_change_files_no_files(mock_run_curl):
 @pytest.mark.asyncio
 async def test_get_file_diff(mock_run_curl):
     """Tests retrieving the diff of a file."""
-    diff_text = (
-        "diff --git a/file.txt b/file.txt\n"
-        "--- a/file.txt\n+++ b/file.txt\n"
-        "@@ -1,1 +1,1 @@\n-hello\n+world"
-    )
-    import base64
-
-    encoded_diff = base64.b64encode(diff_text.encode("utf-8")).decode("utf-8")
-    mock_run_curl.return_value = encoded_diff
+    diff_json = {
+        "meta_a": {"name": "file.txt", "content_type": "text/plain", "lines": 1},
+        "meta_b": {"name": "file.txt", "content_type": "text/plain", "lines": 1},
+        "change_type": "MODIFIED",
+        "content": [
+            {"a": ["hello"], "b": ["world"]},
+        ],
+    }
+    mock_run_curl.return_value = json.dumps(diff_json)
 
     result = await main.get_file_diff(
         gerrit_base_url="https://fuchsia-review.googlesource.com",
         change_id="123",
         file_path="file.txt",
     )
-    assert result[0]["text"] == diff_text
+    assert result["change_type"] == "MODIFIED"
+    assert result["lines"] == [
+        {"kind": "deleted", "line": None, "text": "hello"},
+        {"kind": "added", "line": 1, "text": "world"},
+    ]
 
 
 @pytest.mark.asyncio
