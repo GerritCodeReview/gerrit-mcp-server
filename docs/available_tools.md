@@ -15,7 +15,9 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 - **list_change_files**: Lists all files modified in the most recent patch set
   of a CL.
 - **get_file_diff**: Retrieves the diff for a single, specified file within a
-  CL.
+  CL, each line with its number in the new file. Unchanged lines more than
+  `context_lines` (default 10) away from a change are folded; `-1` shows the
+  whole file.
 - **get_file_content**: Returns the content of a file as it is in a revision of
   a CL. The revision is the current patch set unless `revision_id` names another
   one. Pass `start_line`, `end_line`, or both to read only a range of lines.

@@ -22,7 +22,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, TypedDict
+from typing import Any, Callable, Dict, List, Literal, Optional, TypedDict
 from urllib.parse import quote, urlparse
 
 from mcp.server.fastmcp import Context, FastMCP
@@ -644,12 +644,41 @@ async def list_change_files(change_id: str, gerrit_base_url: Optional[str] = Non
     return [{"type": "text", "text": output}]
 
 
+_DiffLineKind = Literal["unchanged", "added", "deleted", "omitted"]
+
+
+class _DiffLine(TypedDict):
+    kind: _DiffLineKind
+    line: Optional[int]
+    text: str
+
+
+class _FileDiffResult(TypedDict):
+    change_id: str
+    change_type: str
+    old_path: Optional[str]
+    new_path: Optional[str]
+    old_line_count: Optional[int]
+    new_line_count: Optional[int]
+    binary: bool
+    lines: List[_DiffLine]
+
+
 @mcp.tool()
 async def get_file_diff(
-    change_id: str, file_path: str, gerrit_base_url: Optional[str] = None
-):
+    change_id: str,
+    file_path: str,
+    gerrit_base_url: Optional[str] = None,
+    context_lines: int = 10,
+) -> _FileDiffResult:
     """
     Retrieves the diff for a single, specified file within a CL.
+
+    Each entry of lines has a kind (unchanged, added, deleted or omitted) and
+    its text. Its line is the line number in the new file, ready for
+    post_draft_comment and post_review_comment; deleted and omitted entries
+    have none. Unchanged lines more than context_lines away from a change are
+    folded into one omitted entry; context_lines=-1 shows the whole file.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -658,16 +687,102 @@ async def get_file_diff(
     )
     encoded_file_path = quote(file_path, safe="")
     url = (
-        f"{base_url}/changes/{change_id}/revisions/current/patch"
-        f"?path={encoded_file_path}"
+        f"{base_url}/changes/{change_id}/revisions/current/files/"
+        f"{encoded_file_path}/diff"
     )
 
-    diff_base64 = await run_curl([url], base_url)
-    # The response is a base64 encoded string, we need to decode it.
-    # The result from run_curl is already a string, so we encode it back
-    # to bytes for b64decode
-    diff_text = base64.b64decode(diff_base64.encode("utf-8")).decode("utf-8")
-    return [{"type": "text", "text": diff_text}]
+    result_str = await run_curl([url], base_url)
+    try:
+        diff_json = json.loads(result_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Failed to parse JSON response from Gerrit for {file_path} in CL"
+            f" {change_id}. Raw response: '{result_str}'"
+        ) from e
+
+    meta_a = diff_json.get("meta_a") or {}
+    meta_b = diff_json.get("meta_b") or {}
+    return {
+        "change_id": change_id,
+        "change_type": diff_json.get("change_type", "MODIFIED"),
+        "old_path": meta_a.get("name"),
+        "new_path": meta_b.get("name"),
+        "old_line_count": meta_a.get("lines"),
+        "new_line_count": meta_b.get("lines"),
+        "binary": diff_json.get("binary", False),
+        "lines": _DiffLineBuilder(context_lines).build(diff_json.get("content", [])),
+    }
+
+
+class _DiffLineBuilder:
+    """Numbers Gerrit's /diff chunks as lines of the new file.
+
+    LLMs miscount line numbers from diff hunks, so every line comes with the
+    number post_draft_comment and post_review_comment take. Gerrit sends every
+    unchanged line of the file whatever context it is asked for, so unchanged
+    lines more than context_lines away from a change are folded into one
+    omitted entry; a negative context_lines keeps them all.
+    """
+
+    def __init__(self, context_lines: int):
+        self._context_lines = context_lines
+        self._line_number = 1
+        self._omitted = 0
+        self._lines: List[_DiffLine] = []
+
+    def build(self, chunks: List[dict]) -> List[_DiffLine]:
+        changes = {i for i, chunk in enumerate(chunks) if "a" in chunk or "b" in chunk}
+        for index, chunk in enumerate(chunks):
+            if "ab" in chunk:
+                self._add_unchanged(
+                    chunk["ab"], index - 1 in changes, index + 1 in changes
+                )
+            elif "skip" in chunk:
+                self._omit(chunk["skip"])
+            else:
+                for text in chunk.get("a", []):
+                    self._append("deleted", None, text)
+                for text in chunk.get("b", []):
+                    self._append_numbered("added", text)
+        self._flush_omitted()
+        return self._lines
+
+    def _add_unchanged(
+        self, texts: List[str], follows_change: bool, precedes_change: bool
+    ) -> None:
+        head = self._context_lines if follows_change else 0
+        tail = self._context_lines if precedes_change else 0
+        if self._context_lines < 0 or head + tail >= len(texts):
+            head, tail = len(texts), 0
+        for text in texts[:head]:
+            self._append_numbered("unchanged", text)
+        self._omit(len(texts) - head - tail)
+        for text in texts[len(texts) - tail :]:
+            self._append_numbered("unchanged", text)
+
+    def _append_numbered(self, kind: _DiffLineKind, text: str) -> None:
+        self._append(kind, self._line_number, text)
+        self._line_number += 1
+
+    def _append(self, kind: _DiffLineKind, line: Optional[int], text: str) -> None:
+        self._flush_omitted()
+        self._lines.append({"kind": kind, "line": line, "text": text})
+
+    def _omit(self, count: int) -> None:
+        self._omitted += count
+        self._line_number += count
+
+    def _flush_omitted(self) -> None:
+        if self._omitted:
+            noun = "line" if self._omitted == 1 else "lines"
+            self._lines.append(
+                {
+                    "kind": "omitted",
+                    "line": None,
+                    "text": f"{self._omitted} unchanged {noun}",
+                }
+            )
+            self._omitted = 0
 
 
 class _FileContentResult(TypedDict):
