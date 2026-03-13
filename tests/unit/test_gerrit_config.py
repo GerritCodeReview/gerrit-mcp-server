@@ -95,5 +95,70 @@ class TestGerritConfig(unittest.TestCase):
         )
 
 
+    @patch("gerrit_mcp_server.main.load_gerrit_config")
+    def test_normalize_gerrit_url_adds_a_prefix_for_http_basic(self, mock_load_config):
+        mock_load_config.return_value = {
+            "gerrit_hosts": [
+                {
+                    "name": "GerritHub",
+                    "external_url": "https://review.gerrithub.io/",
+                    "authentication": {"type": "http_basic", "username": "u", "auth_token": "t"},
+                }
+            ]
+        }
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
+        self.assertEqual(
+            _normalize_gerrit_url("review.gerrithub.io", gerrit_hosts), "https://review.gerrithub.io/a"
+        )
+
+    @patch("gerrit_mcp_server.main.load_gerrit_config")
+    def test_normalize_gerrit_url_adds_a_prefix_for_git_cookies(self, mock_load_config):
+        mock_load_config.return_value = {
+            "gerrit_hosts": [
+                {
+                    "name": "Self-hosted",
+                    "external_url": "https://gerrit.example.com/",
+                    "authentication": {"type": "git_cookies", "gitcookies_path": "~/.gitcookies"},
+                }
+            ]
+        }
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
+        self.assertEqual(
+            _normalize_gerrit_url("gerrit.example.com", gerrit_hosts), "https://gerrit.example.com/a"
+        )
+
+    @patch("gerrit_mcp_server.main.load_gerrit_config")
+    def test_normalize_gerrit_url_no_a_prefix_for_gob_curl(self, mock_load_config):
+        mock_load_config.return_value = {
+            "gerrit_hosts": [
+                {
+                    "name": "Google",
+                    "external_url": "https://fuchsia-review.googlesource.com/",
+                    "authentication": {"type": "gob_curl"},
+                }
+            ]
+        }
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
+        self.assertEqual(
+            _normalize_gerrit_url("fuchsia-review.googlesource.com", gerrit_hosts),
+            "https://fuchsia-review.googlesource.com",
+        )
+
+    @patch("gerrit_mcp_server.main.load_gerrit_config")
+    def test_normalize_gerrit_url_no_a_prefix_without_authentication(self, mock_load_config):
+        mock_load_config.return_value = {
+            "gerrit_hosts": [
+                {
+                    "name": "NoAuth",
+                    "external_url": "https://noauth.gerrit.com/",
+                }
+            ]
+        }
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
+        self.assertEqual(
+            _normalize_gerrit_url("noauth.gerrit.com", gerrit_hosts), "https://noauth.gerrit.com"
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

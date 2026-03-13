@@ -81,6 +81,26 @@ class TestGerritUrlsDispatcher(unittest.TestCase):
         mock_get_auth.assert_called_once_with(url, auth_config)
         self.assertEqual(command, ["curl", "-b", "cookie", "-L"])
 
+    @patch("gerrit_mcp_server.gerrit_auth._get_auth_for_http_basic")
+    def test_dispatches_correctly_with_a_prefix_in_url(self, mock_get_auth):
+        """Tests that the dispatcher matches the host when the URL contains /a suffix."""
+        auth_config = {"type": "http_basic", "username": "test", "auth_token": "token"}
+        mock_get_auth.return_value = ["curl", "--user", "test:token", "-L"]
+        config = {
+            "gerrit_hosts": [
+                {
+                    "name": "GerritHub",
+                    "external_url": "https://review.gerrithub.io/",
+                    "authentication": auth_config,
+                }
+            ]
+        }
+        command = gerrit_urls.get_curl_command_for_gerrit_url(
+            "https://review.gerrithub.io/a", config
+        )
+        mock_get_auth.assert_called_once_with(auth_config)
+        self.assertEqual(command, ["curl", "--user", "test:token", "-L"])
+
     def test_no_matching_host_raises_error(self):
         """Tests that a ValueError is raised when no matching host is found."""
         config = {"gerrit_hosts": []}

@@ -119,6 +119,16 @@ def _get_gerrit_base_url(gerrit_base_url: Optional[str] = None) -> str:
     )
 
 
+def _apply_authenticated_prefix(url: str, host: Dict[str, Any]) -> str:
+    """Appends /a to the URL if the host's auth type requires it for API access."""
+    auth_type = host.get("authentication", {}).get("type")
+
+    if auth_type in ("http_basic", "git_cookies"):
+        return url + "/a"
+
+    return url
+
+
 def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
     """Normalizes a Gerrit URL based on the mappings in the provided gerrit_hosts."""
 
@@ -127,6 +137,7 @@ def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
     stripped_original_url = original_url.replace("https://", "").replace("http://", "")
 
     normalized_url = url  # Default to original if no match found
+    matched_host = None
 
     for host in gerrit_hosts:
         internal_url = host.get("internal_url")
@@ -152,6 +163,7 @@ def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
                 normalized_url = external_url
             elif internal_url:
                 normalized_url = internal_url
+            matched_host = host
             break  # Found a match, so we can exit the loop.
 
     # Ensure https, then strip trailing slash
@@ -162,7 +174,12 @@ def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
     elif normalized_url.startswith("http://"):
         normalized_url = normalized_url.replace("http://", "https://")
 
-    return normalized_url.rstrip("/")
+    normalized_url = normalized_url.rstrip("/")
+
+    if matched_host:
+        return _apply_authenticated_prefix(normalized_url, matched_host)
+
+    return normalized_url
 
 
 async def run_curl(args: List[str], gerrit_base_url: str) -> str:
@@ -1178,7 +1195,7 @@ async def post_review_comment(
     }
     if labels:
         payload["labels"] = labels
-    
+
     args = _create_post_args(url, payload)
 
     try:
