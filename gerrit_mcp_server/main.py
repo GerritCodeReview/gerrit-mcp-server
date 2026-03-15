@@ -1207,6 +1207,61 @@ async def post_review_comment(
 
 
 
+@mcp.tool()
+async def post_draft_comment(
+    change_id: str,
+    file_path: str,
+    line_number: int,
+    message: str,
+    unresolved: bool = True,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Creates a draft comment on a specific line of a file in a CL.
+    Draft comments are only visible to the author and must be manually
+    published from the Gerrit UI. Use this instead of post_review_comment
+    when you want to review comments before publishing.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
+    url = f"{base_url}/changes/{change_id}/revisions/current/drafts"
+
+    payload = {
+        "path": file_path,
+        "line": line_number,
+        "message": message,
+        "unresolved": unresolved,
+    }
+
+    args = _create_put_args(url, payload)
+
+    try:
+        result_str = await run_curl(args, base_url)
+        result = json.loads(result_str)
+        if "id" in result:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Successfully created draft comment on CL {change_id}, file {file_path} at line {line_number}. Draft ID: {result['id']}. Publish it from the Gerrit UI when ready.",
+                }
+            ]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Unexpected response when creating draft. Response: {result_str}",
+                }
+            ]
+    except Exception as e:
+        with open(LOG_FILE_PATH, "a") as log_file:
+            log_file.write(
+                f"[gerrit-mcp-server] Error creating draft comment on CL {change_id}: {e}\n"
+            )
+        raise e
+
+
+
 def cli_main(argv: List[str]):
     """
     The main entry point for the command-line interface.
