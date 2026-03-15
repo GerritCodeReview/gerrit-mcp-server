@@ -526,7 +526,13 @@ def _build_diff_header(file_path: str, diff_json: dict) -> str:
     return header
 
 
-def _format_structured_diff(file_path: str, diff_json: dict) -> str:
+_DIFF_CONTEXT_LINES = 3
+_DIFF_SMALL_FILE_THRESHOLD = 200
+
+
+def _format_structured_diff(
+    file_path: str, diff_json: dict, context_lines: int = _DIFF_CONTEXT_LINES
+) -> str:
     """Formats Gerrit's structured diff JSON into annotated text with line numbers.
 
     We pre-compute line numbers instead of returning raw JSON or unified diffs
@@ -536,19 +542,58 @@ def _format_structured_diff(file_path: str, diff_json: dict) -> str:
     Each line is prefixed with its new-file line number so that consumers can
     directly use it when posting review comments via post_draft_comment/post_review_comment.
 
+    Context trimming is done client-side because Gerrit's server-side context
+    parameter is a deprecated no-op (see GetDiff.java in Gerrit source).
+
     Format:
         <line_number_number>:  unchanged line
         <line_number_number>: +added line
                          : -deleted line
     """
+    content = diff_json.get("content", [])
+    meta_b = diff_json.get("meta_b") or {}
+    total_lines = meta_b.get("lines", 0)
+    skip_trimming = total_lines <= _DIFF_SMALL_FILE_THRESHOLD
     lines = [_build_diff_header(file_path, diff_json), ""]
 
     line_number = 1
 
-    for chunk in diff_json.get("content", []):
-        for text in chunk.get("ab", []):
-            lines.append(f"{line_number:>6}:  {text}")
-            line_number += 1
+    def _has_change(chunk: dict) -> bool:
+        return "a" in chunk or "b" in chunk or "skip" in chunk
+
+    for i, chunk in enumerate(content):
+        if "ab" in chunk:
+            ab = chunk["ab"]
+
+            if skip_trimming:
+                for text in ab:
+                    lines.append(f"{line_number:>6}:  {text}")
+                    line_number += 1
+                continue
+
+            prev_has_change = i > 0 and _has_change(content[i - 1])
+            next_has_change = i < len(content) - 1 and _has_change(content[i + 1])
+
+            show_start = context_lines if prev_has_change else 0
+            show_end = context_lines if next_has_change else 0
+
+            if show_start + show_end >= len(ab):
+                for text in ab:
+                    lines.append(f"{line_number:>6}:  {text}")
+                    line_number += 1
+            else:
+                for text in ab[:show_start]:
+                    lines.append(f"{line_number:>6}:  {text}")
+                    line_number += 1
+                skip_count = len(ab) - show_start - show_end
+                if skip_count > 0:
+                    lines.append(
+                        f"  ... ({skip_count} unchanged lines omitted)"
+                    )
+                    line_number += skip_count
+                for text in ab[len(ab) - show_end :]:
+                    lines.append(f"{line_number:>6}:  {text}")
+                    line_number += 1
 
         for text in chunk.get("a", []):
             lines.append(f"      : -{text}")
