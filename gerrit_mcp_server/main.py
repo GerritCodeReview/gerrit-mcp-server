@@ -1178,7 +1178,7 @@ async def post_review_comment(
     }
     if labels:
         payload["labels"] = labels
-    
+
     args = _create_post_args(url, payload)
 
     try:
@@ -1205,6 +1205,76 @@ async def post_review_comment(
             )
         raise e
 
+
+@mcp.tool()
+async def post_draft_comment(
+    change_id: str,
+    file_path: str,
+    line_number: int,
+    message: str,
+    unresolved: bool = True,
+    gerrit_base_url: Optional[str] = None,
+    start_line: Optional[int] = None,
+    start_character: Optional[int] = None,
+    end_line: Optional[int] = None,
+    end_character: Optional[int] = None,
+    suggestion: Optional[str] = None,
+):
+    """
+    Creates a draft review comment on a specific line of a file in a CL.
+    Draft comments are only visible to the author until explicitly published.
+
+    """
+    if suggestion is not None:
+        message = message + f"\n```suggestion\n{suggestion}\n```"
+
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
+    url = f"{base_url}/changes/{change_id}/revisions/current/drafts"
+
+    payload: Dict[str, Any] = {
+        "path": file_path,
+        "line": line_number,
+        "message": message,
+        "unresolved": unresolved,
+    }
+
+    if all(v is not None for v in [start_line, start_character, end_line, end_character]):
+        payload["range"] = {
+            "start_line": start_line,
+            "start_character": start_character,
+            "end_line": end_line,
+            "end_character": end_character,
+        }
+        # Gerrit requires line to equal end_line when a range is provided.
+        payload["line"] = end_line
+
+    args = _create_put_args(url, payload)
+
+    try:
+        result_str = await run_curl(args, base_url)
+        result = json.loads(result_str)
+        if "id" in result:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Draft comment created on CL {change_id}, file {file_path} at line {line_number}.",
+                }
+            ]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Failed to create draft comment. Response: {result_str}",
+                }
+            ]
+    except Exception as e:
+        with open(LOG_FILE_PATH, "a") as log_file:
+            log_file.write(
+                f"[gerrit-mcp-server] Error creating draft comment on CL {change_id}: {e}\n"
+            )
+        raise e
 
 
 def cli_main(argv: List[str]):
