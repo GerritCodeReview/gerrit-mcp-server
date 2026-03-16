@@ -185,7 +185,7 @@ class TestBuildAndRun(unittest.TestCase):
             # Run the test script
             test_script_path = os.path.join(self.project_root, "test.sh")
             test_process = subprocess.run(
-                ["/bin/bash", test_script_path],
+                ["bash", test_script_path],
                 cwd=self.test_dir.name,
                 capture_output=True,
                 text=True,
