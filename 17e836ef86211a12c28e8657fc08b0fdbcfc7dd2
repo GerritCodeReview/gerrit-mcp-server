@@ -3,6 +3,52 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e2003173_f1a92184",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1155599
+      },
+      "writtenOn": "2026-03-16T15:22:37Z",
+      "side": 1,
+      "message": "please wrap the long lines. Should be enough to click \"format\" when editing the commit message in the UI.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 0
+      },
+      "revId": "17e836ef86211a12c28e8657fc08b0fdbcfc7dd2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c0114bd8_0ffd1c5c",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1201,
+      "author": {
+        "id": 1155599
+      },
+      "writtenOn": "2026-03-16T15:22:37Z",
+      "side": 1,
+      "message": "Can we avoid introducing blank spaces? it\u0027s quite scattered across the whole codebase though, so maybe we should do a general clean-up.",
+      "range": {
+        "startLine": 1201,
+        "startChar": 0,
+        "endLine": 1201,
+        "endChar": 8
+      },
+      "revId": "17e836ef86211a12c28e8657fc08b0fdbcfc7dd2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b7d2c91a_64628f9f",
         "filename": "gerrit_mcp_server/main.py",
         "patchSetId": 1
