@@ -1277,6 +1277,43 @@ async def post_draft_comment(
         raise e
 
 
+@mcp.tool()
+async def list_draft_comments(
+    change_id: str, gerrit_base_url: Optional[str] = None
+):
+    """
+    Lists all draft comments on a CL.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
+    url = f"{base_url}/changes/{change_id}/revisions/current/drafts"
+
+    result_str = await run_curl([url], base_url)
+    try:
+        drafts_by_file = json.loads(result_str)
+    except json.JSONDecodeError:
+        return [{"type": "text", "text": f"Failed to parse drafts response.\n{result_str}"}]
+
+    if not drafts_by_file:
+        return [{"type": "text", "text": f"No draft comments on CL {change_id}."}]
+
+    output = f"Draft comments on CL {change_id}:\n"
+    total = 0
+    for file_path, drafts in drafts_by_file.items():
+        output += f"---\nFile: {file_path}\n"
+        for draft in drafts:
+            draft_id = draft.get("id", "?")
+            line = draft.get("line", "file")
+            message = draft.get("message", "")
+            preview = message[:120].replace("\n", " ")
+            output += f"  [{draft_id}] L{line}: {preview}\n"
+            total += 1
+
+    output += f"---\nTotal: {total} draft(s)\n"
+    return [{"type": "text", "text": output}]
+
+
 def cli_main(argv: List[str]):
     """
     The main entry point for the command-line interface.
