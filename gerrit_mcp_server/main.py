@@ -224,6 +224,11 @@ def _create_put_args(url: str, payload: Optional[Dict[str, Any]] = None) -> List
     return args
 
 
+def _create_delete_args(url: str) -> List[str]:
+    """Creates the argument list for a curl DELETE request."""
+    return ["-X", "DELETE", url]
+
+
 # --- Tool Implementations ---
 
 
@@ -1312,6 +1317,34 @@ async def list_draft_comments(
 
     output += f"---\nTotal: {total} draft(s)\n"
     return [{"type": "text", "text": output}]
+
+
+async def _delete_draft_comment(base_url: str, change_id: str, draft_id: str):
+    """Deletes a single draft comment by ID."""
+    delete_url = f"{base_url}/changes/{change_id}/revisions/current/drafts/{draft_id}"
+    await run_curl(_create_delete_args(delete_url), base_url)
+
+
+@mcp.tool()
+async def delete_draft_comment(
+    change_id: str, draft_id: str, gerrit_base_url: Optional[str] = None
+):
+    """
+    Deletes a single draft comment on a CL by its draft ID.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
+
+    try:
+        await _delete_draft_comment(base_url, change_id, draft_id)
+        return [{"type": "text", "text": f"Deleted draft comment {draft_id} on CL {change_id}."}]
+    except Exception as e:
+        with open(LOG_FILE_PATH, "a") as log_file:
+            log_file.write(
+                f"[gerrit-mcp-server] Error deleting draft {draft_id} on CL {change_id}: {e}\n"
+            )
+        raise e
 
 
 def cli_main(argv: List[str]):
