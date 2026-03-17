@@ -26,6 +26,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "be550cfd_3e07b1a5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4666703
+      },
+      "writtenOn": "2026-03-17T08:55:52Z",
+      "side": 1,
+      "message": "Duplicate of https://gerrit-review.googlesource.com/c/gerrit-mcp-server/+/555621\n\nBut you are welcome to pick that up, I don\u0027t have the capacity right now",
+      "revId": "17e836ef86211a12c28e8657fc08b0fdbcfc7dd2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c0114bd8_0ffd1c5c",
         "filename": "gerrit_mcp_server/main.py",
         "patchSetId": 1
