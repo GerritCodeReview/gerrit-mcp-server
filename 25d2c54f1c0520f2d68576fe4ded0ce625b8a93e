@@ -46,6 +46,30 @@
       },
       "revId": "25d2c54f1c0520f2d68576fe4ded0ce625b8a93e",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6be0f0a7_a6909bba",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1155599
+      },
+      "writtenOn": "2026-03-17T13:41:20Z",
+      "side": 1,
+      "message": "As per other comment on the other change, we don\u0027t need to document this after all.",
+      "parentUuid": "603ecf31_1211bcc8",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 45
+      },
+      "revId": "25d2c54f1c0520f2d68576fe4ded0ce625b8a93e",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
