@@ -22,6 +22,30 @@
       },
       "revId": "25d2c54f1c0520f2d68576fe4ded0ce625b8a93e",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "603ecf31_1211bcc8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1072892
+      },
+      "writtenOn": "2026-03-17T01:41:38Z",
+      "side": 1,
+      "message": "Hi,\n\nDone\n\nhttps://gerrit-review.googlesource.com/c/gerrit/+/562221\n```\nDocument that the diff context parameter is a no-op\n\nThe `context` query parameter on the Get Diff REST endpoint has had\nno effect since version 3.3.0 (commit 03674da5c4). The server\naccepts it for backward compatibility but always returns the full\nfile content. Add a NOTE to rest-api-changes.txt so that API\nconsumers know to handle context limiting client-side.\n\nChange-Id: I8104c7a2094314bbabaccdbe1c9711f32a1003db\n```",
+      "parentUuid": "e5c313c1_47a2cebb",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 45
+      },
+      "revId": "25d2c54f1c0520f2d68576fe4ded0ce625b8a93e",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
