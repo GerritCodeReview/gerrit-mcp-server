@@ -34,6 +34,10 @@ def get_curl_command_for_gerrit_url(
     stripped_gerrit_base_url = (
         gerrit_base_url.replace("https://", "").replace("http://", "").rstrip("/")
     )
+    # Strip /a suffix that may have been added by _normalize_gerrit_url
+    # for authenticated access, so we can match against configured host URLs.
+    if stripped_gerrit_base_url.endswith("/a"):
+        stripped_gerrit_base_url = stripped_gerrit_base_url[:-2]
 
     for host in gerrit_hosts:
         internal_url = (
