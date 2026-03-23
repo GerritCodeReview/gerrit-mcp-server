@@ -1,5 +1,23 @@
 {
-  "comments": [],
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "34002283_789b10d3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4190391
+      },
+      "writtenOn": "2026-03-23T20:24:01Z",
+      "side": 1,
+      "message": "Notes:\n\n\n* This CL Breaks legitimate anonymous access: Any workflows or users that previously relied on fetching public changes without credentials will now fail. By forcing /a/, unauthenticated requests will return 401 Unauthorized or a 302 redirect to a login page, rather than returning the public data.\n\n\n* Double prefixing (/a/a/): If users configure their Gerrit base URL to already include the prefix (e.g., https://gerrit-review.googlesource.com/a/), or if certain hardcoded paths already have it, blindly adding it again will result in invalid endpoints (like /a/a/changes/) and cause 404 Not Found errors. The implementation should verify the prefix isn\u0027t already present.\n\n\n* Affecting Web UI links: If the same URL generation logic (in gerrit_urls.py) is used to construct clickable links for users to open in their browser (like /c/project/+/123), adding /a/ will break those links. The /a/ prefix must be strictly isolated to REST API calls.",
+      "revId": "5f764bfd0cc674ae91ac66450e3170763fbdf20e",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ],
   "submitRequirementResults": [
     {
       "submitRequirement": {
