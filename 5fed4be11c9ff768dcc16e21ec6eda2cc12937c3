@@ -51,6 +51,24 @@
       "message": "Please add another maintainer for +R",
       "revId": "5fed4be11c9ff768dcc16e21ec6eda2cc12937c3",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8490c00a_2cfc4c39",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-03-23T14:34:53Z",
+      "side": 1,
+      "message": "Please give me a hint, who are the maintainers or where I can check the list of the maintainers.\n\nTIA",
+      "parentUuid": "a2b5c927_0ea3b9d0",
+      "revId": "5fed4be11c9ff768dcc16e21ec6eda2cc12937c3",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
