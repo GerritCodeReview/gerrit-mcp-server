@@ -213,6 +213,11 @@
       "labels": {
         "type": "object",
         "description": "A dictionary of labels to apply to the review (e.g., {'Verified': 1})."
+      },
+      "in_reply_to": {
+        "type": "string",
+        "description": "The ID of the comment to reply to. Use list_change_comments to get comment IDs. When set, the comment is posted as a reply in the existing comment thread.",
+        "required": false
       }
     }
   }

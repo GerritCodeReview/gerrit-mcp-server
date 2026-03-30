@@ -553,8 +553,9 @@ async def list_change_comments(
             author = comment.get("author", {}).get("name", "Unknown")
             timestamp = comment.get("updated", "No date")
             message = comment["message"]
+            comment_id = comment.get("id", "")
             status = "UNRESOLVED" if comment.get("unresolved", False) else "RESOLVED"
-            output += f"L{line}: [{author}] ({timestamp}) - {status}\n"
+            output += f"L{line}: [{author}] ({timestamp}) - {status} (id: {comment_id})\n"
             output += f"  {message}\n"
 
     if not found_comments:
@@ -1173,6 +1174,7 @@ async def post_review_comment(
     unresolved: bool = True,
     gerrit_base_url: Optional[str] = None,
     labels: Optional[Dict[str, int]] = None,
+    in_reply_to: Optional[str] = None,
 ):
     """
     Posts a review comment on a specific line of a file in a CL.
@@ -1182,15 +1184,32 @@ async def post_review_comment(
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
     url = f"{base_url}/changes/{change_id}/revisions/current/review"
 
+    comment_input = {
+        "line": line_number,
+        "message": message,
+        "unresolved": unresolved,
+    }
+    if in_reply_to:
+        comment_input["in_reply_to"] = in_reply_to
+        # Gerrit threads comments by (file, line, range). To reply in-thread,
+        # we must match the parent comment's range. Fetch it from the API.
+        try:
+            comments_url = f"{base_url}/changes/{change_id}/comments"
+            comments_str = await run_curl([comments_url], base_url)
+            comments_by_file = json.loads(comments_str)
+            for comment in comments_by_file.get(file_path, []):
+                if comment.get("id") == in_reply_to:
+                    if "range" in comment:
+                        comment_input["range"] = comment["range"]
+                    if "line" in comment:
+                        comment_input["line"] = comment["line"]
+                    break
+        except Exception:
+            pass  # fall back to line_number if lookup fails
+
     payload = {
         "comments": {
-            file_path: [
-                {
-                    "line": line_number,
-                    "message": message,
-                    "unresolved": unresolved,
-                }
-            ]
+            file_path: [comment_input]
         },
     }
     if labels:
