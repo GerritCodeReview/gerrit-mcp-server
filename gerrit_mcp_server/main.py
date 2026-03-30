@@ -783,6 +783,58 @@ async def revert_submission(
 
 
 @mcp.tool()
+async def submit_change(
+    change_id: str,
+    wait_for_merge: bool = False,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Submits (merges) a single Gerrit change into its target branch.
+    The change must be submittable (approved, no unresolved comments, etc.).
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    url = f"{base_url}/changes/{change_id}/submit"
+    payload = {}
+    if wait_for_merge:
+        payload["wait_for_merge"] = True
+    args = _create_post_args(url, payload)
+
+    try:
+        result_str = await run_curl(args, base_url)
+        submit_info = json.loads(result_str)
+        if "id" in submit_info and "_number" in submit_info:
+            output = (
+                f"Successfully submitted CL {submit_info['_number']}.\n"
+                f"Subject: {submit_info.get('subject', 'N/A')}\n"
+                f"Status: {submit_info.get('status', 'N/A')}"
+            )
+            return [{"type": "text", "text": output}]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Failed to submit CL {change_id}. Response: {result_str}",
+                }
+            ]
+    except json.JSONDecodeError:
+        return [
+            {
+                "type": "text",
+                "text": f"Failed to submit CL {change_id}. Response: {result_str}",
+            }
+        ]
+    except Exception as e:
+        with open(LOG_FILE_PATH, "a") as log_file:
+            log_file.write(
+                f"[gerrit-mcp-server] Error submitting CL {change_id}: {e}\n"
+            )
+        raise e
+
+@mcp.tool()
 async def create_change(
     project: str,
     subject: str,
