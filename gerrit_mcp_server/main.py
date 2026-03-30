@@ -783,6 +783,311 @@ async def revert_submission(
 
 
 @mcp.tool()
+async def cherry_pick_change(
+    change_id: str,
+    destination: str,
+    revision_id: str = "current",
+    message: Optional[str] = None,
+    keep_reviewers: bool = False,
+    allow_conflicts: bool = True,
+    allow_empty: bool = False,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Cherry-picks a single change to a destination branch.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    url = f"{base_url}/changes/{change_id}/revisions/{revision_id}/cherrypick"
+    payload = {"destination": destination}
+    if message:
+        payload["message"] = message
+    if keep_reviewers:
+        payload["keep_reviewers"] = True
+    if allow_conflicts:
+        payload["allow_conflicts"] = True
+    if allow_empty:
+        payload["allow_empty"] = True
+    args = _create_post_args(url, payload)
+
+    try:
+        result_str = await run_curl(args, base_url)
+        cherry_info = json.loads(result_str)
+        if "id" in cherry_info and "_number" in cherry_info:
+            output = (
+                f"Successfully cherry-picked CL {change_id} to branch {destination}.\n"
+                f"New CL created: {cherry_info['_number']}\n"
+                f"Subject: {cherry_info['subject']}"
+            )
+            return [{"type": "text", "text": output}]
+        else:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Failed to cherry-pick CL {change_id}. Response: {result_str}",
+                }
+            ]
+    except json.JSONDecodeError:
+        return [
+            {
+                "type": "text",
+                "text": f"Failed to cherry-pick CL {change_id}. Response: {result_str}",
+            }
+        ]
+    except Exception as e:
+        with open(LOG_FILE_PATH, "a") as log_file:
+            log_file.write(
+                f"[gerrit-mcp-server] Error cherry-picking CL {change_id}: {e}\n"
+            )
+        raise e
+
+
+@mcp.tool()
+async def cherry_pick_chain(
+    change_id: str,
+    destination: str,
+    revision_id: str = "current",
+    keep_reviewers: bool = False,
+    allow_conflicts: bool = True,
+    allow_empty: bool = False,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Cherry-picks an entire relation chain (series of dependent changes) to a
+    destination branch, maintaining dependency order. Fetches the related changes
+    for the given change, then cherry-picks each one sequentially from parent to
+    child so the chain structure is preserved on the destination branch.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+
+    # Step 1: Fetch the relation chain
+    related_url = (
+        f"{base_url}/changes/{change_id}/revisions/{revision_id}/related"
+    )
+    try:
+        result_str = await run_curl([related_url], base_url)
+        related_info = json.loads(result_str)
+    except (json.JSONDecodeError, Exception) as e:
+        return [
+            {
+                "type": "text",
+                "text": f"Failed to fetch related changes for CL {change_id}: {e}",
+            }
+        ]
+
+    changes = related_info.get("changes", [])
+    if not changes:
+        return [
+            {
+                "type": "text",
+                "text": (
+                    f"No related changes found for CL {change_id}. "
+                    "Use cherry_pick_change for a single change."
+                ),
+            }
+        ]
+
+    # Step 2: Reverse so we cherry-pick parent-to-child
+    # (the /related API returns child-first, ancestors last)
+    changes.reverse()
+
+    results = []
+    parent_commit = None
+
+    for i, related_change in enumerate(changes):
+        cid = str(related_change["_change_number"])
+        rid = str(related_change.get("_revision_number", "current"))
+
+        payload = {"destination": destination}
+        if keep_reviewers:
+            payload["keep_reviewers"] = True
+        if allow_conflicts:
+            payload["allow_conflicts"] = True
+        if allow_empty:
+            payload["allow_empty"] = True
+        if parent_commit:
+            payload["base"] = parent_commit
+
+        cherry_url = (
+            f"{base_url}/changes/{cid}/revisions/{rid}/cherrypick"
+        )
+        args = _create_post_args(cherry_url, payload)
+
+        try:
+            result_str = await run_curl(args, base_url)
+            cherry_info = json.loads(result_str)
+
+            if "id" not in cherry_info or "_number" not in cherry_info:
+                error_output = (
+                    f"Cherry-pick chain failed at CL {cid} "
+                    f"({i + 1}/{len(changes)}).\n"
+                    f"Response: {result_str}\n"
+                )
+                if results:
+                    error_output += "Successfully cherry-picked before failure:\n"
+                    for r in results:
+                        error_output += (
+                            f"- CL {r['original']} -> new CL {r['new_number']}: "
+                            f"{r['subject']}\n"
+                        )
+                return [{"type": "text", "text": error_output}]
+
+            # The cherry-pick response doesn't include current_revision
+            # by default. Fetch the new change with CURRENT_REVISION to
+            # get the commit SHA needed as 'base' for the next cherry-pick.
+            new_cl = cherry_info["_number"]
+            detail_url = (
+                f"{base_url}/changes/{new_cl}?o=CURRENT_REVISION"
+            )
+            detail_str = await run_curl([detail_url], base_url)
+            detail_info = json.loads(detail_str)
+            parent_commit = detail_info.get("current_revision")
+
+            results.append(
+                {
+                    "original": cid,
+                    "new_number": new_cl,
+                    "subject": cherry_info.get("subject", ""),
+                }
+            )
+        except Exception as e:
+            error_output = (
+                f"Cherry-pick chain failed at CL {cid} "
+                f"({i + 1}/{len(changes)}): {e}\n"
+            )
+            if results:
+                error_output += "Successfully cherry-picked before failure:\n"
+                for r in results:
+                    error_output += (
+                        f"- CL {r['original']} -> new CL {r['new_number']}: "
+                        f"{r['subject']}\n"
+                    )
+            with open(LOG_FILE_PATH, "a") as log_file:
+                log_file.write(
+                    f"[gerrit-mcp-server] Error cherry-picking chain at CL {cid}: {e}\n"
+                )
+            return [{"type": "text", "text": error_output}]
+
+    # Step 3: Report success
+    output = (
+        f"Successfully cherry-picked chain of {len(results)} changes "
+        f"to branch {destination}:\n"
+    )
+    for r in results:
+        output += (
+            f"- CL {r['original']} -> new CL {r['new_number']}: {r['subject']}\n"
+        )
+    return [{"type": "text", "text": output}]
+
+
+@mcp.tool()
+async def get_cherry_picks_of_change(
+    change_id: str,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Finds all cherry-picks of a given change across different branches.
+    Retrieves the Change-Id from the change's commit message, then queries
+    for all changes sharing that Change-Id. Useful for tracking where a
+    change has been cherry-picked and whether those cherry-picks need to
+    be submitted.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+
+    # Step 1: Fetch the change details to get the Change-Id
+    detail_url = (
+        f"{base_url}/changes/{change_id}/detail"
+        f"?o=CURRENT_REVISION&o=CURRENT_COMMIT"
+    )
+    try:
+        result_str = await run_curl([detail_url], base_url)
+        details = json.loads(result_str)
+    except (json.JSONDecodeError, Exception) as e:
+        return [
+            {
+                "type": "text",
+                "text": f"Failed to fetch details for CL {change_id}: {e}",
+            }
+        ]
+
+    # Step 2: Extract Change-Id from commit message
+    change_id_value = None
+    current_rev = details.get("current_revision")
+    if current_rev and current_rev in details.get("revisions", {}):
+        commit_msg = (
+            details["revisions"][current_rev]
+            .get("commit", {})
+            .get("message", "")
+        )
+        for line in commit_msg.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("Change-Id: "):
+                change_id_value = stripped.split("Change-Id: ", 1)[1].strip()
+                break
+
+    if not change_id_value:
+        return [
+            {
+                "type": "text",
+                "text": f"Could not find Change-Id in commit message for CL {change_id}.",
+            }
+        ]
+
+    # Step 3: Query for all changes with the same Change-Id
+    query_url = f"{base_url}/changes/?q=change:{change_id_value}"
+    try:
+        result_str = await run_curl([query_url], base_url)
+        all_changes = json.loads(result_str)
+    except (json.JSONDecodeError, Exception) as e:
+        return [
+            {
+                "type": "text",
+                "text": f"Failed to query cherry-picks for Change-Id {change_id_value}: {e}",
+            }
+        ]
+
+    # Step 4: Filter out the original change
+    original_number = details.get("_number")
+    cherry_picks = [
+        c for c in all_changes if c.get("_number") != original_number
+    ]
+
+    if not cherry_picks:
+        return [
+            {
+                "type": "text",
+                "text": f"No cherry-picks found for CL {change_id} (Change-Id: {change_id_value}).",
+            }
+        ]
+
+    # Step 5: Format output
+    output = (
+        f"Found {len(cherry_picks)} cherry-pick(s) of CL {change_id} "
+        f"(Change-Id: {change_id_value}):\n"
+    )
+    for cp in cherry_picks:
+        output += (
+            f"- CL {cp['_number']}: branch={cp.get('branch', 'N/A')}, "
+            f"project={cp.get('project', 'N/A')}, "
+            f"status={cp.get('status', 'N/A')}, "
+            f"subject={cp.get('subject', 'N/A')}\n"
+        )
+
+    return [{"type": "text", "text": output}]
+
+
+@mcp.tool()
 async def create_change(
     project: str,
     subject: str,
