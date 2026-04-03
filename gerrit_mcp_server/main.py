@@ -542,7 +542,8 @@ async def list_change_comments(
             timestamp = comment.get("updated", "No date")
             message = comment["message"]
             status = "UNRESOLVED" if comment.get("unresolved", False) else "RESOLVED"
-            output += f"L{line}: [{author}] ({timestamp}) - {status}\n"
+            comment_id = comment.get("id", "")
+            output += f"L{line}: [{author}] ({timestamp}) - {status} id={comment_id}\n"
             output += f"  {message}\n"
 
     if not found_comments:
@@ -1224,10 +1225,12 @@ async def post_draft_comment(
     end_line: Optional[int] = None,
     end_character: Optional[int] = None,
     suggestion: Optional[str] = None,
+    in_reply_to: Optional[str] = None,
 ):
     """
     Creates a draft review comment on a specific line of a file in a CL.
     Draft comments are only visible to the author until explicitly published.
+    Use in_reply_to with a parent comment ID to create a threaded reply.
 
     """
     if suggestion is not None:
@@ -1244,6 +1247,9 @@ async def post_draft_comment(
         "message": message,
         "unresolved": unresolved,
     }
+
+    if in_reply_to is not None:
+        payload["in_reply_to"] = in_reply_to
 
     if all(v is not None for v in [start_line, start_character, end_line, end_character]):
         payload["range"] = {
@@ -1386,6 +1392,48 @@ async def delete_draft_comments(
     if errors:
         output += f"\n{len(errors)} error(s):\n" + "\n".join(errors)
     return [{"type": "text", "text": output}]
+
+
+@mcp.tool()
+async def publish_drafts(
+    change_id: str,
+    message: Optional[str] = None,
+    labels: Optional[Dict[str, int]] = None,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Publishes all pending draft comments on a CL as a single review.
+    This is equivalent to clicking "Send" in the Gerrit web UI — all
+    draft comments become visible to other reviewers in one batch.
+
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
+    url = f"{base_url}/changes/{change_id}/revisions/current/review"
+
+    payload: Dict[str, Any] = {"drafts": "PUBLISH_ALL_REVISIONS"}
+    if message:
+        payload["message"] = message
+    if labels:
+        payload["labels"] = labels
+
+    args = _create_post_args(url, payload)
+
+    try:
+        await run_curl(args, base_url)
+        return [
+            {
+                "type": "text",
+                "text": f"Successfully published all draft comments on CL {change_id}.",
+            }
+        ]
+    except Exception as e:
+        with open(LOG_FILE_PATH, "a") as log_file:
+            log_file.write(
+                f"[gerrit-mcp-server] Error publishing drafts on CL {change_id}: {e}\n"
+            )
+        raise e
 
 
 def cli_main(argv: List[str]):
