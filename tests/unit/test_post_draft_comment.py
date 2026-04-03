@@ -89,6 +89,29 @@ class TestPostDraftComment(unittest.TestCase):
         asyncio.run(run_test())
 
     @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_post_draft_comment_with_in_reply_to(self, mock_run_curl):
+        async def run_test():
+            mock_run_curl.return_value = json.dumps({"id": "draft-reply-1"})
+
+            result = await main.post_draft_comment(
+                change_id="456",
+                file_path="src/main.py",
+                line_number=10,
+                message="Good point, fixed.",
+                in_reply_to="comment-abc123",
+                gerrit_base_url="https://gerrit-review.googlesource.com",
+            )
+
+            self.assertIn("Draft comment created", result[0]["text"])
+
+            args, _ = mock_run_curl.call_args
+            curl_args = args[0]
+            payload = json.loads(curl_args[curl_args.index("--data") + 1])
+            self.assertEqual(payload["in_reply_to"], "comment-abc123")
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
     def test_post_draft_comment_no_id_in_response(self, mock_run_curl):
         async def run_test():
             mock_run_curl.return_value = json.dumps({"error": "something"})
