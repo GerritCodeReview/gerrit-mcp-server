@@ -23,6 +23,9 @@ Here are a few examples of how you can use the Gerrit MCP Server with a language
 | **Advanced**        | "Revert CL 12345 with the message 'Broke the build'."                                                             | `revert_change`                                       |
 |                   | "What other changes would be submitted with CL 67890?"                                                            | `changes_submitted_together`                          |
 |                   | "Create a new change in project 'test-project', branch 'dev', with subject 'Test new feature'."                   | `create_change`                                       |
+| **Cherry-pick**     | "Cherry-pick CL 12345 to the 'release-1.0' branch."                                                               | `cherry_pick_change`                                  |
+|                   | "Cherry-pick the entire chain of CL 67890 to the 'stable' branch."                                                | `cherry_pick_chain`                                   |
+|                   | "Where has CL 12345 been cherry-picked to?"                                                                        | `get_change_details` + `query_changes`                |
 
 ## Data Analysis Use Cases
 
