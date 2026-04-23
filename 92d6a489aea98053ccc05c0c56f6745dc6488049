@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3c08085e_4930d910",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-04-23T17:07:19Z",
+      "side": 1,
+      "message": "Please rebase the changes. I\u0027ve adusted the parent commit.",
+      "revId": "92d6a489aea98053ccc05c0c56f6745dc6488049",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
