@@ -37,6 +37,10 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
   revision — commit SHA, parent SHA(s), author, committer, subject, and the
   verbatim message — so an agent can retrieve parent SHAs (e.g. to check whether
   each parent is merged via `query_changes("commit:<sha>")`).
+- **get_git_parent_changes**: Returns the immediate git-parent changes of a CL,
+  using the `parentof:` query operator to find changes whose commit is a direct
+  parent of the given change's commit. Only immediate parents are returned, not
+  grandparents or higher ancestors.
 - **suggest_reviewers**: Suggests reviewers for a change based on a query.
 - **abandon_change**: Abandons a change.
 - **get_most_recent_cl**: Gets the most recent CL for a user.
