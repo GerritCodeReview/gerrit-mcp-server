@@ -1086,6 +1086,75 @@ async def set_topic(
         ]
 
 
+class _ParentChange(TypedDict):
+    change_number: int
+    subject: str
+    work_in_progress: bool
+
+
+class _GitParentChangesResult(TypedDict):
+    change_id: str
+    parent_changes: List[_ParentChange]
+    note: NotRequired[str]
+
+
+@mcp.tool()
+async def get_git_parent_changes(
+    change_id: str,
+    gerrit_base_url: Optional[str] = None,
+) -> _GitParentChangesResult:
+    """
+    Returns the immediate git-parent changes of a given CL.
+
+    Uses the parentof: query operator to find changes whose commit is a direct
+    parent of the given change's commit. Returns only immediate parents, not
+    grandparents or higher ancestors.
+
+    change_id can be a numeric change number or a Change-Id (I... hash from the
+    commit footer).
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    url = f"{base_url}/changes/?q={quote(f'parentof:{change_id}')}"
+
+    try:
+        result_json_str = await run_curl([url], base_url)
+        changes = json.loads(result_json_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            "Failed to parse JSON response from Gerrit."
+            f" Raw response: '{result_json_str}'"
+        ) from e
+    except Exception as e:
+        raise RuntimeError(
+            f"Error fetching git-parent changes for {change_id}: {e}"
+        ) from e
+
+    parent_changes: List[_ParentChange] = [
+        {
+            "change_number": change["_number"],
+            "subject": change["subject"],
+            "work_in_progress": change.get("work_in_progress", False),
+        }
+        for change in changes
+    ]
+
+    result: _GitParentChangesResult = {
+        "change_id": change_id,
+        "parent_changes": parent_changes,
+    }
+    if not parent_changes:
+        result["note"] = (
+            "No git-parent changes found."
+            " The parent commit is not an open Gerrit change."
+        )
+
+    return result
+
+
 @mcp.tool()
 async def changes_submitted_together(
     change_id: str,
