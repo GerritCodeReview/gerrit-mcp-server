@@ -1100,6 +1100,55 @@ async def set_topic(
 
 
 @mcp.tool()
+async def get_git_parent_changes(
+    change_id: str,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Returns the immediate git-parent changes of a given CL.
+
+    Uses the parentof: query operator to find changes whose commit is a direct
+    parent of the given change's commit. Returns only immediate parents, not
+    grandparents or higher ancestors.
+
+    change_id can be a numeric change number or a Change-Id (I... hash from the
+    commit footer).
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    url = f"{base_url}/changes/?q={quote(f'parentof:{change_id}')}"
+
+    result_json_str = await run_curl([url], base_url)
+    try:
+        changes = json.loads(result_json_str)
+    except json.JSONDecodeError:
+        return [
+            {
+                "type": "text",
+                "text": f"Failed to parse JSON response from Gerrit. Raw response: '{result_json_str}'",
+            }
+        ]
+
+    if not changes:
+        return [
+            {
+                "type": "text",
+                "text": f"No git-parent changes found for {change_id}. The parent commit is not an open Gerrit change.",
+            }
+        ]
+
+    output = f"Found {len(changes)} git-parent change(s) for {change_id}:\n"
+    for change in changes:
+        wip_prefix = "[WIP] " if change.get("work_in_progress") else ""
+        output += f"- {change['_number']}: {wip_prefix}{change['subject']}\n"
+
+    return [{"type": "text", "text": output}]
+
+
+@mcp.tool()
 async def changes_submitted_together(
     change_id: str,
     gerrit_base_url: Optional[str] = None,
