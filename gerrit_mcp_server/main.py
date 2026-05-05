@@ -26,12 +26,14 @@ from urllib.parse import quote
 from mcp.server.fastmcp import Context, FastMCP
 
 from gerrit_mcp_server.bug_utils import extract_bugs_from_commit_message
+from gerrit_mcp_server.extensions import ExtensionContext, load_extensions
 from gerrit_mcp_server.gerrit_urls import get_curl_command_for_gerrit_url
 from gerrit_mcp_server.http_headers import (
     RequestObservabilityContext,
     _request_obs,
     build_curl_header_args,
 )
+from gerrit_mcp_server.plugin_registry import PluginRegistry
 from gerrit_mcp_server.sort_util import sort_changes_by_date
 
 # --- Load Gerrit details from JSON ---
@@ -1688,11 +1690,45 @@ def main():
     cli_main(["gerrit-mcp-server", "stdio"])
 
 
+def _build_extension_context() -> "ExtensionContext":
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+
+    def _normalize(url: str) -> str:
+        return _normalize_gerrit_url(url, gerrit_hosts)
+
+    def _resolve_base_url(url: Optional[str] = None) -> str:
+        # Mirror the core tools: resolve defaults/env, then normalize and
+        # apply the /a auth prefix so extensions hit the authenticated endpoint.
+        return _normalize(_get_gerrit_base_url(url))
+
+    registry = PluginRegistry(
+        run_curl=run_curl,
+        normalize_url=_normalize,
+        load_config=load_gerrit_config,
+    )
+
+    return ExtensionContext(
+        mcp=mcp,
+        get_base_url=_resolve_base_url,
+        normalize_url=_normalize,
+        run_curl=run_curl,
+        load_config=load_gerrit_config,
+        log_path=LOG_FILE_PATH,
+        plugin_registry=registry,
+    )
+
+
 def cli_main(argv: List[str]):
     """
     The main entry point for the command-line interface.
     This function is responsible for parsing arguments and running the server.
     """
+    # Extensions register their tools before the transport starts so all
+    # tools are visible from the first request. Broken extensions are
+    # logged and skipped -- see extensions.load_extensions.
+    load_extensions(_build_extension_context())
+
     # If 'stdio' is an argument, run in stdio mode and bypass HTTP server logic.
     if "stdio" in argv:
         mcp.run(transport="stdio")

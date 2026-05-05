@@ -95,6 +95,46 @@ def test_normalize_gerrit_url(mock_load_config, input_url, expected):
     assert main._normalize_gerrit_url(input_url, gerrit_hosts) == expected
 
 
+def test_build_extension_context_get_base_url_applies_auth_prefix(mock_load_config):
+    """The extension context's get_base_url must normalize and apply the /a auth
+    prefix, mirroring the core tools, so extensions hit the authenticated endpoint."""
+    mock_load_config.return_value = {
+        "gerrit_hosts": [
+            {
+                "name": "ReviewAndroid",
+                "external_url": "https://review-android.example.com/",
+                "authentication": {"type": "http_basic"},
+            }
+        ]
+    }
+
+    ctx = main._build_extension_context()
+
+    assert (
+        ctx.get_base_url("https://review-android.example.com")
+        == "https://review-android.example.com/a"
+    )
+
+
+def test_build_extension_context_get_base_url_no_prefix_for_anonymous(mock_load_config):
+    """A host without http_basic/git_cookies auth gets no /a prefix."""
+    mock_load_config.return_value = {
+        "gerrit_hosts": [
+            {
+                "name": "Public",
+                "external_url": "https://public-review.example.com/",
+            }
+        ]
+    }
+
+    ctx = main._build_extension_context()
+
+    assert (
+        ctx.get_base_url("https://public-review.example.com")
+        == "https://public-review.example.com"
+    )
+
+
 def test_load_gerrit_config_not_found():
     """Tests that FileNotFoundError is raised when the config file is missing."""
     with patch("gerrit_mcp_server.main.Path.exists", return_value=False):
