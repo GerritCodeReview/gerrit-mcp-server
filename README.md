@@ -26,6 +26,8 @@ For detailed information, please see the documents in the `docs/` directory:
   project.
 - **[Available Tools](docs/available_tools.md)**: A list of all available tools
   and their descriptions.
+- **[Extensions](docs/extensions.md)**: How to register additional MCP tools
+  without modifying the core server.
 - **[Example Use Cases](docs/use_cases.md)**: Scenarios demonstrating how to use
   the server.
 
