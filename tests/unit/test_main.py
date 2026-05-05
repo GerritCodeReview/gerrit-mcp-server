@@ -95,6 +95,82 @@ def test_normalize_gerrit_url(mock_load_config, input_url, expected):
     assert main._normalize_gerrit_url(input_url, gerrit_hosts) == expected
 
 
+def test_build_extension_context_get_base_url_applies_auth_prefix(mock_load_config):
+    """The extension context's get_base_url must normalize and apply the /a auth
+    prefix, mirroring the core tools, so extensions hit the authenticated endpoint."""
+    mock_load_config.return_value = {
+        "gerrit_hosts": [
+            {
+                "name": "ReviewAndroid",
+                "external_url": "https://review-android.example.com/",
+                "authentication": {"type": "http_basic"},
+            }
+        ]
+    }
+
+    ctx = main._build_extension_context()
+
+    assert (
+        ctx.get_base_url("https://review-android.example.com")
+        == "https://review-android.example.com/a"
+    )
+
+
+def test_build_extension_context_get_base_url_no_prefix_for_anonymous(mock_load_config):
+    """A host without http_basic/git_cookies auth gets no /a prefix."""
+    mock_load_config.return_value = {
+        "gerrit_hosts": [
+            {
+                "name": "Public",
+                "external_url": "https://public-review.example.com/",
+            }
+        ]
+    }
+
+    ctx = main._build_extension_context()
+
+    assert (
+        ctx.get_base_url("https://public-review.example.com")
+        == "https://public-review.example.com"
+    )
+
+
+@pytest.mark.parametrize(
+    "exc,expected_code",
+    [
+        (FileNotFoundError("no config"), 1),
+        (ValueError("bad default url"), 2),
+        (json.JSONDecodeError("bad json", "doc", 0), 2),
+    ],
+)
+def test_cli_main_exits_cleanly_on_config_error(exc, expected_code):
+    """A config error while building the extension context must produce a
+    clean message and exit code, not an unhandled traceback that aborts
+    startup with a stack trace."""
+    with (
+        patch("gerrit_mcp_server.main._build_extension_context", side_effect=exc),
+        patch("gerrit_mcp_server.main.ExtensionLoader") as mock_loader,
+        patch("gerrit_mcp_server.main.mcp") as mock_mcp,
+    ):
+        with pytest.raises(SystemExit) as excinfo:
+            main.cli_main(["gerrit-mcp-server", "stdio"])
+    assert excinfo.value.code == expected_code
+    mock_loader.assert_not_called()
+    mock_mcp.run.assert_not_called()
+
+
+def test_cli_main_starts_when_context_builds(mock_load_config):
+    """When the context builds cleanly, extensions load and the transport runs."""
+    mock_load_config.return_value = {"gerrit_hosts": []}
+    with (
+        patch("gerrit_mcp_server.main.ExtensionLoader") as mock_loader,
+        patch("gerrit_mcp_server.main.mcp") as mock_mcp,
+    ):
+        main.cli_main(["gerrit-mcp-server", "stdio"])
+    mock_loader.return_value.load.assert_called_once()
+    mock_mcp.run.assert_called_once_with(transport="stdio")
+
+
 def test_load_gerrit_config_not_found():
     """Tests that FileNotFoundError is raised when the config file is missing."""
     with patch("gerrit_mcp_server.main.Path.exists", return_value=False):
