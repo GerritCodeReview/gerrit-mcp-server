@@ -31,6 +31,7 @@ The configuration file has two main properties at its root:
 | ------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `default_gerrit_base_url` | string | The full URL of the Gerrit instance to use if a tool is called without a specific `gerrit_base_url` parameter.                                                |
 | `gerrit_hosts`            | array  | A list of objects, where each object defines the connection and authentication details for a specific Gerrit instance. This is the core of the configuration. |
+| `extensions`              | object | (Optional) Namespaced configuration blocks for extensions, keyed by extension name. See [Extensions](extensions.md#namespaced-configuration).                 |
 
 ______________________________________________________________________
 
