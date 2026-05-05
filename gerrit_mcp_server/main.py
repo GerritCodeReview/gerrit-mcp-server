@@ -20,18 +20,20 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Callable, Dict, List, Optional, TypedDict
 from urllib.parse import quote
 
 from mcp.server.fastmcp import Context, FastMCP
 
 from gerrit_mcp_server.bug_utils import extract_bugs_from_commit_message
+from gerrit_mcp_server.extensions import ExtensionContext, ExtensionLoader
 from gerrit_mcp_server.gerrit_urls import get_curl_command_for_gerrit_url
 from gerrit_mcp_server.http_headers import (
     RequestObservabilityContext,
     _request_obs,
     build_curl_header_args,
 )
+from gerrit_mcp_server.plugin_registry import PluginRegistry
 from gerrit_mcp_server.sort_util import sort_changes_by_date
 
 # --- Load Gerrit details from JSON ---
@@ -106,15 +108,20 @@ def load_gerrit_config() -> Dict[str, Any]:
         raise e
 
 
-def check_config_main() -> None:
+def _exit_on_config_error(load: Callable[[], Any]) -> Any:
+    """Run ``load()``; on a config error print it and exit (missing=1, invalid=2)."""
     try:
-        load_gerrit_config()
+        return load()
     except FileNotFoundError as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
     except ValueError as e:
         print(str(e), file=sys.stderr)
         sys.exit(2)
+
+
+def check_config_main() -> None:
+    _exit_on_config_error(load_gerrit_config)
 
 
 try:
@@ -1670,11 +1677,46 @@ def main():
     cli_main(["gerrit-mcp-server", "stdio"])
 
 
+def _build_extension_context() -> "ExtensionContext":
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+
+    def _normalize(url: str) -> str:
+        return _normalize_gerrit_url(url, gerrit_hosts)
+
+    def _resolve_base_url(url: Optional[str] = None) -> str:
+        # Mirror the core tools: resolve defaults/env, then normalize and
+        # apply the /a auth prefix so extensions hit the authenticated endpoint.
+        return _normalize(_get_gerrit_base_url(url))
+
+    registry = PluginRegistry(
+        run_curl=run_curl,
+        normalize_url=_normalize,
+        load_config=load_gerrit_config,
+    )
+
+    return ExtensionContext(
+        mcp=mcp,
+        get_base_url=_resolve_base_url,
+        normalize_url=_normalize,
+        run_curl=run_curl,
+        load_config=load_gerrit_config,
+        log_path=LOG_FILE_PATH,
+        plugin_registry=registry,
+    )
+
+
 def cli_main(argv: List[str]):
     """
     The main entry point for the command-line interface.
     This function is responsible for parsing arguments and running the server.
     """
+    # Register extension tools before the transport starts, so every tool is
+    # visible from the first request. Config errors exit cleanly here rather
+    # than mid-request; broken extensions are logged and skipped.
+    context = _exit_on_config_error(_build_extension_context)
+    ExtensionLoader(context).load()
+
     # If 'stdio' is an argument, run in stdio mode and bypass HTTP server logic.
     if "stdio" in argv:
         mcp.run(transport="stdio")

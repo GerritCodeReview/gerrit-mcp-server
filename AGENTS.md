@@ -90,6 +90,8 @@ code changes — docs are part of the deliverable, not an afterthought.
   authentication methods.
 - **`docs/available_tools.md`** — every MCP tool exposed by the server and what
   it does.
+- **`docs/extensions.md`** — the extension hook: registering additional MCP
+  tools via `register(ctx)`, the `ExtensionContext` API, and `requires_plugin`.
 - **`docs/testing.md`** — how to run unit, integration, and E2E tests.
 - **`docs/best_practices.md`** — tips for using the server effectively.
 - **`docs/use_cases.md`** — worked scenarios demonstrating the server.
@@ -105,6 +107,8 @@ code changes — docs are part of the deliverable, not an afterthought.
 - **Change how tests are run** → update `docs/testing.md`.
 - **Change behavior users rely on** → check `docs/best_practices.md` and
   `docs/use_cases.md`.
+- **Change the extension hook or `ExtensionContext` API** → update
+  `docs/extensions.md`.
 
 ### Adding, renaming, or removing a document
 
