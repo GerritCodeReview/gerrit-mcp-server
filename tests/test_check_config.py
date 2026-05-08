@@ -1,5 +1,5 @@
 import json
-import os
+
 import pytest
 
 from gerrit_mcp_server.main import check_config_main
@@ -34,7 +34,10 @@ def test_check_config_exits_2_when_default_url_mismatch(monkeypatch, tmp_path):
             {
                 "name": "Test",
                 "external_url": "https://gerrit.example.com",
-                "authentication": {"type": "git_cookies", "gitcookies_path": "~/.gitcookies"},
+                "authentication": {
+                    "type": "git_cookies",
+                    "gitcookies_path": "~/.gitcookies",
+                },
             }
         ],
     }

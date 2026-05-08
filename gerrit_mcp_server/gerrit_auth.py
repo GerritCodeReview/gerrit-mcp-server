@@ -57,9 +57,12 @@ def _get_auth_for_gitcookies(gerrit_base_url: str, config: Dict[str, Any]) -> Li
         )
         with open(gitcookies_path, "r") as f:
             for line in f:
-                if domain in line:
-                    parts = line.strip().split("\t")
-                    if len(parts) == 7:
+                parts = line.strip().split("\t")
+                if len(parts) == 7:
+                    cookie_domain = parts[0]
+                    # Support exact match and wildcard (leading dot) domains.
+                    normalized = cookie_domain.lstrip(".")
+                    if domain == normalized or domain.endswith("." + normalized):
                         last_found_cookie = f"{parts[5]}={parts[6]}"
 
         if last_found_cookie:
