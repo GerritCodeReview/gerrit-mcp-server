@@ -85,6 +85,43 @@ class TestGerritAuth(unittest.TestCase):
             command = gerrit_auth._get_auth_for_gitcookies(url, config)
         self.assertEqual(command, ["curl", "-b", "o=git-lasttoken", "-L"])
 
+    @patch("os.path.exists", return_value=True)
+    def test_get_auth_for_gitcookies_wildcard_matches_subdomain(self, mock_exists):
+        """A leading-dot (wildcard) entry matches a subdomain of that domain."""
+        config = {"gitcookies_path": "~/.gitcookies"}
+        url = "https://sub.my-gerrit.com"
+        m = mock_open(
+            read_data=".my-gerrit.com\tTRUE\t/\tTRUE\t2147483647\to\tgit-token"
+        )
+        with patch("builtins.open", m):
+            command = gerrit_auth._get_auth_for_gitcookies(url, config)
+        self.assertEqual(command, ["curl", "-b", "o=git-token", "-L"])
+
+    @patch("os.path.exists", return_value=True)
+    def test_get_auth_for_gitcookies_wildcard_matches_exact(self, mock_exists):
+        """A leading-dot (wildcard) entry also matches the bare domain."""
+        config = {"gitcookies_path": "~/.gitcookies"}
+        url = "https://my-gerrit.com"
+        m = mock_open(
+            read_data=".my-gerrit.com\tTRUE\t/\tTRUE\t2147483647\to\tgit-token"
+        )
+        with patch("builtins.open", m):
+            command = gerrit_auth._get_auth_for_gitcookies(url, config)
+        self.assertEqual(command, ["curl", "-b", "o=git-token", "-L"])
+
+    @patch("os.path.exists", return_value=True)
+    def test_get_auth_for_gitcookies_non_wildcard_ignores_subdomain(self, mock_exists):
+        """A non-wildcard entry must NOT match a subdomain of that domain."""
+        config = {"gitcookies_path": "~/.gitcookies"}
+        url = "https://sub.my-gerrit.com"
+        m = mock_open(
+            read_data="my-gerrit.com\tFALSE\t/\tTRUE\t2147483647\to\tgit-token"
+        )
+        with patch("builtins.open", m):
+            command = gerrit_auth._get_auth_for_gitcookies(url, config)
+        # No matching entry, so it falls back to an unauthenticated request.
+        self.assertEqual(command, ["curl", "-s", "-L"])
+
 
 if __name__ == "__main__":
     unittest.main()
