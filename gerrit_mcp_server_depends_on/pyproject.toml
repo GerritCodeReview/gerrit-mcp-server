@@ -1,0 +1,17 @@
+[project]
+name = "gerrit-mcp-server-depends-on"
+version = "0.1.0"
+description = "gerrit-mcp-server extension for the Gerrit depends-on plugin"
+requires-python = ">=3.12"
+dependencies = ["gerrit-mcp-server"]
+
+[project.entry-points."gerrit_mcp_server.extensions"]
+gerrit_mcp_server_depends_on = "gerrit_mcp_server_depends_on.extension:register"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["gerrit_mcp_server_depends_on"]
+package-dir = {"gerrit_mcp_server_depends_on" = "."}
