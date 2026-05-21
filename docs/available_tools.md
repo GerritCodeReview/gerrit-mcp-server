@@ -54,3 +54,18 @@ plugin installed.
   actionable tasks — those with status `READY` or `FAIL`. `WAITING` nodes are
   descended into but not returned. Pass `task_only` to scope to a single root
   task.
+
+### Depends-on plugin (`gerrit_mcp_server_depends_on`)
+
+Requires the [`depends-on`](https://gerrit.googlesource.com/plugins/depends-on/)
+plugin on the target Gerrit host. Both tools auto-route to a configured host
+that has the plugin installed.
+
+- **get_depends_on**: Returns the Depends-on plugin dependencies declared on a
+  change. Each item is either resolved (has a `change_number`) or unresolved
+  (has an unresolved I-hash that couldn't be matched to a change in the
+  configured deliverables). Uses the `--depends-on--all` DynamicOption to
+  include all dependencies regardless of deliverable scope.
+- **get_dependents**: Returns changes that explicitly declare `Depends-on:` on
+  the given change, via the `independson:<change_id>` query operator registered
+  by the plugin.
