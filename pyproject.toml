@@ -38,6 +38,14 @@ gerrit-check-config = "gerrit_mcp_server.main:check_config_main"
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
+[tool.uv.workspace]
+members = ["gerrit_mcp_server_task", "gerrit_mcp_server_depends_on"]
+
+[tool.uv.sources]
+gerrit-mcp-server = { workspace = true }
+gerrit-mcp-server-task = { workspace = true }
+gerrit-mcp-server-depends-on = { workspace = true }
+
 [tool.setuptools]
 packages = ["gerrit_mcp_server"]
 
