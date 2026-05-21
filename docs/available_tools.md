@@ -35,3 +35,22 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 - **get_bugs_from_cl**: Extracts bug IDs from the commit message of a CL.
 - **post_review_comment**: Posts a review comment on a specific line of a file
   in a CL.
+
+## Extension Tools
+
+These tools are provided by bundled [extensions](extensions.md) rather than the
+core server. They are registered at startup and become available automatically.
+
+### Task plugin (`gerrit_mcp_server_task`)
+
+Requires the [`task`](https://gerrit.googlesource.com/plugins/task/) plugin on
+the target Gerrit host. Both tools auto-route to a configured host that has the
+plugin installed.
+
+- **get_task_tree**: Returns the full task tree attached to a change (pruned to
+  applicable tasks via `task--applicable`). Pass `task_only` to scope to a
+  single root task.
+- **get_actionable_tasks**: Walks the task tree depth-first and returns only the
+  actionable tasks — those with status `READY` or `FAIL`. `WAITING` nodes are
+  descended into but not returned. Pass `task_only` to scope to a single root
+  task.

@@ -36,7 +36,7 @@ class TestBuildAndRun(unittest.TestCase):
             "server.sh",
             "uv.lock",
         ]
-        self.dirs_to_copy = ["gerrit_mcp_server"]
+        self.dirs_to_copy = ["gerrit_mcp_server", "gerrit_mcp_server_task"]
 
         for file_name in self.files_to_copy:
             shutil.copy(os.path.join(self.project_root, file_name), self.test_dir.name)

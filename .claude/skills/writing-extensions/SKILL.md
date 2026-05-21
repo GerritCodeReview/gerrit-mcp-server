@@ -330,6 +330,18 @@ async def test_my_tool_returns_structured_result(ctx):
     assert result["change_id"] == "123"
 ```
 
+## 11. Worked example — the `task` extension
+
+See `gerrit_mcp_server_task/extension.py` for a complete, production-ready
+example:
+
+- Two tools (`get_task_tree`, `get_actionable_tasks`) both gated with
+  `@requires_plugin("task", ...)`
+- URL construction with `task--applicable` DynamicOption
+- Depth-first `_find_actionable` walk (stop at PASS/DUPLICATE/SKIPPED/UNKNOWN;
+  descend into WAITING)
+- No bundled config or auth — fully delegated to `ExtensionContext`
+
 ## 12. Checklist before shipping
 
 - [ ] All tools return a `TypedDict` with a declared return type annotation (not

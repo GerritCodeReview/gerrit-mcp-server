@@ -2,7 +2,7 @@
 !/.gemini/
 /.gemini/*
 !/.gemini/settings.json
-gerrit_mcp_server.egg-info
+**/*.egg-info
 __pycache__/
 server.log
 server.pid

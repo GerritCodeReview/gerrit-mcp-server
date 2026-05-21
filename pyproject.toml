@@ -6,7 +6,8 @@ requires-python = ">=3.12"
 dependencies = [
     "mcp<2",
     "uvicorn",
-    "websockets"
+    "websockets",
+    "gerrit-mcp-server-task"
 ]
 
 [project.optional-dependencies]
@@ -25,6 +26,7 @@ dev = [
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "--asyncio-mode=auto -v --ignore=tests/e2e"
+pythonpath = ["."]
 env = [
     "GERRIT_CONFIG_PATH=tests/test_config.json"
 ]
@@ -36,6 +38,13 @@ gerrit-check-config = "gerrit_mcp_server.main:check_config_main"
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+[tool.uv.workspace]
+members = ["gerrit_mcp_server_task"]
+
+[tool.uv.sources]
+gerrit-mcp-server = { workspace = true }
+gerrit-mcp-server-task = { workspace = true }
 
 [tool.setuptools]
 packages = ["gerrit_mcp_server"]
