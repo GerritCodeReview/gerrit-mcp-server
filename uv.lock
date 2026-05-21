@@ -2,6 +2,12 @@ version = 1
 revision = 3
 requires-python = ">=3.12"
 
+[manifest]
+members = [
+    "gerrit-mcp-server",
+    "gerrit-mcp-server-task",
+]
+
 [[package]]
 name = "annotated-types"
 version = "0.7.0"
@@ -178,6 +184,7 @@ name = "gerrit-mcp-server"
 version = "1.0.0"
 source = { editable = "." }
 dependencies = [
+    { name = "gerrit-mcp-server-task" },
     { name = "mcp" },
     { name = "uvicorn" },
     { name = "websockets" },
@@ -197,6 +204,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "gerrit-mcp-server-task", editable = "gerrit_mcp_server_task" },
     { name = "mcp" },
     { name = "mdformat", marker = "extra == 'dev'" },
     { name = "mdformat-front-matters", marker = "extra == 'dev'" },
@@ -210,6 +218,17 @@ requires-dist = [
     { name = "websockets" },
 ]
 provides-extras = ["dev"]
+
+[[package]]
+name = "gerrit-mcp-server-task"
+version = "0.1.0"
+source = { editable = "gerrit_mcp_server_task" }
+dependencies = [
+    { name = "gerrit-mcp-server" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "gerrit-mcp-server", editable = "." }]
 
 [[package]]
 name = "h11"
