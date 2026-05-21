@@ -50,6 +50,13 @@ uv run gerrit-mcp-server
 
 ## Writing an extension
 
+> [!NOTE] If your harness supports skills (tested with Claude Code), the
+> `writing-extensions` skill (`.claude/skills/writing-extensions/SKILL.md`)
+> walks through authoring a complete extension package step by step — layout,
+> the `register(ctx)` contract, structured return types, `requires_plugin`, the
+> `pyproject.toml` entry point, testing, and a pre-ship checklist. This document
+> is the reference; the skill is the guided walkthrough.
+
 A minimal extension defines `register(ctx)` and registers tools on the FastMCP
 instance exposed by the context:
 
