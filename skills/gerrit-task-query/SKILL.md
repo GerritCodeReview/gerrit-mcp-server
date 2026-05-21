@@ -105,12 +105,13 @@ the `hint` field written by the task config author.
 
 **Common patterns:**
 
-| Pattern                   | How to identify                             | What to do                                                                           |
-| ------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ |
-| CI verification needed    | `READY`, hint mentions a CI system name     | Trigger the CI system (comment, API call, or re-push — method depends on the system) |
-| Label vote missing        | hint mentions `label:X=+1` or a vote count  | Use `post_review_comment` with `labels` (e.g. `{"Code-Review": 1}`)                  |
-| Dependent change blocking | `FAIL` + task has a `change` field          | The blocking change is in `.change`; resolve or unblock it before this one can pass  |
-| Code review needed        | hint mentions code review or approval count | Cast a Code-Review vote or request a reviewer                                        |
+| Pattern                   | How to identify                                       | What to do                                                                                                                                                    |
+| ------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI verification needed    | `READY`, hint mentions a CI system name               | Trigger the CI system (comment, API call, or re-push — method depends on the system)                                                                          |
+| Label vote missing        | hint mentions `label:X=+1` or a vote count            | Use `post_review_comment` with `labels` (e.g. `{"Code-Review": 1}`)                                                                                           |
+| Dependent change blocking | `FAIL` + task has a `change` field                    | The blocking change is in `.change`; resolve or unblock it before this one can pass                                                                           |
+| External/Depends-on issue | hint mentions "Depends-on" or "external dependencies" | Fix the issues with the `Depends-on` change dependencies (use the depends-on plugin tools and skills if available) or wait for the referenced change to merge |
+| Code review needed        | hint mentions code review or approval count           | Cast a Code-Review vote or request a reviewer                                                                                                                 |
 
 Use `post_review_comment` to post comments or cast label votes, and
 `list_change_comments` to read existing ones.
