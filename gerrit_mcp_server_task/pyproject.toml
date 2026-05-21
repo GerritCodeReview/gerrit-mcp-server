@@ -1,0 +1,17 @@
+[project]
+name = "gerrit-mcp-server-task"
+version = "0.1.0"
+description = "gerrit-mcp-server extension for the Gerrit task plugin"
+requires-python = ">=3.12"
+dependencies = ["gerrit-mcp-server"]
+
+[project.entry-points."gerrit_mcp_server.extensions"]
+gerrit_mcp_server_task = "gerrit_mcp_server_task.extension:register"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["gerrit_mcp_server_task"]
+package-dir = {"gerrit_mcp_server_task" = "."}

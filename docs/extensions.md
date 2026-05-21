@@ -9,6 +9,12 @@ request.
 This is the supported way to ship tools that wrap a specific Gerrit plugin (or
 any other host-specific capability) while keeping the core server generic.
 
+> [!NOTE] The bundled `gerrit_mcp_server_task/` package is a complete, shipping
+> example of everything described here — a sibling workspace package whose
+> `register()` wires up the `get_task_tree` and `get_actionable_tasks` tools via
+> `@requires_plugin("task")`, with `TypedDict` return types and an entry point.
+> Read it alongside this document.
+
 ## How extensions are discovered
 
 At startup, `cli_main` builds an `ExtensionContext` and calls
