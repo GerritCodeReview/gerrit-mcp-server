@@ -18,12 +18,14 @@ This module contains generic, reusable utilities for working with URLs.
 
 import asyncio
 
+from gerrit_mcp_server.http_headers import build_curl_header_args
+
 
 async def is_public_url(url: str) -> bool:
     """
     Checks if a URL is publicly accessible by making a HEAD request.
     """
-    command = ["curl", "-s", "-L", "--head", url]
+    command = ["curl", "-s", "-L", "--head"] + build_curl_header_args(None) + [url]
     process = await asyncio.create_subprocess_exec(
         *command,
         stdout=asyncio.subprocess.PIPE,

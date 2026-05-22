@@ -23,10 +23,15 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 
 from gerrit_mcp_server.bug_utils import extract_bugs_from_commit_message
 from gerrit_mcp_server.gerrit_urls import get_curl_command_for_gerrit_url
+from gerrit_mcp_server.http_headers import (
+    RequestObservabilityContext,
+    _request_obs,
+    build_curl_header_args,
+)
 from gerrit_mcp_server.sort_util import sort_changes_by_date
 
 # --- Load Gerrit details from JSON ---
@@ -131,7 +136,42 @@ except Exception as e:
     }
 
 # --- Initialize FastMCP Server ---
-mcp = FastMCP("gerrit")
+
+
+class GerritFastMCP(FastMCP):
+    async def call_tool(self, name: str, arguments: dict) -> Any:
+        ctx = self.get_context()
+        obs = _obs_from_context(ctx, name)
+        token = _request_obs.set(obs)
+        try:
+            return await super().call_tool(name, arguments)
+        finally:
+            _request_obs.reset(token)
+
+
+def _obs_from_context(ctx: Context, tool_name: str) -> RequestObservabilityContext:
+    client_name = None
+    client_version = None
+    protocol_version = None
+    try:
+        params = ctx.session.client_params
+        if params is not None:
+            info = params.clientInfo
+            client_name = getattr(info, "name", None) or None
+            client_version = getattr(info, "version", None) or None
+            pv = params.protocolVersion
+            protocol_version = str(pv) if pv else None
+    except Exception:
+        pass
+    return RequestObservabilityContext(
+        tool_name=tool_name,
+        client_name=client_name,
+        client_version=client_version,
+        protocol_version=protocol_version,
+    )
+
+
+mcp = GerritFastMCP("gerrit")
 
 # --- Session State ---
 
@@ -217,7 +257,10 @@ def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
 async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     """Executes a curl command and returns the output."""
     config = load_gerrit_config()
-    command = get_curl_command_for_gerrit_url(gerrit_base_url, config) + args
+    obs_headers = build_curl_header_args(_request_obs.get())
+    command = (
+        get_curl_command_for_gerrit_url(gerrit_base_url, config) + obs_headers + args
+    )
     with open(LOG_FILE_PATH, "a") as log_file:
         log_file.write(f"[gerrit-mcp-server] Executing: {' '.join(command)}\n")
 
