@@ -314,6 +314,65 @@ async def test_get_change_details_handles_empty_reviewers_list(mock_run_curl):
 
 
 @pytest.mark.asyncio
+async def test_run_curl_sends_static_ua_when_no_context(mock_exec, mock_load_config):
+    """run_curl always includes a User-Agent even without MCP context."""
+    mock_load_config.return_value = {
+        "gerrit_hosts": [
+            {
+                "external_url": "https://example.com",
+                "authentication": {"type": "gob_curl"},
+            }
+        ]
+    }
+    mock_exec.return_value.communicate.return_value = (b"ok", b"")
+    mock_exec.return_value.returncode = 0
+
+    await main.run_curl(["https://example.com"], "https://example.com")
+
+    cmd = mock_exec.call_args.args
+    assert "-A" in cmd
+    ua = cmd[cmd.index("-A") + 1]
+    assert ua.startswith("gerrit-mcp-server/")
+    assert "mcp-python-sdk/" in ua
+
+
+@pytest.mark.asyncio
+async def test_run_curl_sends_x_mcp_tool_when_context_set(mock_exec, mock_load_config):
+    """run_curl includes X-MCP-Tool header when _request_obs contextvar is set."""
+    from gerrit_mcp_server.http_headers import RequestObservabilityContext, _request_obs
+
+    mock_load_config.return_value = {
+        "gerrit_hosts": [
+            {
+                "external_url": "https://example.com",
+                "authentication": {"type": "gob_curl"},
+            }
+        ]
+    }
+    mock_exec.return_value.communicate.return_value = (b"ok", b"")
+    mock_exec.return_value.returncode = 0
+
+    obs = RequestObservabilityContext(
+        tool_name="query_changes",
+        client_name="test-client",
+        client_version="1.0",
+        protocol_version="2025-11-25",
+    )
+    token = _request_obs.set(obs)
+    try:
+        await main.run_curl(["https://example.com"], "https://example.com")
+    finally:
+        _request_obs.reset(token)
+
+    cmd = mock_exec.call_args.args
+    assert "-H" in cmd
+    headers = [cmd[i + 1] for i, v in enumerate(cmd) if v == "-H"]
+    assert any(h == "X-MCP-Tool: query_changes" for h in headers)
+    assert any(h == "X-MCP-Client: test-client" for h in headers)
+    assert any(h == "X-MCP-Protocol-Version: 2025-11-25" for h in headers)
+
+
+@pytest.mark.asyncio
 async def test_list_change_files_handles_empty_response(mock_run_curl):
     """Tests that list_change_files handles an empty response gracefully."""
     mock_run_curl.side_effect = [
