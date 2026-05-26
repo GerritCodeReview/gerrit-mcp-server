@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gerrit": {
+      "command": "uv",
+      "args": ["run", "--directory", "${CLAUDE_PLUGIN_ROOT}", "gerrit-mcp-server"],
+      "env": {
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/.venv"
+      }
+    }
+  }
+}
