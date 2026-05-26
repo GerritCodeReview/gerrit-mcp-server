@@ -1453,6 +1453,11 @@ async def publish_drafts(
         raise e
 
 
+def main():
+    """Entry point for uvx/pip-installed deployments. Runs in stdio transport."""
+    cli_main(["gerrit-mcp-server", "stdio"])
+
+
 def cli_main(argv: List[str]):
     """
     The main entry point for the command-line interface.

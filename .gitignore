@@ -6,6 +6,9 @@ gerrit_mcp_server.egg-info
 __pycache__/
 server.log
 server.pid
-uv.lock
 context/
 gerrit_mcp_server/gerrit_config.json
+requirements.txt
+dist/
+build/
+/.venv/

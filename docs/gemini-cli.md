@@ -55,14 +55,7 @@ with the absolute path to your `gerrit-mcp-server` project directory.
 {
   "mcpServers": {
     "gerrit": {
-      "command": "<path_to_project>/.venv/bin/python",
-      "args": [
-        "<path_to_project>/gerrit_mcp_server/main.py",
-        "stdio"
-      ],
-      "env": {
-        "PYTHONPATH": "<path_to_project>/"
-      }
+      "command": "<path_to_project>/.venv/bin/gerrit-mcp-server"
     }
   }
 }
