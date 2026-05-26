@@ -26,14 +26,15 @@ For detailed information, please see the documents in the `docs/` directory:
 Before you begin, ensure you have the following tools installed and available in
 your system's `PATH`.
 
-*   **Python 3.11+**: The build script requires a modern version of Python.
+*   **Python 3.12+**: Required by the server.
+*   **[uv](https://docs.astral.sh/uv/getting-started/installation/)**: Used for dependency management and running the server. Optional — the build script will install it via `pip` if absent.
 *   **curl**: The standard command-line tool for transferring data with URLs.
 
 ### 2. Build the Environment
 
 Run the build script from the root of the `gerrit-mcp-server` project directory.
-This will create a Python virtual environment, install all dependencies, and
-make the server ready to run.
+This will create a virtual environment in `.venv` via `uv sync` and install all
+dependencies.
 
 ```bash
 ./build-gerrit.sh

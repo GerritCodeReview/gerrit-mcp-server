@@ -9,18 +9,18 @@ stages of the development lifecycle.
 
 ### Prerequisites
 - Python 3.12+
-- `pip`
-- `virtualenv` (recommended)
+- [`uv`](https://docs.astral.sh/uv/getting-started/installation/) (the build script will install it via `pip` if absent)
 
 ### Setup
-The project includes a build script that handles the creation of the virtual
-environment and installation of dependencies using `uv`.
+The project uses `uv` for dependency management. `uv.lock` is committed to the
+repository to ensure reproducible installs.
 
 1.  **Run the build script:**
     ```bash
     ./build-gerrit.sh
     ```
-    This will create a virtual environment in `.venv` and install all necessary dependencies.
+    This will create a virtual environment in `.venv` and install all
+    dependencies (including dev extras) via `uv sync`.
 
 2.  **Activate the virtual environment:**
     ```bash
@@ -45,15 +45,15 @@ We use **pytest** as our testing framework.
 - Use `unittest.mock.patch` as a context manager or fixture.
 
 ### Running Tests
-Ensure your virtual environment is activated, then run:
+Run tests from the project root (no venv activation needed):
 
 ```bash
-./test.sh
+uv run pytest
 ```
 
 ### Making any changes to source
 
-If any changes to source are ever made, you must run `./test.sh` to validate
+If any changes to source are ever made, you must run `uv run pytest` to validate
 that the changes did not break any tests. Ask the user first after any changes
 are made.
 
@@ -80,9 +80,9 @@ The server is configured via `gerrit_mcp_server/gerrit_config.json`.
 To configure the Gemini CLI to use this server, see the **[Gemini CLI Setup Guide](docs/gemini-cli.md)**.
 
 ### Running Locally
-To run the server locally for debugging (ensure venv is active):
+To run the server locally for debugging (no venv activation needed):
 ```bash
-python -m gerrit_mcp_server
+uv run gerrit-mcp-server
 ```
 
 ## Debugging

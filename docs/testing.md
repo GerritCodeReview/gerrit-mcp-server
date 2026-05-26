@@ -5,24 +5,14 @@ correctly and remains stable. We use **pytest** as our testing framework.
 
 ## Quick Start
 
-The easiest way to run the tests is to use `pytest` from the root of the project.
+Run tests from the project root (no venv activation needed):
 
-1.  **Build the Environment**:
-    Run the build script to set up the virtual environment and install
-    dependencies:
-    ```bash
-    ./build-gerrit.sh
-    ```
+```bash
+uv run pytest
+```
 
-2.  **Activate Virtual Environment**:
-    ```bash
-    source .venv/bin/activate
-    ```
-
-3.  **Run Tests**:
-    ```bash
-    pytest
-    ```
+If you haven't run `./build-gerrit.sh` yet, `uv run` will set up the virtual
+environment automatically on first use.
 
 ## Test Structure
 
