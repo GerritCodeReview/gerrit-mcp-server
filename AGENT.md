@@ -51,6 +51,16 @@ Run tests from the project root (no venv activation needed):
 uv run pytest
 ```
 
+## Code Style
+
+Use the `/astral:ruff` skill if available. Otherwise, to fix and format:
+
+```bash
+uv run ruff check --fix . && uv run ruff format .
+```
+
+To check without modifying: `uv run ruff check . && uv run ruff format --check .`
+
 ## Runtime & Configuration
 
 ### Configuration

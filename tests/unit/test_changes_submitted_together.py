@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
-from unittest.mock import patch, AsyncMock
 import asyncio
 import json
+import unittest
+from unittest.mock import AsyncMock, patch
 
 from gerrit_mcp_server import main
 
@@ -119,7 +119,8 @@ class TestChangesSubmittedTogether(unittest.TestCase):
 
             # Assert
             self.assertIn(
-                f"An error occurred while getting submitted together info for CL {change_id}",
+                f"An error occurred while getting submitted "
+                f"together info for CL {change_id}",
                 result[0]["text"],
             )
             self.assertIn(error_message, result[0]["text"])

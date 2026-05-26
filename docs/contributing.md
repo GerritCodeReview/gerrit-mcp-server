@@ -26,6 +26,16 @@ This project follows
 
 ## Contribution process
 
+### Code style
+
+This project uses `ruff` for linting and formatting. Before submitting, ensure
+your changes pass:
+
+```bash
+uv run ruff check .    # lint
+uv run ruff format .   # format
+```
+
 ### Code reviews
 
 All submissions, including submissions by project members, require review. 

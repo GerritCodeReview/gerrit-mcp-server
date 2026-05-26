@@ -1,16 +1,14 @@
 import asyncio
 import json
 import unittest
-from unittest.mock import patch, AsyncMock, call
+from unittest.mock import AsyncMock, patch
 
 from gerrit_mcp_server import main
-
 
 BASE_URL = "https://gerrit-review.googlesource.com"
 
 
 class TestDeleteDraftComments(unittest.TestCase):
-
     @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
     def test_delete_all_drafts_success(self, mock_run_curl):
         async def run_test():

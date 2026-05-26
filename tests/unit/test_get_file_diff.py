@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
-from unittest.mock import patch, AsyncMock
 import asyncio
 import base64
+import unittest
+from unittest.mock import AsyncMock, patch
 
 from gerrit_mcp_server import main
 
@@ -27,7 +27,11 @@ class TestGetFileDiff(unittest.TestCase):
             # Arrange
             change_id = "54321"
             file_path = "src/main.py"
-            diff_content = "diff --git a/src/main.py b/src/main.py\n--- a/src/main.py\n+++ b/src/main.py\n@@ -1,1 +1,1 @@\n-old line\n+new line"
+            diff_content = (
+                "diff --git a/src/main.py b/src/main.py\n"
+                "--- a/src/main.py\n+++ b/src/main.py\n"
+                "@@ -1,1 +1,1 @@\n-old line\n+new line"
+            )
             encoded_diff = base64.b64encode(diff_content.encode("utf-8")).decode(
                 "utf-8"
             )

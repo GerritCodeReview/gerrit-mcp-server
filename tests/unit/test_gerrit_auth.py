@@ -17,12 +17,12 @@ Tests for the gerrit_auth module.
 """
 
 import unittest
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
+
 from gerrit_mcp_server import gerrit_auth
 
 
 class TestGerritAuth(unittest.TestCase):
-
     def test_get_auth_for_gob(self):
         """Tests that the correct command is returned for gob-curl."""
         self.assertEqual(gerrit_auth._get_auth_for_gob({}), ["gob-curl", "-s"])
@@ -70,7 +70,8 @@ class TestGerritAuth(unittest.TestCase):
 
     @patch("os.path.exists", return_value=True)
     def test_get_auth_for_gitcookies_selects_last_entry(self, mock_exists):
-        """Tests that _get_auth_for_gitcookies selects the last matching cookie entry."""
+        """Tests that _get_auth_for_gitcookies selects the last matching
+        cookie entry."""
         config = {"gitcookies_path": "~/.gitcookies"}
         url = "https://my-gerrit.com"
         multi_cookie_content = (

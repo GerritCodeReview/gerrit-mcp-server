@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
-import tempfile
+import json
+import os
 import shutil
 import subprocess
-import os
+import tempfile
 import time
-import json
+import unittest
 
 
 class TestBuildAndRun(unittest.TestCase):
@@ -97,14 +97,16 @@ class TestBuildAndRun(unittest.TestCase):
         self.assertEqual(
             build_process.returncode,
             0,
-            f"Build script failed with output:\n{build_process.stdout}\n{build_process.stderr}",
+            f"Build script failed with output:\n"
+            f"{build_process.stdout}\n{build_process.stderr}",
         )
         self.assertTrue(os.path.exists(os.path.join(self.test_dir.name, ".venv")))
 
         # 2. Run the server using server.sh
         server_script_path = os.path.join(self.test_dir.name, "server.sh")
 
-        # The server script will use the newly created venv, so we don't need to modify the PATH for it.
+        # The server script will use the newly created venv, so we
+        # don't need to modify the PATH for it.
         server_env = os.environ.copy()
         server_env["PYTHONPATH"] = self.test_dir.name
 
