@@ -4,14 +4,7 @@
   "mcpServers": {
     "gerrit": {
       "description": "An MCP server for interacting with the Gerrit code review system.",
-      "command": "${extensionPath}/.venv/bin/python",
-      "args": [
-        "${extensionPath}/gerrit_mcp_server/main.py",
-        "stdio"
-      ],
-      "env": {
-        "PYTHONPATH": "${extensionPath}"
-      }
+      "command": "${extensionPath}/.venv/bin/gerrit-mcp-server"
     }
   }
 }

@@ -9,18 +9,18 @@ stages of the development lifecycle.
 
 ### Prerequisites
 - Python 3.12+
-- `pip`
-- `virtualenv` (recommended)
+- [`uv`](https://docs.astral.sh/uv/getting-started/installation/) (the build script will install it via `pip` if absent)
 
 ### Setup
-The project includes a build script that handles the creation of the virtual
-environment and installation of dependencies using `uv`.
+The project uses `uv` for dependency management. `uv.lock` is committed to the
+repository to ensure reproducible installs.
 
 1.  **Run the build script:**
     ```bash
     ./build-gerrit.sh
     ```
-    This will create a virtual environment in `.venv` and install all necessary dependencies.
+    This will create a virtual environment in `.venv` and install all
+    dependencies (including dev extras) via `uv sync`.
 
 2.  **Activate the virtual environment:**
     ```bash
@@ -45,10 +45,10 @@ We use **pytest** as our testing framework.
 - Use `unittest.mock.patch` as a context manager or fixture.
 
 ### Running Tests
-Ensure your virtual environment is activated, then run:
+Run tests from the project root (no venv activation needed):
 
 ```bash
-./test.sh
+uv run pytest
 ```
 
 ## Runtime & Configuration

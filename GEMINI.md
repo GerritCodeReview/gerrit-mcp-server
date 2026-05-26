@@ -12,13 +12,13 @@ functions correctly. The following commands should be run from the root of the
     ```
 2.  **Run the tests:**
     ```bash
-    ./test.sh
+    uv run pytest
     ```
 
 This command will discover and run all tests in the `tests` directory.
 
 ### Making any changes to source
 
-If any changes to source are ever made, you must run `./test.sh` to validate
+If any changes to source are ever made, you must run `uv run pytest` to validate
 that the changes did not break any tests. Ask the user first after any changes
 are made.
