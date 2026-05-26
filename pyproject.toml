@@ -31,6 +31,7 @@ env = [
 
 [project.scripts]
 gerrit-mcp-server = "gerrit_mcp_server.main:main"
+gerrit-check-config = "gerrit_mcp_server.main:check_config_main"
 
 [build-system]
 requires = ["setuptools>=61"]
