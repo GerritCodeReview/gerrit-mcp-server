@@ -18,11 +18,11 @@ Tests for the command-line interface of the Gerrit MCP server.
 
 import unittest
 from unittest.mock import patch
+
 from gerrit_mcp_server import main
 
 
 class TestCli(unittest.TestCase):
-
     @patch("gerrit_mcp_server.main.mcp")
     def test_cli_main_stdio_mode(self, mock_mcp):
         """Tests that the server runs in stdio mode when 'stdio' is an argument."""
