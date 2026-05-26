@@ -166,6 +166,50 @@ uv run gerrit-mcp-server
 
 - **Logs:** The server outputs logs to stderr.
 
+## Tool Design
+
+### Structured Output
+
+All tools should return a typed `TypedDict` rather than assembling
+`[{"type": "text", "text": ...}]` content blocks manually. The MCP SDK
+auto-generates an `output_schema` from the return annotation and produces both
+structured and unstructured content automatically — structured for clients that
+support it, text fallback for those that don't.
+
+- Declare a `TypedDict` for the return type; use `NotRequired` for optional
+  fields.
+- Return the dict directly from the function.
+- Raise exceptions on error rather than returning text error content blocks.
+
+```python
+from typing import List, NotRequired, TypedDict
+
+class _ParentChange(TypedDict):
+    change_number: int
+    subject: str
+    work_in_progress: bool
+
+class _MyToolResult(TypedDict):
+    change_id: str
+    items: List[_ParentChange]
+    note: NotRequired[str]   # only present when items is empty
+
+@mcp.tool()
+async def my_tool(
+    change_id: str,
+    gerrit_base_url: Optional[str] = None,
+) -> _MyToolResult:
+    ...
+    try:
+        raw = json.loads(await run_curl([url], base_url))
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse Gerrit response: {e}") from e
+    return {"change_id": change_id, "items": [...]}
+```
+
+See `get_git_parent_changes` in `gerrit_mcp_server/main.py` for a complete
+example.
+
 ## Contributing
 
 ### Creating a CL
