@@ -1,0 +1,4 @@
+{
+  "name": "gerrit",
+  "description": "An MCP server for interacting with the Gerrit code review system."
+}

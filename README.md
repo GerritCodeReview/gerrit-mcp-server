@@ -18,6 +18,8 @@ For detailed information, please see the documents in the `docs/` directory:
   integration, and E2E tests.
 - **[Gemini CLI Setup](docs/gemini-cli.md)**: How to configure the Gemini CLI to
   use this server.
+- **[Claude Code Setup](docs/claude-code.md)**: How to use this server as a
+  Claude Code plugin.
 - **[Best Practices](docs/best_practices.md)**: Tips for using the server
   effectively.
 - **[Contributing](docs/contributing.md)**: Guidelines for contributing to the
@@ -81,7 +83,8 @@ script:
   ```
 
 For on-demand STDIO mode, please see the
-**[Gemini CLI Setup Guide](docs/gemini-cli.md)**.
+**[Gemini CLI Setup Guide](docs/gemini-cli.md)** or, to use this server as a
+Claude Code plugin, the **[Claude Code Setup Guide](docs/claude-code.md)**.
 
 ### Security
 
