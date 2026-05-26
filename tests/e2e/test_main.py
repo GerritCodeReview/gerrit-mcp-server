@@ -16,10 +16,13 @@ import json
 import os
 import re
 import uuid
+
 import pytest
+
 from gerrit_mcp_server import main
 
 # --- Fixtures ---
+
 
 @pytest.fixture(scope="module")
 def e2e_config():
@@ -32,25 +35,29 @@ def e2e_config():
         pytest.skip(
             "E2E config file 'tests/e2e/e2e_config.json' not found. "
             "Copy 'tests/e2e/e2e_config.sample.json' to create one.",
-            allow_module_level=True
+            allow_module_level=True,
         )
-    
+
     with open(config_path, "r") as f:
         config = json.load(f)
-    
+
     return config
+
 
 @pytest.fixture
 def gerrit_base_url(e2e_config):
     return e2e_config.get("gerrit_base_url")
 
+
 @pytest.fixture
 def known_cl(e2e_config):
     return e2e_config.get("known_cl")
 
+
 @pytest.fixture
 def known_user(e2e_config):
     return e2e_config.get("known_user")
+
 
 @pytest.fixture
 def test_project(e2e_config):
@@ -59,15 +66,17 @@ def test_project(e2e_config):
         pytest.skip("Skipping write tests: 'test_project' not configured.")
     return project
 
+
 @pytest.fixture
 def test_reviewer(e2e_config):
     return e2e_config.get("test_reviewer")
 
+
 @pytest.fixture
 async def created_change(gerrit_base_url):
     """
-    Yields a function that creates a change, and ensures it is abandoned during teardown.
-    This acts as a context manager for the test data.
+    Yields a function that creates a change, and ensures it is abandoned
+    during teardown. This acts as a context manager for the test data.
     """
     created_cl_ids = []
 
@@ -99,7 +108,9 @@ async def created_change(gerrit_base_url):
         except Exception as e:
             print(f"Failed to abandon CL {cl_id}: {e}")
 
+
 # --- Read-Only Tests ---
+
 
 @pytest.mark.asyncio
 async def test_e2e_query_changes(gerrit_base_url):
@@ -108,6 +119,7 @@ async def test_e2e_query_changes(gerrit_base_url):
         query="status:open", gerrit_base_url=gerrit_base_url, limit=5
     )
     assert "Found 5 changes" in result[0]["text"]
+
 
 @pytest.mark.asyncio
 async def test_e2e_get_change_details(gerrit_base_url, known_cl):
@@ -119,6 +131,7 @@ async def test_e2e_get_change_details(gerrit_base_url, known_cl):
     assert f"Summary for CL {known_cl}" in text
     assert "Subject:" in text
 
+
 @pytest.mark.asyncio
 async def test_e2e_list_change_files(gerrit_base_url, known_cl):
     """Tests that we can list the files of a known CL."""
@@ -126,6 +139,7 @@ async def test_e2e_list_change_files(gerrit_base_url, known_cl):
         change_id=known_cl, gerrit_base_url=gerrit_base_url
     )
     assert f"Files in CL {known_cl}" in result[0]["text"]
+
 
 @pytest.mark.asyncio
 async def test_e2e_get_most_recent_cl(gerrit_base_url, known_user):
@@ -140,21 +154,23 @@ async def test_e2e_get_most_recent_cl(gerrit_base_url, known_user):
         or f"No changes found for user: {known_user}" in text
     )
 
+
 # --- Write Tests ---
 
+
 @pytest.mark.asyncio
-async def test_e2e_create_and_abandon_change(test_project, gerrit_base_url, created_change):
+async def test_e2e_create_and_abandon_change(
+    test_project, gerrit_base_url, created_change
+):
     """Tests the full lifecycle of creating and abandoning a change."""
     subject = f"E2E Test: Create and Abandon - {uuid.uuid4()}"
-    
+
     # created_change fixture handles the creation and automatic cleanup (abandonment)
     result, cl_id = await created_change(project=test_project, subject=subject)
-    
+
     assert "Successfully created new change" in result[0]["text"]
     assert cl_id is not None
 
     # Verify the creation was successful by fetching details
-    details = await main.get_change_details(
-        cl_id, gerrit_base_url=gerrit_base_url
-    )
+    details = await main.get_change_details(cl_id, gerrit_base_url=gerrit_base_url)
     assert subject in details[0]["text"]

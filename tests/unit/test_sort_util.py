@@ -13,11 +13,11 @@
 # limitations under the License.
 
 import unittest
+
 from gerrit_mcp_server.sort_util import sort_changes_by_date
 
 
 class TestSortUtil(unittest.TestCase):
-
     def test_sort_changes_by_date(self):
         changes = [
             {"updated": "2023-01-01T00:00:00.000000000Z"},

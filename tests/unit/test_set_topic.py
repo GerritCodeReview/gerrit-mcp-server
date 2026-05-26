@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
-from unittest.mock import patch, AsyncMock
 import asyncio
 import json
+import unittest
+from unittest.mock import AsyncMock, patch
 
 from gerrit_mcp_server import main
 
@@ -86,8 +86,12 @@ class TestSetTopic(unittest.TestCase):
             # Arrange
             change_id = "12345"
             error_message = "topic not found"
-            # First call raises the error, second call returns the raw text for the error message
-            mock_run_curl.side_effect = [json.JSONDecodeError("", "", 0), error_message]
+            # First call raises the error, second call returns the raw text
+            # for the error message
+            mock_run_curl.side_effect = [
+                json.JSONDecodeError("", "", 0),
+                error_message,
+            ]
             gerrit_base_url = "https://my-gerrit.com"
 
             # Act

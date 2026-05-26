@@ -57,6 +57,17 @@ If any changes to source are ever made, you must run `uv run pytest` to validate
 that the changes did not break any tests. Ask the user first after any changes
 are made.
 
+## Code Style
+
+Use the [`/astral:ruff` skill](https://github.com/astral-sh/claude-code-plugins) if
+available. Otherwise, to fix and format:
+
+```bash
+uv run ruff check --fix . && uv run ruff format .
+```
+
+To check without modifying: `uv run ruff check . && uv run ruff format --check .`
+
 ## Runtime & Configuration
 
 ### Configuration

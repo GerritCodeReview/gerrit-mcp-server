@@ -13,11 +13,11 @@
 # limitations under the License.
 
 import unittest
+
 from gerrit_mcp_server.bug_utils import extract_bugs_from_commit_message
 
 
 class TestBugUtils(unittest.TestCase):
-
     def test_extract_bugs_from_commit_message_simple(self):
         commit_message = "This is a test commit.\n\nBug: 12345"
         self.assertEqual(extract_bugs_from_commit_message(commit_message), {"12345"})

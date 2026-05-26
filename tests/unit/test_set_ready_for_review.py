@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
-from unittest.mock import patch, AsyncMock
 import asyncio
+import unittest
+from unittest.mock import AsyncMock, patch
 
 from gerrit_mcp_server import main
 

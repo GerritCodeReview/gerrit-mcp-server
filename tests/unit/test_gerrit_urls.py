@@ -18,11 +18,11 @@ Tests for the gerrit_urls module, focusing on its role as a dispatcher.
 
 import unittest
 from unittest.mock import patch
+
 from gerrit_mcp_server import gerrit_urls
 
 
 class TestGerritUrlsDispatcher(unittest.TestCase):
-
     @patch("gerrit_mcp_server.gerrit_auth._get_auth_for_gob")
     def test_dispatches_to_gob_curl(self, mock_get_auth):
         """Tests that the dispatcher correctly calls the gob-curl auth function."""
@@ -83,7 +83,8 @@ class TestGerritUrlsDispatcher(unittest.TestCase):
 
     @patch("gerrit_mcp_server.gerrit_auth._get_auth_for_http_basic")
     def test_dispatches_correctly_with_a_prefix_in_url(self, mock_get_auth):
-        """Tests that the dispatcher matches the host when the URL contains /a suffix."""
+        """Tests that the dispatcher matches the host when the URL
+        contains /a suffix."""
         auth_config = {"type": "http_basic", "username": "test", "auth_token": "token"}
         mock_get_auth.return_value = ["curl", "--user", "test:token", "-L"]
         config = {

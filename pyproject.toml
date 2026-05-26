@@ -13,7 +13,8 @@ dependencies = [
 dev = [
     "pytest",
     "pytest-asyncio",
-    "pytest-env"
+    "pytest-env",
+    "ruff"
 ]
 
 [tool.pytest.ini_options]
@@ -36,3 +37,12 @@ packages = ["gerrit_mcp_server"]
 
 [tool.setuptools.package-data]
 gerrit_mcp_server = ["*.json"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.ruff.format]
+quote-style = "double"

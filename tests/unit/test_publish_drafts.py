@@ -14,7 +14,9 @@ class TestPublishDrafts(unittest.TestCase):
             change_id = "456"
             gerrit_base_url = "https://gerrit-review.googlesource.com"
 
-            result = await main.publish_drafts(change_id, gerrit_base_url=gerrit_base_url)
+            result = await main.publish_drafts(
+                change_id, gerrit_base_url=gerrit_base_url
+            )
 
             mock_run_curl.assert_called_once()
             args, _ = mock_run_curl.call_args
