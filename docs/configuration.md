@@ -7,6 +7,22 @@ connection and authentication details for multiple Gerrit instances.
 A sample file is provided at `gerrit_mcp_server/gerrit_config.sample.json` which
 you can copy and customize.
 
+## Interactive Setup (`/gerrit:setup`)
+
+If your harness supports skills (tested with Claude Code), the `/gerrit:setup`
+skill can create or repair `gerrit_config.json` for you interactively instead of
+hand-editing the JSON. It prompts for each Gerrit host's URL and authentication
+method, sets `default_gerrit_base_url`, and writes the file.
+
+The skill is `disable-model-invocation`, so the model cannot run it on your
+behalf — you must invoke `/gerrit:setup` yourself. It is written against the
+[Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview)
+open standard, so it is also expected to work in Gemini CLI, OpenAI Codex, and
+other compatible harnesses, though only Claude Code has been verified.
+
+The rest of this document describes the config file in full, which is useful
+whether you write it by hand or want to understand what the skill produces.
+
 ## Top-Level Configuration
 
 The configuration file has two main properties at its root:

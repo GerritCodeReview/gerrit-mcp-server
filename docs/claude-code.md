@@ -41,3 +41,35 @@ launch. There is no need to run `./build-gerrit.sh` separately for the plugin.
 
 The plugin starts the server on-demand, so no separate background process is
 required. Once loaded, you can use the `gerrit` tools directly from `claude`.
+
+## Setup diagnostics
+
+A `SessionStart` hook (`hooks/check-config.sh`, registered in
+`hooks/hooks.json`) checks the server environment and configuration at the start
+of every session, so a broken setup surfaces with clear guidance instead of MCP
+tools failing silently.
+
+The hook runs the `gerrit-check-config` console script, whose exit code reports
+the setup state:
+
+- `0`: config is valid — the hook stays quiet and reports that the tools are
+  available.
+- `1`: config file is missing — the normal first-run state. The hook asks the
+  user to run `/gerrit:setup`.
+- `2`: config is present but invalid (bad JSON or `default_gerrit_base_url`
+  mismatch) — the hook asks the user to run `/gerrit:setup` to repair it.
+- any other non-zero code: the Python environment is not built. The hook offers
+  the exact `build-gerrit.sh` command to rebuild it.
+
+The hook emits JSON with a `systemMessage` (shown to the user) and
+`additionalContext` (telling the model what to do), because `SessionStart`
+stdout goes to the model's context rather than the user's terminal.
+
+## `/gerrit:setup` skill
+
+`skills/setup/SKILL.md` provides an interactive `/gerrit:setup` skill that
+guides the user through creating or updating
+`gerrit_mcp_server/gerrit_config.json`. The exit-code 1 and 2 states above ask
+the user to run it. See
+[Interactive Setup](configuration.md#interactive-setup-gerritsetup) in the
+configuration guide for details.

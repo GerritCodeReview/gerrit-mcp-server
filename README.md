@@ -64,6 +64,10 @@ details on all available options.
 cp gerrit_mcp_server/gerrit_config.sample.json gerrit_mcp_server/gerrit_config.json
 ```
 
+Alternatively, if your harness supports skills (tested with Claude Code), the
+`/gerrit:setup` skill can create or repair this file for you interactively. See
+**[Interactive Setup](docs/configuration.md#interactive-setup-gerritsetup)**.
+
 ### 4. Run the Server (HTTP Mode)
 
 To run the server as a persistent background process, use the `server.sh`
