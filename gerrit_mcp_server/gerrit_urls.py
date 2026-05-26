@@ -17,7 +17,8 @@ This module is responsible for determining the correct curl command for a given
 Gerrit URL by dispatching to the appropriate authentication module.
 """
 
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from gerrit_mcp_server import gerrit_auth
 
 
@@ -78,5 +79,6 @@ def get_curl_command_for_gerrit_url(
 
     raise ValueError(
         "No valid authentication method found in gerrit_config.json. "
-        "Please configure a supported 'type' (e.g., 'http_basic', 'gob_curl', 'git_cookies') for the relevant host."
+        "Please configure a supported 'type' (e.g., 'http_basic', 'gob_curl', "
+        "'git_cookies') for the relevant host."
     )

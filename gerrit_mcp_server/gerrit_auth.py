@@ -17,7 +17,7 @@ This module handles the creation of authentication-specific curl commands for Ge
 """
 
 import os
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 
 def _get_auth_for_gob(config: Dict[str, Any]) -> List[str]:
@@ -31,7 +31,8 @@ def _get_auth_for_http_basic(config: Dict[str, Any]) -> List[str]:
     auth_token = config.get("auth_token")
     if not username or not auth_token:
         raise ValueError(
-            "For 'http_basic' authentication, both 'username' and 'auth_token' must be configured."
+            "For 'http_basic' authentication, both 'username' and "
+            "'auth_token' must be configured."
         )
     return ["curl", "--user", f"{username}:{auth_token}", "-L"]
 
