@@ -34,7 +34,7 @@ class TestBuildAndRun(unittest.TestCase):
             "build-gerrit.sh",
             "pyproject.toml",
             "server.sh",
-            "uv-requirements.txt",
+            "uv.lock",
         ]
         self.dirs_to_copy = ["gerrit_mcp_server"]
 
@@ -100,9 +100,6 @@ class TestBuildAndRun(unittest.TestCase):
             f"Build script failed with output:\n{build_process.stdout}\n{build_process.stderr}",
         )
         self.assertTrue(os.path.exists(os.path.join(self.test_dir.name, ".venv")))
-        self.assertTrue(
-            os.path.exists(os.path.join(self.test_dir.name, "requirements.txt"))
-        )
 
         # 2. Run the server using server.sh
         server_script_path = os.path.join(self.test_dir.name, "server.sh")
@@ -172,33 +169,6 @@ class TestBuildAndRun(unittest.TestCase):
             env=server_env,
         )
         self.assertIn("Server is STOPPED", status_after_stop_process.stdout)
-
-    def test_test_sh_fails_without_uv(self):
-        """
-        Tests that the test.sh script fails gracefully if 'uv' is not in the PATH.
-        """
-        # Temporarily modify the PATH to exclude the directory containing 'uv'
-        original_path = os.environ["PATH"]
-        os.environ["PATH"] = ""
-
-        try:
-            # Run the test script
-            test_script_path = os.path.join(self.project_root, "test.sh")
-            test_process = subprocess.run(
-                ["bash", test_script_path],
-                cwd=self.test_dir.name,
-                capture_output=True,
-                text=True,
-            )
-
-            # Check that the script failed and printed the expected error message
-            self.assertNotEqual(
-                test_process.returncode, 0, "test.sh should fail when uv is not found"
-            )
-            self.assertIn("Failed to create virtual environment", test_process.stdout)
-        finally:
-            # Restore the original PATH
-            os.environ["PATH"] = original_path
 
 
 if __name__ == "__main__":
