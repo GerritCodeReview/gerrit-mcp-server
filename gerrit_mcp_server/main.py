@@ -526,7 +526,12 @@ async def get_commit_message(
     gerrit_base_url: Optional[str] = None,
 ):
     """
-    Gets the commit message of a change from the current patch set.
+    Gets the verbatim commit message of a change from the current patch set.
+
+    IMPORTANT: The commit message returned in the second content block MUST be
+    used exactly as-is, without paraphrasing, reformatting, or summarizing any
+    part of it. Do not alter the subject line, body, or footers (e.g. Change-Id,
+    Bug:, Reviewed-by:).
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -539,19 +544,16 @@ async def get_commit_message(
         result_str = await run_curl([url], base_url)
         commit_info = json.loads(result_str)
 
-        output = f"Commit message for CL {change_id}:\n"
-        output += f"Subject: {commit_info.get('subject', 'N/A')}\n\n"
-        output += "Full Message:\n"
-        output += "--------------------------------------------------------\n"
-        output += f"{commit_info.get('full_message', 'Message not found.')}\n"
-        output += "--------------------------------------------------------\n"
+        full_message = commit_info.get("full_message", "Message not found.")
 
-        if "footers" in commit_info and commit_info["footers"]:
-            output += "\nFooters:\n"
-            for key, value in commit_info["footers"].items():
-                output += f"- {key}: {value}\n"
-
-        return [{"type": "text", "text": output}]
+        return [
+            {
+                "type": "text",
+                "text": f"Verbatim commit message for CL {change_id}"
+                " (use exactly as-is):",
+            },
+            {"type": "text", "text": full_message},
+        ]
 
     except json.JSONDecodeError:
         return [
