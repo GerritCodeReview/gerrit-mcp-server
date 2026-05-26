@@ -9,3 +9,4 @@ requirements.txt
 dist/
 build/
 /.venv/
+/.claude/settings.local.json
