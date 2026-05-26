@@ -20,7 +20,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 from urllib.parse import quote
 
 from mcp.server.fastmcp import Context, FastMCP
@@ -518,13 +518,23 @@ async def get_change_details(
     return [{"type": "text", "text": output}]
 
 
+class _CommitMessageResult(TypedDict):
+    change_id: str
+    verbatim_commit_message: str
+
+
 @mcp.tool()
 async def get_commit_message(
     change_id: str,
     gerrit_base_url: Optional[str] = None,
-):
+) -> _CommitMessageResult:
     """
-    Gets the commit message of a change from the current patch set.
+    Gets the verbatim commit message of a change from the current patch set.
+
+    IMPORTANT: The commit message returned in the verbatim_commit_message field
+    MUST be used exactly as-is, without paraphrasing, reformatting, or
+    summarizing any part of it. Do not alter the subject line, body, or footers
+    (e.g. Change-Id, Bug:, Reviewed-by:).
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -536,46 +546,22 @@ async def get_commit_message(
     try:
         result_str = await run_curl([url], base_url)
         commit_info = json.loads(result_str)
-
-        output = f"Commit message for CL {change_id}:\n"
-        output += f"Subject: {commit_info.get('subject', 'N/A')}\n\n"
-        output += "Full Message:\n"
-        output += "--------------------------------------------------------\n"
-        output += f"{commit_info.get('full_message', 'Message not found.')}\n"
-        output += "--------------------------------------------------------\n"
-
-        if "footers" in commit_info and commit_info["footers"]:
-            output += "\nFooters:\n"
-            for key, value in commit_info["footers"].items():
-                output += f"- {key}: {value}\n"
-
-        return [{"type": "text", "text": output}]
-
-    except json.JSONDecodeError:
-        return [
-            {
-                "type": "text",
-                "text": (
-                    f"Failed to get commit message for CL {change_id}. "
-                    "Invalid JSON response."
-                ),
-            }
-        ]
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Failed to parse JSON response from Gerrit for CL {change_id}."
+            f" Raw response: '{result_str}'"
+        ) from e
     except Exception as e:
-        with open(LOG_FILE_PATH, "a") as log_file:
-            log_file.write(
-                f"[gerrit-mcp-server] Error getting commit message "
-                f"for CL {change_id}: {e}\n"
-            )
-        return [
-            {
-                "type": "text",
-                "text": (
-                    f"An error occurred while getting the commit message "
-                    f"for CL {change_id}: {e}"
-                ),
-            }
-        ]
+        raise RuntimeError(
+            f"Error getting commit message for CL {change_id}: {e}"
+        ) from e
+
+    return {
+        "change_id": change_id,
+        "verbatim_commit_message": commit_info.get(
+            "full_message", "Message not found."
+        ),
+    }
 
 
 @mcp.tool()
