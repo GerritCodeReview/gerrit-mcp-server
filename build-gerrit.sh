@@ -36,7 +36,9 @@ if ! command -v uv &>/dev/null; then
 fi
 
 # Install all dependencies (including dev extras) into .venv and sync uv.lock.
-echo "Installing dependencies..."
+# uv sync targets UV_PROJECT_ENVIRONMENT when set (so build and the hook/MCP
+# server agree on the env path), falling back to ./.venv for standalone use.
+echo "Installing dependencies into: ${UV_PROJECT_ENVIRONMENT:-./.venv}"
 if ! uv sync --extra dev; then
     echo -e "${RED}Failed to install dependencies.${NC}"
     exit 1
