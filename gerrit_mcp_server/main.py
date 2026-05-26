@@ -101,6 +101,17 @@ def load_gerrit_config() -> Dict[str, Any]:
         raise e
 
 
+def check_config_main() -> None:
+    try:
+        load_gerrit_config()
+    except FileNotFoundError as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(2)
+
+
 try:
     with open(PKG_PATH / "gerrit_details.json", "r") as f:
         gerrit_details = json.load(f)
