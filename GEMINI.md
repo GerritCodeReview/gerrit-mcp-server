@@ -6,14 +6,15 @@ functions correctly. The following commands should be run from the root of the
 
 ### Running the Tests
 
-1.  **Set up the test environment and install dependencies (if not already done):**
-    ```bash
-    ./build-gerrit.sh
-    ```
-2.  **Run the tests:**
-    ```bash
-    uv run pytest
-    ```
+1. **Set up the test environment and install dependencies (if not already
+   done):**
+   ```bash
+   ./build-gerrit.sh
+   ```
+2. **Run the tests:**
+   ```bash
+   uv run pytest
+   ```
 
 This command will discover and run all tests in the `tests` directory.
 
