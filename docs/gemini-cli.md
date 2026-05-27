@@ -10,37 +10,39 @@ This method is recommended as it is easy and requires only one step. You do not
 need to manually modify the Gemini settings file.
 
 Run the following command:
+
 ```bash
 gemini extension install <path-to-gerrit-mcp-server>
 ```
 
-> Read more about Gemini extensions in [https://geminicli.com/docs/extensions/](https://geminicli.com/docs/extensions/).
+> Read more about Gemini extensions in
+> [https://geminicli.com/docs/extensions/](https://geminicli.com/docs/extensions/).
 
 ## HTTP Mode
 
 In HTTP mode, the server runs as a persistent background process. This is
 recommended for frequent use.
 
-1.  **Start the Server:**
-    From the `gerrit-mcp-server` project directory, run:
-    ```bash
-    ./server.sh start
-    ```
+1. **Start the Server:** From the `gerrit-mcp-server` project directory, run:
 
-2.  **Configure Gemini CLI:**
-    Add the following to your `$HOME/.gemini/settings.json` file. This tells the
-    CLI to connect to the running HTTP server.
+   ```bash
+   ./server.sh start
+   ```
 
-    ```json
-    {
-      "mcpServers": {
-        "gerrit": {
-          "httpUrl": "http://localhost:6322/mcp",
-          "timeout": 15000
-        }
-      }
-    }
-    ```
+2. **Configure Gemini CLI:** Add the following to your
+   `$HOME/.gemini/settings.json` file. This tells the CLI to connect to the
+   running HTTP server.
+
+   ```json
+   {
+     "mcpServers": {
+       "gerrit": {
+         "httpUrl": "http://localhost:6322/mcp",
+         "timeout": 15000
+       }
+     }
+   }
+   ```
 
 ## STDIO Mode
 
