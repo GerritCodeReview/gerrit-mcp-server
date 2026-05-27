@@ -11,6 +11,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "mdformat",
+    "mdformat-front-matters",
+    "mdformat-gfm",
+    "mdformat-pyproject",
     "pytest",
     "pytest-asyncio",
     "pytest-env",
@@ -37,6 +41,10 @@ packages = ["gerrit_mcp_server"]
 
 [tool.setuptools.package-data]
 gerrit_mcp_server = ["*.json"]
+
+[tool.mdformat]
+wrap = 80
+number = true
 
 [tool.ruff]
 line-length = 88

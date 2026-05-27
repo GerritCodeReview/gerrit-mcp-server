@@ -1,4 +1,3 @@
-
 # How to contribute
 
 We'd love to accept your patches and contributions to this project.
@@ -38,4 +37,4 @@ uv run ruff format .   # format
 
 ### Code reviews
 
-All submissions, including submissions by project members, require review. 
+All submissions, including submissions by project members, require review.

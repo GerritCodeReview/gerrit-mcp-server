@@ -18,19 +18,19 @@ environment automatically on first use.
 
 The tests are organized as follows:
 
-*   `tests/unit/`: **Fast, isolated tests.** These tests verify individual
-    functions and classes in isolation. External dependencies like `curl` and
-    file system operations are mocked to ensure speed and determinism. They are
-    the first line of defense.
-*   `tests/integration/`: **Component interaction tests.** These tests verify
-    that different parts of the application work together correctly. While they
-    still mock external network calls (to avoid flakiness), they test the flow
-    of data through the system, including configuration loading and command
-    execution logic.
-*   `tests/e2e/`: **End-to-End tests.** These tests run against a live Gerrit
-    instance. They are optional and require specific configuration. They verify
-    that the server can actually communicate with a real Gerrit server and
-    perform actions like querying changes and posting comments.
+- `tests/unit/`: **Fast, isolated tests.** These tests verify individual
+  functions and classes in isolation. External dependencies like `curl` and file
+  system operations are mocked to ensure speed and determinism. They are the
+  first line of defense.
+- `tests/integration/`: **Component interaction tests.** These tests verify that
+  different parts of the application work together correctly. While they still
+  mock external network calls (to avoid flakiness), they test the flow of data
+  through the system, including configuration loading and command execution
+  logic.
+- `tests/e2e/`: **End-to-End tests.** These tests run against a live Gerrit
+  instance. They are optional and require specific configuration. They verify
+  that the server can actually communicate with a real Gerrit server and perform
+  actions like querying changes and posting comments.
 
 ## Writing Tests
 
@@ -38,6 +38,7 @@ Tests should be simple, readable, and follow the "Arrange, Act, Assert" pattern.
 We use `pytest` fixtures for setup and dependency injection.
 
 ### Example: Unit Test
+
 ```python
 import pytest
 from unittest.mock import patch
@@ -61,6 +62,7 @@ To run E2E tests, you need a `tests/e2e/e2e_config.json` file (see
 Gerrit instance to target and what credentials to use.
 
 Run them with:
+
 ```bash
 pytest tests/e2e
 ```

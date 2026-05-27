@@ -11,12 +11,12 @@ you can copy and customize.
 
 The configuration file has two main properties at its root:
 
-| Key                       | Type   | Description                                                                                                                                 |
-| ------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `default_gerrit_base_url` | string | The full URL of the Gerrit instance to use if a tool is called without a specific `gerrit_base_url` parameter.                               |
+| Key                       | Type   | Description                                                                                                                                                   |
+| ------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `default_gerrit_base_url` | string | The full URL of the Gerrit instance to use if a tool is called without a specific `gerrit_base_url` parameter.                                                |
 | `gerrit_hosts`            | array  | A list of objects, where each object defines the connection and authentication details for a specific Gerrit instance. This is the core of the configuration. |
 
----
+______________________________________________________________________
 
 ## The `gerrit_hosts` Array
 
@@ -26,21 +26,20 @@ given request.
 
 Each host object has the following structure:
 
-| Key              | Type   | Description                                                                                                                                                           |
-| ---------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`           | string | A user-friendly name for the Gerrit instance (e.g., "Fuchsia", "Public Gerrit").                                                                                      |
-| `internal_url`   | string | (Optional) An alternative URL for the same host, often used for internal network access. The server will recognize both this and the `external_url`.                     |
-| `external_url`   | string | The primary, publicly accessible URL for the Gerrit host.                                                                                                             |
-| `authentication` | object | A required object that specifies which authentication method to use for this host. See the detailed section below.                                                    |
+| Key              | Type   | Description                                                                                                                                          |
+| ---------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`           | string | A user-friendly name for the Gerrit instance (e.g., "Fuchsia", "Public Gerrit").                                                                     |
+| `internal_url`   | string | (Optional) An alternative URL for the same host, often used for internal network access. The server will recognize both this and the `external_url`. |
+| `external_url`   | string | The primary, publicly accessible URL for the Gerrit host.                                                                                            |
+| `authentication` | object | A required object that specifies which authentication method to use for this host. See the detailed section below.                                   |
 
----
+______________________________________________________________________
 
 ## Authentication Methods
 
 The `authentication` object is the most important part of the configuration. It
 tells the server how to authenticate its `curl` requests to the Gerrit API. You
 must specify a `type` for each host. There are three supported types.
-
 
 ### 1. `git_cookies` (Recommended)
 
@@ -53,10 +52,12 @@ to **Settings** (the gear icon), and find the **HTTP Credentials** section.
 Gerrit will provide a script or commands to run that will configure your
 `.gitcookies` file with the correct authentication token.
 
-*   **`type`**: `"git_cookies"`
-*   **`gitcookies_path`**: The path to your `.gitcookies` file (e.g., `~/.gitcookies`).
+- **`type`**: `"git_cookies"`
+- **`gitcookies_path`**: The path to your `.gitcookies` file (e.g.,
+  `~/.gitcookies`).
 
 **Example:**
+
 ```json
 {
   "name": "GitCookies Auth Example",
@@ -67,6 +68,7 @@ Gerrit will provide a script or commands to run that will configure your
   }
 }
 ```
+
 If a matching cookie is not found in the file, the server will fall back to
 making an unauthenticated request.
 
@@ -76,9 +78,10 @@ This method is for developers working within Google's corporate network.
 `gob-curl` is a tool that automatically handles authentication for internal
 services.
 
-*   **`type`**: `"gob_curl"`
+- **`type`**: `"gob_curl"`
 
 **Example:**
+
 ```json
 {
   "name": "Fuchsia Open Source [Googlers]",
@@ -95,11 +98,14 @@ services.
 This is the standard and most common method for authenticating with a Gerrit
 instance's REST API. It uses a generated HTTP password or token.
 
-*   **`type`**: `"http_basic"`
-*   **`username`**: Your Gerrit username.
-*   **`auth_token`**: Your Gerrit HTTP password/token. You can usually generate this from your Gerrit user settings page under "HTTP Credentials - Obtain Password".
+- **`type`**: `"http_basic"`
+- **`username`**: Your Gerrit username.
+- **`auth_token`**: Your Gerrit HTTP password/token. You can usually generate
+  this from your Gerrit user settings page under "HTTP Credentials - Obtain
+  Password".
 
 **Example:**
+
 ```json
 {
   "name": "Fuchsia Open Source",
