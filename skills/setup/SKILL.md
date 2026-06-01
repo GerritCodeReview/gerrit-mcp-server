@@ -70,8 +70,22 @@ extra fields needed.
 ```
 
 **`http_basic`** — username and HTTP password token. Generate the token in
-Gerrit → Settings → HTTP Credentials → "Obtain Password". Not recommended for
-storing plaintext credentials, but supported.
+Gerrit → Settings → HTTP Credentials → "Obtain Password".
+
+The preferred form omits the credentials from the config and lets `curl` read
+them from a netrc file (keyed by host), so they aren't duplicated in
+`gerrit_config.json`. Add a line to `~/.netrc` like
+`machine gerrit.example.com login YOUR_USERNAME password YOUR_HTTP_TOKEN`, then
+configure:
+
+```json
+{"type": "http_basic"}
+```
+
+Add an optional `"netrc_path"` to point at a non-default netrc file (maps to
+`curl --netrc-file`).
+
+Alternatively, store the credentials inline (both fields required):
 
 ```json
 {"type": "http_basic", "username": "YOUR_USERNAME", "auth_token": "YOUR_HTTP_TOKEN"}
