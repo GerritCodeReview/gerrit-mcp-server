@@ -24,6 +24,7 @@ model:
 | **Advanced**         | "Revert CL 12345 with the message 'Broke the build'."                                           | `revert_change`                     |
 |                      | "What other changes would be submitted with CL 67890?"                                          | `changes_submitted_together`        |
 |                      | "Show me the relation chain for CL 67890 — are its ancestors merged?"                           | `get_related_changes`               |
+|                      | "Get the parent commit SHAs for CL 67890."                                                      | `get_revision_commit`               |
 |                      | "Create a new change in project 'test-project', branch 'dev', with subject 'Test new feature'." | `create_change`                     |
 
 ## Data Analysis Use Cases
