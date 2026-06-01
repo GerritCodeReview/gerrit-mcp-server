@@ -1267,6 +1267,89 @@ async def get_related_changes(
 
 
 @mcp.tool()
+async def get_revision_commit(
+    change_id: str,
+    revision_id: Optional[str] = None,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Returns the full commit object for a change's revision: commit SHA, parent
+    SHA(s), author, committer, subject, and the raw commit message.
+
+    Use this tool to retrieve raw per-revision commit metadata — especially the
+    parent SHA(s) — for a single revision. To check whether a parent is merged,
+    follow up with query_changes("commit:<sha>"). For full ancestor-chain
+    diagnosis, prefer get_related_changes instead.
+
+    change_id can be a numeric change number, a Change-Id (I... hash), or a
+    project~branch~Change-Id triplet.
+
+    revision_id defaults to "current" (the latest patch set). Pass a patch-set
+    number or commit SHA to target a specific revision.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    rev = revision_id or "current"
+    url = f"{base_url}/changes/{change_id}/revisions/{rev}/commit"
+
+    try:
+        result_str = await run_curl([url], base_url)
+        data = json.loads(result_str)
+    except json.JSONDecodeError:
+        return [
+            {
+                "type": "text",
+                "text": (
+                    f"Failed to parse JSON response from Gerrit for change "
+                    f"{change_id} revision {rev}. Raw response: '{result_str}'"
+                ),
+            }
+        ]
+    except Exception as e:
+        return [
+            {
+                "type": "text",
+                "text": (
+                    f"An error occurred while getting revision commit for "
+                    f"{change_id}: {e}"
+                ),
+            }
+        ]
+
+    def _map_git_person(person: dict) -> dict:
+        return {
+            "name": person.get("name"),
+            "email": person.get("email"),
+            "date": person.get("date"),
+        }
+
+    parents = [
+        {"commit_sha": p.get("commit"), "subject": p.get("subject")}
+        for p in data.get("parents", [])
+    ]
+
+    commit = {
+        "commit_sha": data.get("commit"),
+        "parents": parents,
+        "author": _map_git_person(data.get("author", {})),
+        "committer": _map_git_person(data.get("committer", {})),
+        "subject": data.get("subject"),
+        "message": data.get("message"),
+    }
+
+    result: dict = {
+        "change_id": change_id,
+        "revision_id": rev,
+        "commit": commit,
+    }
+
+    return [{"type": "text", "text": json.dumps(result, indent=2)}]
+
+
+@mcp.tool()
 async def suggest_reviewers(
     change_id: str,
     query: str,
