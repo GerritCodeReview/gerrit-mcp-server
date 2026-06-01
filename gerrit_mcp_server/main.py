@@ -20,7 +20,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, TypedDict
+from typing import Any, Callable, Dict, List, NotRequired, Optional, TypedDict
 from urllib.parse import quote
 
 from mcp.server.fastmcp import Context, FastMCP
@@ -1161,6 +1161,102 @@ async def changes_submitted_together(
                 ),
             }
         ]
+
+
+class _RelatedChange(TypedDict):
+    change_number: Optional[int]
+    change_id: Optional[str]
+    project: Optional[str]
+    subject: Optional[str]
+    commit_sha: Optional[str]
+    parents: List[str]
+    status: Optional[str]
+    revision_number: Optional[int]
+    current_revision_number: Optional[int]
+
+
+class _RelatedChangesResult(TypedDict):
+    change_id: str
+    revision_id: str
+    related_changes: List[_RelatedChange]
+    note: NotRequired[str]
+
+
+@mcp.tool()
+async def get_related_changes(
+    change_id: str,
+    revision_id: Optional[str] = None,
+    gerrit_base_url: Optional[str] = None,
+) -> _RelatedChangesResult:
+    """
+    Returns the relation chain for a change: the queried change, its ancestors
+    (git parent chain), and any descendants that share the same chain.
+
+    This surfaces the same data as the "Relation chain" panel in the Gerrit Web
+    UI, letting agents diagnose implicit git-parent dependencies without chasing
+    individual parent SHAs.
+
+    Each entry in related_changes includes status (NEW/MERGED/ABANDONED) and
+    revision_number vs current_revision_number, so callers can flag unmerged or
+    stale ancestor commits.
+
+    Results are ordered newest-first: descendants of the queried change appear
+    before it; ancestors appear after it.
+
+    change_id can be a numeric change number, a Change-Id (I... hash), or a
+    project~branch~Change-Id triplet.
+
+    revision_id defaults to "current" (the latest patch set).
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    rev = revision_id or "current"
+    url = f"{base_url}/changes/{change_id}/revisions/{rev}/related"
+
+    try:
+        result_str = await run_curl([url], base_url)
+        data = json.loads(result_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Failed to parse JSON response from Gerrit for change "
+            f"{change_id}. Raw response: '{result_str}'"
+        ) from e
+    except Exception as e:
+        raise RuntimeError(f"Error getting related changes for {change_id}: {e}") from e
+
+    raw_entries = data.get("changes", [])
+    related: List[_RelatedChange] = []
+    for entry in raw_entries:
+        commit = entry.get("commit", {})
+        related.append(
+            {
+                "change_number": entry.get("_change_number"),
+                "change_id": entry.get("change_id"),
+                "project": entry.get("project"),
+                "subject": commit.get("subject"),
+                "commit_sha": commit.get("commit"),
+                "parents": [p["commit"] for p in commit.get("parents", [])],
+                "status": entry.get("status"),
+                "revision_number": entry.get("_revision_number"),
+                "current_revision_number": entry.get("_current_revision_number"),
+            }
+        )
+
+    result: _RelatedChangesResult = {
+        "change_id": change_id,
+        "revision_id": rev,
+        "related_changes": related,
+    }
+    if not related:
+        result["note"] = (
+            "No related changes found. This change is not part of a stacked "
+            "series, or ancestors are not visible to the current user."
+        )
+
+    return result
 
 
 @mcp.tool()

@@ -29,6 +29,10 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 - **set_topic**: Sets the topic of a change. An empty string deletes the topic.
 - **changes_submitted_together**: Computes and lists all changes that would be
   submitted together with a given CL.
+- **get_related_changes**: Returns the relation chain for a change — the queried
+  change, its git-parent ancestors, and any descendants sharing the chain — with
+  per-entry merge status and patch-set numbers, for diagnosing implicit
+  git-parent dependencies.
 - **suggest_reviewers**: Suggests reviewers for a change based on a query.
 - **abandon_change**: Abandons a change.
 - **get_most_recent_cl**: Gets the most recent CL for a user.
