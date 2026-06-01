@@ -102,6 +102,23 @@ class TestGerritUrlsDispatcher(unittest.TestCase):
         mock_get_auth.assert_called_once_with(auth_config)
         self.assertEqual(command, ["curl", "--user", "test:token", "-L"])
 
+    def test_http_basic_without_credentials_dispatches_to_netrc(self):
+        """End-to-end: an http_basic host with no inline credentials produces a
+        --netrc curl command (auth function not mocked)."""
+        config = {
+            "gerrit_hosts": [
+                {
+                    "name": "Public",
+                    "external_url": "https://public-gerrit.com/",
+                    "authentication": {"type": "http_basic"},
+                }
+            ]
+        }
+        command = gerrit_urls.get_curl_command_for_gerrit_url(
+            "https://public-gerrit.com", config
+        )
+        self.assertEqual(command, ["curl", "--netrc", "-L"])
+
     def test_no_matching_host_raises_error(self):
         """Tests that a ValueError is raised when no matching host is found."""
         config = {"gerrit_hosts": []}

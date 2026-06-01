@@ -16,6 +16,7 @@
 Tests for the gerrit_auth module.
 """
 
+import os
 import unittest
 from unittest.mock import mock_open, patch
 
@@ -33,14 +34,30 @@ class TestGerritAuth(unittest.TestCase):
         expected = ["curl", "--user", "testuser:secret", "-L"]
         self.assertEqual(gerrit_auth._get_auth_for_http_basic(config), expected)
 
+    def test_get_auth_for_http_basic_netrc(self):
+        """Tests that --netrc is used when no credentials are configured."""
+        self.assertEqual(
+            gerrit_auth._get_auth_for_http_basic({}),
+            ["curl", "--netrc", "-L"],
+        )
+
+    def test_get_auth_for_http_basic_netrc_file(self):
+        """Tests that --netrc-file is used when netrc_path is configured."""
+        config = {"netrc_path": "~/custom_netrc"}
+        command = gerrit_auth._get_auth_for_http_basic(config)
+        self.assertEqual(
+            command,
+            ["curl", "--netrc-file", os.path.expanduser("~/custom_netrc"), "-L"],
+        )
+
     def test_get_auth_for_http_basic_missing_username(self):
-        """Tests that an error is raised if username is missing for http_basic."""
-        with self.assertRaisesRegex(ValueError, "both 'username' and 'auth_token'"):
+        """Tests that an error is raised if only auth_token is provided."""
+        with self.assertRaisesRegex(ValueError, "provide both 'username' and"):
             gerrit_auth._get_auth_for_http_basic({"auth_token": "secret"})
 
     def test_get_auth_for_http_basic_missing_token(self):
-        """Tests that an error is raised if auth_token is missing for http_basic."""
-        with self.assertRaisesRegex(ValueError, "both 'username' and 'auth_token'"):
+        """Tests that an error is raised if only username is provided."""
+        with self.assertRaisesRegex(ValueError, "provide both 'username' and"):
             gerrit_auth._get_auth_for_http_basic({"username": "testuser"})
 
     @patch("os.path.exists", return_value=True)
