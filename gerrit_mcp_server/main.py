@@ -1259,6 +1259,100 @@ async def get_related_changes(
     return result
 
 
+class _GitPerson(TypedDict):
+    name: Optional[str]
+    email: Optional[str]
+    date: Optional[str]
+
+
+class _CommitParent(TypedDict):
+    commit_sha: Optional[str]
+    subject: Optional[str]
+
+
+class _RevisionCommit(TypedDict):
+    commit_sha: Optional[str]
+    parents: List[_CommitParent]
+    author: _GitPerson
+    committer: _GitPerson
+    subject: Optional[str]
+    message: Optional[str]
+
+
+class _RevisionCommitResult(TypedDict):
+    change_id: str
+    revision_id: str
+    commit: _RevisionCommit
+
+
+@mcp.tool()
+async def get_revision_commit(
+    change_id: str,
+    revision_id: Optional[str] = None,
+    gerrit_base_url: Optional[str] = None,
+) -> _RevisionCommitResult:
+    """
+    Returns the full commit object for a change's revision: commit SHA, parent
+    SHA(s), author, committer, subject, and the raw commit message.
+
+    Use this tool to retrieve raw per-revision commit metadata — especially the
+    parent SHA(s) — for a single revision. To check whether a parent is merged,
+    follow up with query_changes("commit:<sha>"). For full ancestor-chain
+    diagnosis, prefer get_related_changes instead.
+
+    change_id can be a numeric change number, a Change-Id (I... hash), or a
+    project~branch~Change-Id triplet.
+
+    revision_id defaults to "current" (the latest patch set). Pass a patch-set
+    number or commit SHA to target a specific revision.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    rev = revision_id or "current"
+    url = f"{base_url}/changes/{change_id}/revisions/{rev}/commit"
+
+    try:
+        result_str = await run_curl([url], base_url)
+        data = json.loads(result_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Failed to parse JSON response from Gerrit for change "
+            f"{change_id} revision {rev}. Raw response: '{result_str}'"
+        ) from e
+    except Exception as e:
+        raise RuntimeError(f"Error getting revision commit for {change_id}: {e}") from e
+
+    def _map_git_person(person: dict) -> _GitPerson:
+        return {
+            "name": person.get("name"),
+            "email": person.get("email"),
+            "date": person.get("date"),
+        }
+
+    parents: List[_CommitParent] = [
+        {"commit_sha": p.get("commit"), "subject": p.get("subject")}
+        for p in data.get("parents", [])
+    ]
+
+    commit: _RevisionCommit = {
+        "commit_sha": data.get("commit"),
+        "parents": parents,
+        "author": _map_git_person(data.get("author", {})),
+        "committer": _map_git_person(data.get("committer", {})),
+        "subject": data.get("subject"),
+        "message": data.get("message"),
+    }
+
+    return {
+        "change_id": change_id,
+        "revision_id": rev,
+        "commit": commit,
+    }
+
+
 @mcp.tool()
 async def suggest_reviewers(
     change_id: str,
