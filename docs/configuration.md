@@ -109,12 +109,49 @@ services.
 }
 ```
 
-### 3. `http_basic` (Not Recommended)
+### 3. `http_basic`
 
 This is the standard and most common method for authenticating with a Gerrit
 instance's REST API. It uses a generated HTTP password or token.
 
 - **`type`**: `"http_basic"`
+
+You can supply the credentials in one of two ways.
+
+#### Preferred: credentials from a netrc file
+
+If you omit both `username` and `auth_token`, the server lets `curl` read your
+credentials from a netrc file (via `curl --netrc`), keyed by host. This is the
+recommended setup — analogous to `git_cookies` — because it avoids duplicating
+your token in `gerrit_config.json`.
+
+Add an entry to your `~/.netrc` for the Gerrit host, e.g.:
+
+```
+machine fuchsia-review.googlesource.com login your-username password your-auth-token
+```
+
+- **`netrc_path`**: (Optional) Path to a non-default netrc file (e.g.
+  `~/.netrc-gerrit`). Maps to `curl --netrc-file`. If omitted, curl uses your
+  default `~/.netrc`.
+
+**Example:**
+
+```json
+{
+  "name": "Fuchsia Open Source",
+  "external_url": "https://fuchsia-review.googlesource.com/",
+  "authentication": {
+    "type": "http_basic"
+  }
+}
+```
+
+#### Inline credentials
+
+Alternatively, specify the credentials directly. If you set one of these, you
+must set both.
+
 - **`username`**: Your Gerrit username.
 - **`auth_token`**: Your Gerrit HTTP password/token. You can usually generate
   this from your Gerrit user settings page under "HTTP Credentials - Obtain

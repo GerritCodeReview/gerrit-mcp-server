@@ -26,13 +26,29 @@ def _get_auth_for_gob(config: Dict[str, Any]) -> List[str]:
 
 
 def _get_auth_for_http_basic(config: Dict[str, Any]) -> List[str]:
-    """Returns the command for HTTP basic authentication."""
+    """Returns the command for HTTP basic authentication.
+
+    The preferred setup omits both 'username' and 'auth_token', so curl reads
+    credentials from a netrc file (keyed by host) via '--netrc', or
+    '--netrc-file <netrc_path>' when 'netrc_path' is set. This mirrors
+    'git_cookies' and avoids duplicating credentials in gerrit_config.json.
+
+    Alternatively, credentials may be supplied explicitly via 'username' and
+    'auth_token', in which case curl authenticates with '--user'.
+    """
     username = config.get("username")
     auth_token = config.get("auth_token")
+
+    if not username and not auth_token:
+        netrc_path = config.get("netrc_path")
+        if netrc_path:
+            return ["curl", "--netrc-file", os.path.expanduser(netrc_path), "-L"]
+        return ["curl", "--netrc", "-L"]
+
     if not username or not auth_token:
         raise ValueError(
-            "For 'http_basic' authentication, both 'username' and "
-            "'auth_token' must be configured."
+            "For 'http_basic' authentication, provide both 'username' and "
+            "'auth_token', or omit both to use credentials from your netrc file."
         )
     return ["curl", "--user", f"{username}:{auth_token}", "-L"]
 

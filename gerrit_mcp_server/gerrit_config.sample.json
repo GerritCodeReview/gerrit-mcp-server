@@ -22,9 +22,7 @@
       "name": "AOSP",
       "external_url": "https://android-review.googlesource.com/",
       "authentication": {
-        "type": "http_basic",
-        "username": "your-aosp-user",
-        "auth_token": "your-aosp-http-token"
+        "type": "http_basic"
       }
     },
     {
