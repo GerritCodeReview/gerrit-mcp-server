@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "5e97aecc_2fea6831",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T21:58:36Z",
+      "side": 1,
+      "message": "Yeah, that would be great. If you have time, I think you could add all the necessary config to the `zuul/ops` repo like this change did for the git-repo project: https://gerrit-review.googlesource.com/c/zuul/ops/+/323700 (and then I can +2 it since it\u0027s not my own change)\n\nThen I can update this change to use a `.zuul.yaml` file to add the jobs details, like this change shows: 345094: zuul: ensure python3-distutils is present | https://gerrit-review.googlesource.com/c/plugins/task/+/345094",
+      "parentUuid": "77218fd7_eab8e383",
+      "range": {
+        "startLine": 7,
+        "startChar": 35,
+        "endLine": 7,
+        "endChar": 62
+      },
+      "revId": "28e88ed032f51b1b3e42f8e8ab7e01d7d334ae8e",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "44ee310b_c157a963",
         "filename": "AGENT.md",
         "patchSetId": 1
@@ -37,6 +61,30 @@
       "writtenOn": "2026-06-05T15:39:25Z",
       "side": 1,
       "message": "Can we put the exact link where to get this skill from?\ne.g.:\n\n```\nnpx skills add https://github.com/astral-sh/claude-code-plugins --skill ruff\n```",
+      "range": {
+        "startLine": 56,
+        "startChar": 9,
+        "endLine": 56,
+        "endChar": 21
+      },
+      "revId": "28e88ed032f51b1b3e42f8e8ab7e01d7d334ae8e",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bdb7bdc9_e6760bc7",
+        "filename": "AGENT.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T21:58:36Z",
+      "side": 1,
+      "message": "The link, yes, but I don\u0027t think we should put commands for every harness in here.\n\n```suggestion\nUse the [`/astral:ruff` skill](https://github.com/astral-sh/claude-code-plugins) if\navailable. Otherwise, to fix and format:\n```",
+      "parentUuid": "44ee310b_c157a963",
       "range": {
         "startLine": 56,
         "startChar": 9,
