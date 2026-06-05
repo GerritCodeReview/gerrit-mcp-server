@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "77218fd7_eab8e383",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-06-05T15:39:25Z",
+      "side": 1,
+      "message": "Can we setup some jenkins-like CI pipeline that perform per-patchset analisys whether the changes meet ruff?\n\nIf so, It\u0027d force contributors to follow ruff and it\u0027d prevent ruff lint/format regression.",
+      "range": {
+        "startLine": 7,
+        "startChar": 35,
+        "endLine": 7,
+        "endChar": 62
+      },
+      "revId": "28e88ed032f51b1b3e42f8e8ab7e01d7d334ae8e",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "44ee310b_c157a963",
+        "filename": "AGENT.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-06-05T15:39:25Z",
+      "side": 1,
+      "message": "Can we put the exact link where to get this skill from?\ne.g.:\n\n```\nnpx skills add https://github.com/astral-sh/claude-code-plugins --skill ruff\n```",
+      "range": {
+        "startLine": 56,
+        "startChar": 9,
+        "endLine": 56,
+        "endChar": 21
+      },
+      "revId": "28e88ed032f51b1b3e42f8e8ab7e01d7d334ae8e",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
