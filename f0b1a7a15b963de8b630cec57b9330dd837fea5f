@@ -16,6 +16,142 @@
       "message": "@dannyrosen@google.com, please also review this one, when you have free time.",
       "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bc89481b_7eb8d406",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T23:16:05Z",
+      "side": 1,
+      "message": "Should we add `?intraline` or is that not helpful for AI consumers?",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "eae1404c_c89c966f",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T23:16:05Z",
+      "side": 1,
+      "message": "Would it be better to return the [structured content](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content) (and schema)?\n\nThen I don\u0027t think you\u0027d need the `DiffFormatter` class at all. Unless I\u0027m missing something, that seems like a simpler solution (that we can probably apply to most of these tools).\n\nIf you do this, then I think most of my other comments aren\u0027t applicable.",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8cf37408_c486a05b",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T23:16:05Z",
+      "side": 1,
+      "message": "[AI review] The docstring example uses 13–14 spaces of padding before the line number, but with `_LINE_WIDTH \u003d 6` the actual output uses 5–6 spaces. Anyone writing `assertIn` strings by reading the docstring will get the padding wrong. The example should match the real output:\n\n```\n     1:  unchanged line\n     2: +added line\n      : -deleted line\n  ... (N unchanged lines omitted)\n```",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4a781ad7_54add3d9",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 572,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T23:16:05Z",
+      "side": 1,
+      "message": "[AI review] In the Gerrit diff API a chunk carries exactly one of `ab` (context), `a`/`b` (edit), or `skip` — they\u0027re mutually exclusive. The current code calls all four emitters unconditionally, so a malformed or future-format response with both `ab` and `skip` in the same chunk would double-count line numbers silently. A short comment asserting the invariant (or an early-return guard) would help future readers:\n\n```python\n# Gerrit chunks carry exactly one of: ab (context), a/b (edit), or skip.\n```",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0454506c_ee7fac5a",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 594,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T23:16:05Z",
+      "side": 1,
+      "message": "[AI review] `if count:` treats `0` and `None` the same way. A `{\"skip\": 0}` chunk (valid but degenerate) would silently skip the emit, which is harmless, but the line-number increment would also be skipped — same no-op, so no real bug today. Still, `if count is not None and count \u003e 0:` is more precise and makes the intent explicit.",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "15dd9479_38a73b3e",
+        "filename": "tests/unit/test_get_file_diff.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T23:16:05Z",
+      "side": 1,
+      "message": "[AI review] This assertion relies on trailing spaces being preserved in the string (`\"     2:  \"` ends with two spaces for the empty `\"\"` line). Many editors and CI formatters strip trailing whitespace, which would silently break the test. Consider asserting against the split lines instead:\n\n```python\nself.assertIn(\"     2:  \", text.splitlines())\n```\n\nThat makes the intent clear and is immune to trailing-space stripping.",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ff0f6e58_7ca3c506",
+        "filename": "tests/unit/test_get_file_diff.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T23:16:05Z",
+      "side": 1,
+      "message": "[AI review] No test for `RENAMED` or `COPIED` change types, where `meta_a.name !\u003d meta_b.name`. These are common in Gerrit and the header would render both names differently — worth a test to confirm the formatter handles them correctly.",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c860be14_788d38ec",
+        "filename": "tests/unit/test_get_file_diff.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T23:16:05Z",
+      "side": 1,
+      "message": "[AI review] No test for an empty `content: []` array (e.g. binary files or files where Gerrit elides all content). The formatter would return only the header lines, but there\u0027s no coverage to guard against regressions there.",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
