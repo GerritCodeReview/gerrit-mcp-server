@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a68a6ee2_f12bf001",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-05T00:05:57Z",
+      "side": 1,
+      "message": "Sorry for the huge series of changes. Had some red tape holding up upstreaming these.\n\n@dannyrosen@google.com are you still trying to review/maintain this repo or are you looking for the community to take it over?",
+      "revId": "dbc45c87160ce681ec6dc17d05dfccc9f2d8e873",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
