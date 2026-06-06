@@ -1,0 +1,23 @@
+- job:
+    name: gerrit-mcp-base
+    abstract: true
+    roles:
+      - ensure-uv
+    pre-run: .playbooks/uv_sync.yaml
+
+- job:
+    name: gerrit-mcp-check-style
+    parent: gerrit-mcp-base
+    run: .playbooks/check_style.yaml
+
+- job:
+    name: gerrit-mcp-run-tests
+    parent: gerrit-mcp-base
+    run: .playbooks/run_tests.yaml
+
+- project:
+    description: Run formatters and tests
+    check:
+      jobs:
+        - gerrit-mcp-check-style
+        - gerrit-mcp-run-tests
