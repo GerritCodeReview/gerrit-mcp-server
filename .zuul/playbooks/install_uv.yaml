@@ -1,0 +1,6 @@
+- hosts: all
+  roles:
+    - ensure-uv
+  vars:
+    - ensure_uv_global_symlink: True
+
