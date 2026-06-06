@@ -1,0 +1,12 @@
+- hosts: all
+#  roles:
+#    - ensure-uv
+  tasks:
+    - debug:
+        msg: Going to run uv sync
+#    - name: uv sync
+#      command: '{{ ensure_uv_executable }} sync --extra dev'
+#      args:
+#        chdir: '{{ zuul_work_dir }}'
+#  vars:
+#    - ensure_uv_global_symlink: true
