@@ -1,0 +1,11 @@
+- job:
+    name: gerrit-mcp-sync-py-deps
+    description: Ensure python dependencies can be installed
+    pre-run: .zuul/playbooks/install_uv.yaml
+    run: .zuul/playbooks/uv_sync.yaml
+    attempts: 1
+
+- project:
+    check:
+      jobs:
+        - gerrit-mcp-sync-py-deps
