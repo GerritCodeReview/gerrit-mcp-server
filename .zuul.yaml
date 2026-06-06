@@ -1,0 +1,28 @@
+- job:
+    name: gerrit-mcp-base
+    abstract: true
+    pre-run: .playbooks/uv_sync.yaml
+
+- job:
+    name: gerrit-mcp-check-py-deps
+    description: Ensure python dependencies can be installed
+    run: .playbooks/uv_sync.yaml
+
+- job:
+    name: gerrit-mcp-check-style
+    parent: gerrit-mcp-base
+    description: Run formatters and linters
+    run: .playbooks/check_style.yaml
+
+- job:
+    name: gerrit-mcp-run-tests
+    parent: gerrit-mcp-base
+    description: Run tests
+    run: .playbooks/run_tests.yaml
+
+- project:
+    check:
+      jobs:
+        - gerrit-mcp-check-py-deps
+        - gerrit-mcp-check-style
+        - gerrit-mcp-run-tests
