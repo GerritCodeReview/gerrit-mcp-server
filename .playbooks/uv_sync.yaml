@@ -1,0 +1,9 @@
+- hosts: all
+  roles:
+    - ensure-uv
+  tasks:
+    - name: uv sync
+      include_role:
+        name: run_uv
+      vars:
+        uv_command: 'sync --extra dev'
