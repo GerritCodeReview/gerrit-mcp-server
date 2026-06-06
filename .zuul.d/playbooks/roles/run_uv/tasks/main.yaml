@@ -1,0 +1,9 @@
+- name: Require uv_command variable
+  fail:
+    msg: uv_command is required for this role
+  when: uv_command is not defined
+
+- name: Run uv
+  command: '{{ ensure_uv_executable }} {{ uv_command }}'
+  args:
+    chdir: '{{ zuul_work_dir }}'

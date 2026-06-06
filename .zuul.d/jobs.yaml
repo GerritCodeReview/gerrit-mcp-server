@@ -1,0 +1,7 @@
+- job:
+    name: gerrit-mcp-check
+    description: Run formatters, linters, and tests
+    run:
+      - .zuul.d/playbooks/uv_sync.yaml
+      - .zuul.d/playbooks/check_style.yaml
+      - .zuul.d/playbooks/run_tests.yaml

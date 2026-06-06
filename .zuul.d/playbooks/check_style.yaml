@@ -1,0 +1,12 @@
+- hosts: all
+  tasks:
+    - name: ruff check
+      include_role:
+        name: run_uv
+      vars:
+        uv_command: 'run ruff check .'
+    - name: ruff format check
+      include_role:
+        name: run_uv
+      vars:
+        uv_command: 'run ruff format --check .'
