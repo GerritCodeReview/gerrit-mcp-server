@@ -1,0 +1,6 @@
+- hosts: all
+  tasks:
+    - name: pytest
+      command: '{{ ensure_uv_executable }} run pytest'
+      args:
+        chdir: '{{ zuul.project.src_dir }}'

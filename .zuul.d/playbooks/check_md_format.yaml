@@ -1,0 +1,6 @@
+- hosts: all
+  tasks:
+    - name: mdformat check
+      command: '{{ ensure_uv_executable }} run mdformat --check --exclude ".pytest_cache/**" --exclude ".venv/**" .'
+      args:
+        chdir: '{{ zuul.project.src_dir }}'

@@ -1,0 +1,10 @@
+- hosts: all
+  tasks:
+    - name: ruff check
+      command: '{{ ensure_uv_executable }} run ruff check'
+      args:
+        chdir: '{{ zuul.project.src_dir }}'
+    - name: ruff format check
+      command: '{{ ensure_uv_executable }} run ruff format --diff .'
+      args:
+        chdir: '{{ zuul.project.src_dir }}'

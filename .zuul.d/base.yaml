@@ -1,0 +1,30 @@
+- job:
+    name: gerrit-mcp-base
+    abstract: true
+    pre-run: .zuul.d/playbooks/pre.yaml
+
+- job:
+    name: gerrit-mcp-check-style
+    parent: gerrit-mcp-base
+    description: Run Python formatters and linters
+    run: .zuul.d/playbooks/check_py_style.yaml
+
+- job:
+    name: gerrit-mcp-check-docs-format
+    parent: gerrit-mcp-base
+    description: Run Markdown format checks
+    run: .zuul.d/playbooks/check_md_format.yaml
+
+- job:
+    name: gerrit-mcp-run-tests
+    parent: gerrit-mcp-base
+    description: Run tests
+    run: .zuul.d/playbooks/run_tests.yaml
+
+- project:
+    description: Run linters, formatters, and tests
+    check:
+      jobs:
+        - gerrit-mcp-check-style
+        - gerrit-mcp-check-docs-format
+        - gerrit-mcp-run-tests
