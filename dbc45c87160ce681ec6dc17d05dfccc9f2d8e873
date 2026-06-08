@@ -33,6 +33,24 @@
       "message": "This migrates the documented STDIO launch to the new `gerrit-mcp-server` console script, but the two config files that actually drive the Gemini integration still use the old `python gerrit_mcp_server/main.py stdio` + `PYTHONPATH` form: `gemini-extension.json` (consumed by `gemini extension install`) and `gemini-cli-config.template.json`. The repo now documents two contradictory launch methods, and the new entry point is unused by the recommended install path. Consider migrating both files to `.../.venv/bin/gerrit-mcp-server`, or note in the commit message why they stay on the legacy invocation. Non-blocking: the old form still works as long as `.venv` is built.\n\n**Co-Reviewed By: deep-code-reviewer**",
       "revId": "dbc45c87160ce681ec6dc17d05dfccc9f2d8e873",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3e14953c_0c139259",
+        "filename": "docs/gemini-cli.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-08T20:34:28Z",
+      "side": 1,
+      "message": "Oops, missed that, thanks.",
+      "parentUuid": "b7b88851_c6feea8b",
+      "revId": "dbc45c87160ce681ec6dc17d05dfccc9f2d8e873",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
