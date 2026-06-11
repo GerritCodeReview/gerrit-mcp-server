@@ -184,6 +184,24 @@
       "message": "@jim@acmegating.com any idea why clicking \"run\" on the check run isn\u0027t queueing anything in Zuul?",
       "revId": "efa5d9b3aacfc8b5e77d7053aeafb8e49e4dfd2a",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "722a9e34_0a80b6da",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-11T19:15:18Z",
+      "side": 1,
+      "message": "Resolved by James reloading Zuul config.",
+      "parentUuid": "cfac653f_3fbe27e4",
+      "revId": "efa5d9b3aacfc8b5e77d7053aeafb8e49e4dfd2a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
