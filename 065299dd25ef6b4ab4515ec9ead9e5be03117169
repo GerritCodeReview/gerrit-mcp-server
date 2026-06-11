@@ -1,12 +1,13 @@
 {
   "checks": {
     "zuul-check:gerrit-mcp-server": {
-      "state": "RUNNING",
-      "message": "Jobs have started running",
-      "url": "https://ci.gerritcodereview.com/t/gerrit/status/change/591401,8",
+      "state": "FAILED",
+      "message": "Change failed",
+      "url": "https://ci.gerritcodereview.com/t/gerrit/buildset/64f900000ea548d5bb5aed063e692be8",
       "started": "2026-06-11T23:31:57Z",
+      "finished": "2026-06-11T23:32:35Z",
       "created": "2026-06-11T23:31:58Z",
-      "updated": "2026-06-11T23:32:04Z"
+      "updated": "2026-06-11T23:32:36Z"
     }
   }
 }
