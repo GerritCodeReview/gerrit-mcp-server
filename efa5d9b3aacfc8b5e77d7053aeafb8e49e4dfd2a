@@ -51,6 +51,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "622ceccb_00b1bcc7",
+        "filename": ".zuul.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-11T19:14:47Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "e43d6f0c_17fb49df",
+      "range": {
+        "startLine": 1,
+        "startChar": 2,
+        "endLine": 7,
+        "endChar": 0
+      },
+      "revId": "efa5d9b3aacfc8b5e77d7053aeafb8e49e4dfd2a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "5807dd03_1c8f4171",
         "filename": ".zuul.yaml",
         "patchSetId": 1
