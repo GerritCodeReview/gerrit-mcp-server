@@ -1,13 +1,9 @@
 {
   "checks": {
     "zuul-check:gerrit-mcp-server": {
-      "state": "FAILED",
-      "message": "Change failed",
-      "url": "https://ci.gerritcodereview.com/t/gerrit/buildset/c024a30fe08b4cc98329551c72cd4ab3",
-      "started": "2026-06-11T19:14:24Z",
-      "finished": "2026-06-11T19:26:21Z",
+      "state": "NOT_STARTED",
       "created": "2026-06-11T19:14:24Z",
-      "updated": "2026-06-11T19:26:21Z"
+      "updated": "2026-06-11T20:25:02Z"
     }
   }
 }
