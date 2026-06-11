@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2fe92f10_b12a06b3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-06-11T09:59:45Z",
+      "side": 1,
+      "message": "Maybe add `mdformat --check .` in `.playbooks/check_style.yaml` as well to enforce this",
+      "revId": "82f376543805a175570dd9f60b71079219dcf3a5",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6c632d59_d8d53be3",
+        "filename": "AGENT.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-06-11T09:59:45Z",
+      "side": 1,
+      "message": "Probably should update AGENTS.md as well. Maybe here or a separate section\n\n```suggestion\nuv run ruff check --fix . \u0026\u0026 uv run ruff format .\nuv run mdformat .\n```",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 49
+      },
+      "revId": "82f376543805a175570dd9f60b71079219dcf3a5",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
