@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2be9778f_63b56499",
+        "filename": ".gemini/settings.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-06-15T11:22:55Z",
+      "side": 1,
+      "message": "But we have dropped this.\n\nAre we going to setup the only gemini environment?\nWhat about claude code, codex?",
+      "range": {
+        "startLine": 3,
+        "startChar": 30,
+        "endLine": 3,
+        "endChar": 41
+      },
+      "revId": "430aa3589bfb784f63912875016fc81b56bfb8f5",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
