@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ddfeedb3_8c29a9d5",
+        "filename": "pyproject.toml",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-06-15T11:42:10Z",
+      "side": 1,
+      "message": "Don\u0027t you mind extending this to 100?",
+      "range": {
+        "startLine": 42,
+        "startChar": 14,
+        "endLine": 42,
+        "endChar": 16
+      },
+      "revId": "9785c9c8e3f817325affc17747835862fe66e63a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
