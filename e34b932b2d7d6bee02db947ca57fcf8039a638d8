@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4dbefd3c_0c5cd264",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-06-16T21:15:40Z",
+      "side": 1,
+      "message": "Probably could add a test",
+      "revId": "e34b932b2d7d6bee02db947ca57fcf8039a638d8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d01d2f71_2c0fdadd",
+        "filename": "gerrit_mcp_server/gerrit_auth.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-06-16T21:15:40Z",
+      "side": 1,
+      "message": "Non-wildcard cookie domain incorrectly matches subdomains.\n\nThe comment says \"Support exact match and wildcard (leading dot) domains\", but the current logic applies the `endswith` check unconditionally — regardless of whether the cookie domain has a leading dot. This means a cookie entry like `my-gerrit.com` (no leading dot) will also match `sub.my-gerrit.com`, which contradicts the stated intent.\n\nThe fix is to only apply the `endswith` check when the original `cookie_domain` had a leading dot:\n```suggestion\n                    # Support exact match and wildcard (leading dot) domains.\n                    if cookie_domain.startswith(\".\"):\n                        normalized \u003d cookie_domain.lstrip(\".\")\n                        match \u003d domain \u003d\u003d normalized or domain.endswith(\".\" + normalized)\n                    else:\n                        match \u003d domain \u003d\u003d cookie_domain\n                    if match:\n```",
+      "range": {
+        "startLine": 63,
+        "startChar": 20,
+        "endLine": 65,
+        "endChar": 81
+      },
+      "revId": "e34b932b2d7d6bee02db947ca57fcf8039a638d8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
