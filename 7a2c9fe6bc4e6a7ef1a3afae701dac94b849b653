@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4201eaf4_7ed9b38a",
+        "filename": ".mcp.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-06-16T19:52:45Z",
+      "side": 1,
+      "message": "Consider parity with `gemini-extension.json` and invoking the prebuilt entrypoint\n  directly instead of going through `uv run`:\n\n  ```suggestion\n  {\n    \"mcpServers\": {\n      \"gerrit\": {\n        \"command\": \"${CLAUDE_PLUGIN_ROOT}/.venv/bin/gerrit-mcp-server\"\n      }\n    }\n  }\n  ```\n  Probably need to document that `./build-gerrit.sh` must be run before loading the plugin",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 1
+      },
+      "revId": "7a2c9fe6bc4e6a7ef1a3afae701dac94b849b653",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
