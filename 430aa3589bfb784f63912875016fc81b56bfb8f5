@@ -22,6 +22,30 @@
       },
       "revId": "430aa3589bfb784f63912875016fc81b56bfb8f5",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a07eef9c_63fe0eb8",
+        "filename": ".gemini/settings.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-23T21:49:33Z",
+      "side": 1,
+      "message": "I kept GEMINI.md just in case someone has it locally and wants it to keep working. The `.gemini/settings.json` only cares about Gemini. I think Claude and Codex will read AGENTS.md by default? (Gemini doesn\u0027t, that\u0027s why it needs this config to keep working)",
+      "parentUuid": "2be9778f_63b56499",
+      "range": {
+        "startLine": 3,
+        "startChar": 30,
+        "endLine": 3,
+        "endChar": 41
+      },
+      "revId": "430aa3589bfb784f63912875016fc81b56bfb8f5",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
