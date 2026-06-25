@@ -46,6 +46,30 @@
       },
       "revId": "430aa3589bfb784f63912875016fc81b56bfb8f5",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3f156601_4907d0a2",
+        "filename": ".gemini/settings.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-06-25T13:40:51Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "a07eef9c_63fe0eb8",
+      "range": {
+        "startLine": 3,
+        "startChar": 30,
+        "endLine": 3,
+        "endChar": 41
+      },
+      "revId": "430aa3589bfb784f63912875016fc81b56bfb8f5",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
