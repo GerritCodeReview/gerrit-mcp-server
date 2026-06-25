@@ -46,6 +46,30 @@
       },
       "revId": "9785c9c8e3f817325affc17747835862fe66e63a",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "65a1cafc_f46b2e0b",
+        "filename": "pyproject.toml",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-06-25T13:39:55Z",
+      "side": 1,
+      "message": "I\u0027m not insisting. let\u0027s leave as it is.",
+      "parentUuid": "b8182225_07e4e459",
+      "range": {
+        "startLine": 42,
+        "startChar": 14,
+        "endLine": 42,
+        "endChar": 16
+      },
+      "revId": "9785c9c8e3f817325affc17747835862fe66e63a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
