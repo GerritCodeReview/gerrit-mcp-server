@@ -18,6 +18,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "64a7341b_cfdc10be",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-26T08:03:41Z",
+      "side": 1,
+      "message": "I moved the Zuul change to the end, but I\u0027ll add that in there once it\u0027s working.",
+      "parentUuid": "2fe92f10_b12a06b3",
+      "revId": "82f376543805a175570dd9f60b71079219dcf3a5",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6c632d59_d8d53be3",
@@ -31,6 +49,30 @@
       "writtenOn": "2026-06-11T09:59:45Z",
       "side": 1,
       "message": "Probably should update AGENTS.md as well. Maybe here or a separate section\n\n```suggestion\nuv run ruff check --fix . \u0026\u0026 uv run ruff format .\nuv run mdformat .\n```",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 49
+      },
+      "revId": "82f376543805a175570dd9f60b71079219dcf3a5",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3629b5de_de76e5a9",
+        "filename": "AGENT.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-26T08:03:41Z",
+      "side": 1,
+      "message": "Added a new Documentation section.",
+      "parentUuid": "6c632d59_d8d53be3",
       "range": {
         "startLine": 70,
         "startChar": 0,
