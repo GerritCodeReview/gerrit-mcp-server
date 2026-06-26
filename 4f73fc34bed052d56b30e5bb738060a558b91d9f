@@ -1,12 +1,13 @@
 {
   "checks": {
     "zuul-check:gerrit-mcp-server": {
-      "state": "SCHEDULED",
-      "message": "Change has been enqueued in check",
-      "url": "https://ci.gerritcodereview.com/t/gerrit/status/change/591090,3",
+      "state": "NOT_RELEVANT",
+      "message": "Project has no jobs configured",
+      "url": "https://ci.gerritcodereview.com/t/gerrit/buildset/28f088c5bb244300988d28264b47494a",
       "started": "2026-06-26T08:04:35Z",
+      "finished": "2026-06-26T08:05:16Z",
       "created": "2026-06-26T08:04:36Z",
-      "updated": "2026-06-26T08:04:36Z"
+      "updated": "2026-06-26T08:05:17Z"
     }
   }
 }
