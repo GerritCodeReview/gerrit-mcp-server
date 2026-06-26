@@ -40,6 +40,7 @@ class TestBuildAndRun(unittest.TestCase):
             "gerrit_mcp_server",
             "gerrit_mcp_server_task",
             "gerrit_mcp_server_depends_on",
+            "gerrit_mcp_server_code_owners",
         ]
 
         for file_name in self.files_to_copy:
