@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "21c59127_7b35c30b",
+        "filename": "pyproject.toml",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-26T08:03:41Z",
+      "side": 1,
+      "message": "Needs to be added as a dependency to actually be available in the entry points. Done.",
+      "revId": "7381c9cbdb15be78ddda7b503612148ec4f3e00d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dc88a4ae_1c91f2d8",
+        "filename": "pyproject.toml",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-26T08:03:41Z",
+      "side": 1,
+      "message": "This should have been added in the previous change. Done.",
+      "range": {
+        "startLine": 42,
+        "startChar": 11,
+        "endLine": 42,
+        "endChar": 35
+      },
+      "revId": "7381c9cbdb15be78ddda7b503612148ec4f3e00d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a548df2e_89e025c5",
+        "filename": "pyproject.toml",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-26T08:03:41Z",
+      "side": 1,
+      "message": "This should have been added in the previous change. Done.",
+      "revId": "7381c9cbdb15be78ddda7b503612148ec4f3e00d",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
