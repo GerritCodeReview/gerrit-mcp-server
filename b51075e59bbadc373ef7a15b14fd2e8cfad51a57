@@ -16,6 +16,24 @@
       "message": "This still instructs running `./test.sh`, but this CL deletes `test.sh` (the \"Running Tests\" section just above was updated to `uv run pytest`). Following this line now fails with \"No such file or directory\". Update it to `uv run pytest` to match.\n\n**Co-Reviewed By: deep-code-reviewer**",
       "revId": "b51075e59bbadc373ef7a15b14fd2e8cfad51a57",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6038b653_a40539a9",
+        "filename": "AGENTS.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-26T08:03:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "06918d5f_2bb1391c",
+      "revId": "b51075e59bbadc373ef7a15b14fd2e8cfad51a57",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
