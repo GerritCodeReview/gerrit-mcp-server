@@ -283,6 +283,13 @@ other-ext = { workspace = true }
 never registered. Plain `uv sync` (without `--all-packages`) installs the root
 package's dependencies but not the workspace members themselves.
 
+> [!IMPORTANT] When you add a new workspace member, also add its directory to
+> `dirs_to_copy` in `tests/integration/test_build_and_run.py`. That test does a
+> clean build in a temp dir by copying in only the listed directories, so a
+> missing member makes the workspace build fail there even though
+> `uv run --extra dev pytest` passes everywhere else. Run
+> `uv run --extra dev pytest` before shipping to catch this.
+
 ## 10. Testing
 
 Use `pytest-asyncio` with a mocked `ExtensionContext`. Assert that `register`
@@ -347,5 +354,7 @@ example:
 - [ ] Entry point declared in `pyproject.toml` under
   `gerrit_mcp_server.extensions`
 - [ ] `uv sync --all-packages` (or `pip install -e .`) installs without error
+- [ ] New workspace member added to `dirs_to_copy` in
+  `tests/integration/test_build_and_run.py`
 - [ ] Server startup logs `extension myext.extension: registered`
 - [ ] At least one pytest test verifying tool registration and core logic
