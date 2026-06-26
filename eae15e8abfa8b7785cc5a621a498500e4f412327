@@ -24,6 +24,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e70b011_7d8f36f2",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-26T08:03:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f8838d45_1ce2e7d7",
+      "range": {
+        "startLine": 113,
+        "startChar": 4,
+        "endLine": 114,
+        "endChar": 19
+      },
+      "revId": "eae15e8abfa8b7785cc5a621a498500e4f412327",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "94ce266f_8dc96f46",
@@ -37,6 +61,24 @@
       "writtenOn": "2026-06-16T20:59:35Z",
       "side": 1,
       "message": "`emit()` fails silently if `python3` is unavailable\n\nConsider adding a guard or falling back to a minimal JSON `echo` if `python3` is absent:\n```suggestion\n  if ! command -v python3 \u0026\u003e/dev/null; then\n    echo \u0027{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"python3 not found; hook could not emit status.\"}}\u0027\n    return\n  fi\n  python3 - \"$1\" \"$2\" \u003c\u003c\u0027PY\u0027",
+      "revId": "eae15e8abfa8b7785cc5a621a498500e4f412327",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a5db1f20_b11e5cfd",
+        "filename": "hooks/check-config.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-26T08:03:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "94ce266f_8dc96f46",
       "revId": "eae15e8abfa8b7785cc5a621a498500e4f412327",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
