@@ -81,3 +81,26 @@ that has the plugin installed.
 - **get_dependents**: Returns changes that explicitly declare `Depends-on:` on
   the given change, via the `independson:<change_id>` query operator registered
   by the plugin.
+
+### Code-owners plugin (`gerrit_mcp_server_code_owners`)
+
+Requires the
+[`code-owners`](https://gerrit.googlesource.com/plugins/code-owners/) plugin on
+the target Gerrit host. All tools auto-route to a configured host that has the
+plugin installed.
+
+- **get_code_owner_status**: Returns the per-file code owner approval status for
+  a change. Each file entry carries a `status` of `APPROVED`, `PENDING`, or
+  `INSUFFICIENT_REVIEWERS` for both its old and new paths (relevant for
+  renames). Supports `limit` and `start` for pagination when a change touches
+  many files.
+- **get_code_owners_for_path**: Returns the suggested code owners for a specific
+  path in a change revision. The plugin filters out the change owner and service
+  users, and ranks current reviewers higher. Pass `revision_id` to target a
+  specific patch set (defaults to `current`) and `limit` to cap the result
+  count.
+- **check_code_owner**: Checks whether a specific user (by email) is a code
+  owner for a path in a branch. Returns detailed ownership information including
+  whether the user is a global, default, or fallback code owner, and optionally
+  their change-level permissions (read ref, see change, approve) when
+  `change_id` is supplied.

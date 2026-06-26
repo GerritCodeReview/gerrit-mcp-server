@@ -8,7 +8,8 @@ dependencies = [
     "uvicorn",
     "websockets",
     "gerrit-mcp-server-task",
-    "gerrit-mcp-server-depends-on"
+    "gerrit-mcp-server-depends-on",
+    "gerrit-mcp-server-code-owners"
 ]
 
 [project.optional-dependencies]
@@ -41,12 +42,13 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [tool.uv.workspace]
-members = ["gerrit_mcp_server_task", "gerrit_mcp_server_depends_on"]
+members = ["gerrit_mcp_server_task", "gerrit_mcp_server_depends_on", "gerrit_mcp_server_code_owners"]
 
 [tool.uv.sources]
 gerrit-mcp-server = { workspace = true }
 gerrit-mcp-server-task = { workspace = true }
 gerrit-mcp-server-depends-on = { workspace = true }
+gerrit-mcp-server-code-owners = { workspace = true }
 
 [tool.setuptools]
 packages = ["gerrit_mcp_server"]

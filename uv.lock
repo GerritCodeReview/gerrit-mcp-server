@@ -11,6 +11,7 @@ resolution-markers = [
 [manifest]
 members = [
     "gerrit-mcp-server",
+    "gerrit-mcp-server-code-owners",
     "gerrit-mcp-server-depends-on",
     "gerrit-mcp-server-task",
 ]
@@ -191,6 +192,7 @@ name = "gerrit-mcp-server"
 version = "1.0.0"
 source = { editable = "." }
 dependencies = [
+    { name = "gerrit-mcp-server-code-owners" },
     { name = "gerrit-mcp-server-depends-on" },
     { name = "gerrit-mcp-server-task" },
     { name = "mcp" },
@@ -212,6 +214,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "gerrit-mcp-server-code-owners", editable = "gerrit_mcp_server_code_owners" },
     { name = "gerrit-mcp-server-depends-on", editable = "gerrit_mcp_server_depends_on" },
     { name = "gerrit-mcp-server-task", editable = "gerrit_mcp_server_task" },
     { name = "mcp", specifier = "<2" },
@@ -227,6 +230,17 @@ requires-dist = [
     { name = "websockets" },
 ]
 provides-extras = ["dev"]
+
+[[package]]
+name = "gerrit-mcp-server-code-owners"
+version = "0.1.0"
+source = { editable = "gerrit_mcp_server_code_owners" }
+dependencies = [
+    { name = "gerrit-mcp-server" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "gerrit-mcp-server", editable = "." }]
 
 [[package]]
 name = "gerrit-mcp-server-depends-on"
