@@ -22,6 +22,30 @@
       },
       "revId": "7a2c9fe6bc4e6a7ef1a3afae701dac94b849b653",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a438f439_6e7ec20a",
+        "filename": ".mcp.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-26T08:03:41Z",
+      "side": 1,
+      "message": "Oh, I might need to fix the gemini one if it has an equivalent to `$CLAUDE_PLUGIN_DATA`. This specifically uses that for the venv instead of `$CLAUDE_PLUGIN_ROOT` since it persists differently than the plugin root.\n\nBut no, you don\u0027t need to run `build-gerrit.sh` first as `uv run` auto-syncs the project environment before executing. It creates the venv at `$UV_PROJECT_ENVIRONMENT` and installs dependencies on first launch. However, yeah, there\u0027s no docs added at all, so let me fix that.",
+      "parentUuid": "4201eaf4_7ed9b38a",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 1
+      },
+      "revId": "7a2c9fe6bc4e6a7ef1a3afae701dac94b849b653",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
