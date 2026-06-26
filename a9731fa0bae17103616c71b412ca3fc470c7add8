@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0558a3a5_7f0d20c8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-26T16:55:02Z",
+      "side": 1,
+      "message": "@yevhenii.yatchenko@gmail.com I think you\u0027ll need to +2 this one since Ajay authored the initial version and I\u0027ve updated it since then.",
+      "revId": "a9731fa0bae17103616c71b412ca3fc470c7add8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
