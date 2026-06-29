@@ -16,6 +16,41 @@
       "message": "I\u0027m not sure if this is how it should be done. UI currently uses same change-id when we try to cherry-pick to a different branch.",
       "revId": "4f73fc34bed052d56b30e5bb738060a558b91d9f",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "72973d0e_c2fdbacd",
+        "filename": "skills/gerrit-workflow/references/change-id-details.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-29T19:11:28Z",
+      "side": 1,
+      "message": "Oh, yeah, agreed. Let me fix that.",
+      "parentUuid": "587f53c9_26f69564",
+      "revId": "4f73fc34bed052d56b30e5bb738060a558b91d9f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7ab754f5_5fea161c",
+        "filename": "skills/gerrit-workflow/references/change-id-details.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-06-29T19:11:28Z",
+      "side": 1,
+      "message": "Could use this instead: `git log -1 --format\u003d\u0027%(trailers:key\u003dChange-Id)\u0027`",
+      "revId": "4f73fc34bed052d56b30e5bb738060a558b91d9f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
