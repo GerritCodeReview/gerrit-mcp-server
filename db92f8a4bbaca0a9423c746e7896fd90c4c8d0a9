@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "667e999b_67574040",
+        "filename": "gerrit_mcp_server/gerrit_auth.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-07-01T02:37:35Z",
+      "side": 1,
+      "message": "We pass the expanded `netrc_path` straight to curl without verifying it exists. Consider adding an early existence check and raising a clear `ValueError` when the specified file is not found, consistent with the existence check used for `gitcookies_path` in `_get_auth_for_gitcookies`.",
+      "range": {
+        "startLine": 45,
+        "startChar": 44,
+        "endLine": 45,
+        "endChar": 74
+      },
+      "revId": "db92f8a4bbaca0a9423c746e7896fd90c4c8d0a9",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
