@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1598b702_29a66a47",
+        "filename": "skills/setup/references/gerrit-config.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-07-01T02:24:42Z",
+      "side": 1,
+      "message": "nit: Consider making it unambiguous\n```suggestion\n      \"authentication\": {} // see auth methods above\n```",
+      "range": {
+        "startLine": 65,
+        "startChar": 6,
+        "endLine": 65,
+        "endChar": 26
+      },
+      "revId": "d3f39810550b6252c3dc9553d206892f88ca68d6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
