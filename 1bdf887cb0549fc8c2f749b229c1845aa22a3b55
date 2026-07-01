@@ -3,6 +3,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c72dd92d_63644a3e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-01T07:31:22Z",
+      "side": 1,
+      "message": "This enables a user to install the plugin only if the repo is cloned locally.\nProbably, for the MCP devels it is ok.\nBut users just want to use it without the manual clone.\n\nI\u0027d suggest also adding a claude code marketplace.\n```\ncat .claude-plugin/marketplace.json\n\n{\n  \"name\": \"gerrit-mcp\",\n  \"description\": \"Gerrit MCP server as a Claude Code plugin\",\n  \"owner\": {\n    \"name\": \"Gerrit Code Review\",\n    \"url\": \"https://www.gerritcodereview.com\"\n  },\n  \"plugins\": [\n    {\n      \"name\": \"gerrit\",\n      \"source\": \"./\",\n      \"description\": \"An MCP server for interacting with the Gerrit code review system.\"\n    }\n  ]\n}\n```\n\nSo, the following commands would work:\n```\n/plugin marketplace add https://gerrit.googlesource.com/gerrit-mcp-server\n/plugin install gerrit@gerrit-mcp\n```\n\nProbably, I\u0027ll setup the marketplace for this repo when your chain of changes is merged",
+      "range": {
+        "startLine": 21,
+        "startChar": 4,
+        "endLine": 21,
+        "endChar": 50
+      },
+      "revId": "1bdf887cb0549fc8c2f749b229c1845aa22a3b55",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "852ed85b_1764f2cb",
         "filename": "AGENTS.md",
         "patchSetId": 4
