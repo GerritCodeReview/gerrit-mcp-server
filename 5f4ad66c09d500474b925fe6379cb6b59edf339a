@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0ea4326d_b6ddac9b",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1712,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-01T09:33:28Z",
+      "side": 1,
+      "message": "**Major** — Extension startup can abort the server with an unhandled traceback, contradicting the commit\u0027s \"never aborts startup\" goal — and it now happens for every user, even with zero extensions.\n\n`_build_extension_context()` eagerly calls `load_gerrit_config()` (line 1676), which raises `FileNotFoundError`/`ValueError`/`JSONDecodeError` on missing or invalid config. Previously `cli_main` went straight to `mcp.run(...)` and config was loaded lazily per tool, so the server still started. Separately, discovery itself is unguarded: `_discover_entry_point_modules()` (`extensions.py:88`) runs outside the per-extension try/except, so a single malformed entry point in the environment also aborts startup.\n\nSuggested fixes:\n- Handle config errors the way `check_config_main` does (clean message + `sys.exit`) rather than a raw traceback.\n- Wrap discovery in a try/except so it honors the stated contract.\n\nReviewer discretion: practical impact is limited to already-broken-config states, so this may be a Minor — but the unhandled traceback and the direct contradiction of the resilience claim are worth addressing.\n\n**Co-Reviewed By: deep-code-reviewer**",
+      "revId": "5f4ad66c09d500474b925fe6379cb6b59edf339a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "088633fc_b1f7ded1",
+        "filename": "gerrit_mcp_server/plugin_registry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-01T09:33:28Z",
+      "side": 1,
+      "message": "What is the used python version? starting from python3.9 we can use generic `dict` and `list` as annotation type hints.",
+      "range": {
+        "startLine": 17,
+        "startChar": 45,
+        "endLine": 17,
+        "endChar": 55
+      },
+      "revId": "5f4ad66c09d500474b925fe6379cb6b59edf339a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f46a7179_c2304b2e",
+        "filename": "gerrit_mcp_server/plugin_registry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-01T09:33:28Z",
+      "side": 1,
+      "message": "missing return type annotation",
+      "range": {
+        "startLine": 146,
+        "startChar": 0,
+        "endLine": 146,
+        "endChar": 2
+      },
+      "revId": "5f4ad66c09d500474b925fe6379cb6b59edf339a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
