@@ -36,6 +36,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1bfe5635_1f80fc88",
+        "filename": "skills/gerrit-workflow/references/change-id-details.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-07-01T00:14:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "72973d0e_c2fdbacd",
+      "revId": "4f73fc34bed052d56b30e5bb738060a558b91d9f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7ab754f5_5fea161c",
@@ -49,6 +67,24 @@
       "writtenOn": "2026-06-29T19:11:28Z",
       "side": 1,
       "message": "Could use this instead: `git log -1 --format\u003d\u0027%(trailers:key\u003dChange-Id)\u0027`",
+      "revId": "4f73fc34bed052d56b30e5bb738060a558b91d9f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "01466e42_0ee7ba2d",
+        "filename": "skills/gerrit-workflow/references/change-id-details.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-07-01T00:14:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ab754f5_5fea161c",
       "revId": "4f73fc34bed052d56b30e5bb738060a558b91d9f",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
