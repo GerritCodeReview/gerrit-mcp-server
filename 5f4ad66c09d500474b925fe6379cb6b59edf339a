@@ -18,6 +18,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "abd4e992_39c42b50",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1712,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-07-02T09:36:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ea4326d_b6ddac9b",
+      "revId": "5f4ad66c09d500474b925fe6379cb6b59edf339a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "088633fc_b1f7ded1",
@@ -41,6 +59,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0494d932_d3fceb61",
+        "filename": "gerrit_mcp_server/plugin_registry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-07-02T09:36:33Z",
+      "side": 1,
+      "message": "Updated to use generic type hints",
+      "parentUuid": "088633fc_b1f7ded1",
+      "range": {
+        "startLine": 17,
+        "startChar": 45,
+        "endLine": 17,
+        "endChar": 55
+      },
+      "revId": "5f4ad66c09d500474b925fe6379cb6b59edf339a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f46a7179_c2304b2e",
@@ -54,6 +96,30 @@
       "writtenOn": "2026-07-01T09:33:28Z",
       "side": 1,
       "message": "missing return type annotation",
+      "range": {
+        "startLine": 146,
+        "startChar": 0,
+        "endLine": 146,
+        "endChar": 2
+      },
+      "revId": "5f4ad66c09d500474b925fe6379cb6b59edf339a",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dae4d68a_dcf17738",
+        "filename": "gerrit_mcp_server/plugin_registry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-07-02T09:36:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f46a7179_c2304b2e",
       "range": {
         "startLine": 146,
         "startChar": 0,
