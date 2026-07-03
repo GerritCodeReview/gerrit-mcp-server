@@ -1,0 +1,268 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b953ad1f_25a4b5ea",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "Excuse me for non-publishing all the comments within the previous review iteration.\n\nI\u0027ll try to comment all the things within a single iteration in the future.",
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "99b9a82a_a5a79603",
+        "filename": "gerrit_mcp_server/extensions.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "these ones are still here",
+      "range": {
+        "startLine": 20,
+        "startChar": 45,
+        "endLine": 20,
+        "endChar": 55
+      },
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a7e0acf8_63507185",
+        "filename": "gerrit_mcp_server/extensions.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "nominants for `Final[str]` type hints",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 33
+      },
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b064745c_524a2fc6",
+        "filename": "gerrit_mcp_server/extensions.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "Can we specify an exact type / interface here?",
+      "range": {
+        "startLine": 40,
+        "startChar": 9,
+        "endLine": 40,
+        "endChar": 12
+      },
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ffd08e9d_af8770b1",
+        "filename": "gerrit_mcp_server/extensions.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "Explicit \u003e implicit.\n\nAre you using an LLM agent for coding?\nIf so - let\u0027s ask the agent to avoid variable shortening.\n\nAnyway we read code more times then write it. The shortening does not give us any benefits as we do not pay for every symbol.\n```suggestion\n        config \u003d self.load_config() or {}\n```",
+      "range": {
+        "startLine": 67,
+        "startChar": 8,
+        "endLine": 67,
+        "endChar": 11
+      },
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f7418524_4a0605ee",
+        "filename": "gerrit_mcp_server/extensions.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "I\u0027d implement a class like:\n\n```\nclass ExtensionLoader:\n    def __init__(self, context: ExtensionContext) -\u003e None:\n    def load(self) -\u003e list[str]:\n    def unload(self) -\u003e None:\n        \n```\n\nAnd declare all the logic there intead of having several functions that are related to each other and which pass the same context back and forward.",
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b8520f4a_a39afd70",
+        "filename": "gerrit_mcp_server/extensions.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "why do we need this function? Looks we use the only `_safe_discover_entry_point_modules()`\n\nLet\u0027s inline the `_safe_discover_entry_point_modules()`.",
+      "range": {
+        "startLine": 71,
+        "startChar": 4,
+        "endLine": 71,
+        "endChar": 33
+      },
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "54468dea_ad824363",
+        "filename": "gerrit_mcp_server/extensions.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "```suggestion\n    return [entry_point.module for entry_point in entry_points(group\u003dENTRY_POINT_GROUP)]\n```",
+      "range": {
+        "startLine": 72,
+        "startChar": 26,
+        "endLine": 72,
+        "endChar": 28
+      },
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "af5b0ebd_e4d0dd88",
+        "filename": "gerrit_mcp_server/extensions.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "```suggestion\ndef _log(context: ExtensionContext, module_name: str, message: str) -\u003e None:\n```",
+      "range": {
+        "startLine": 146,
+        "startChar": 9,
+        "endLine": 146,
+        "endChar": 12
+      },
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "781c7875_707d48be",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 1717,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "```suggestion\n    context \u003d _exit_on_config_error(_build_extension_context)\n```",
+      "range": {
+        "startLine": 1717,
+        "startChar": 4,
+        "endLine": 1717,
+        "endChar": 7
+      },
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "10aa72ba_9547aa71",
+        "filename": "gerrit_mcp_server/plugin_registry.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "```suggestion\n        config \u003d self._load_config() or {}\n```",
+      "range": {
+        "startLine": 52,
+        "startChar": 8,
+        "endLine": 52,
+        "endChar": 11
+      },
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3bc5dfb7_013d4f46",
+        "filename": "gerrit_mcp_server/plugin_registry.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-07-03T21:13:32Z",
+      "side": 1,
+      "message": "```suggestion\n            raw_url \u003d host.get(\"external_url\") or host.get(\"internal_url\")\n```",
+      "range": {
+        "startLine": 55,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 15
+      },
+      "revId": "f9f1bc1f6659c4dc28c33afbadc1516a9fb56ae2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
