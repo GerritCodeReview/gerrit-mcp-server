@@ -1,0 +1,12 @@
+{
+  "checks": {
+    "zuul-check:gerrit-mcp-server": {
+      "state": "SCHEDULED",
+      "message": "Change has been enqueued in check",
+      "url": "https://ci.gerritcodereview.com/t/gerrit/status/change/591092,6",
+      "started": "2026-07-06T08:13:25Z",
+      "created": "2026-07-06T08:13:26Z",
+      "updated": "2026-07-06T08:13:26Z"
+    }
+  }
+}
