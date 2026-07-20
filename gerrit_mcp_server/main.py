@@ -262,7 +262,7 @@ async def query_changes(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/?q={quote(query)}"
+    url = f"{base_url}/a/changes/?q={quote(query)}"
     if limit:
         url += f"&n={limit}"
     if options:
@@ -374,7 +374,7 @@ async def get_change_details(
         options = base_options
 
     query_params = "&".join([f"o={option}" for option in options])
-    url = f"{base_url}/changes/{change_id}/detail?{query_params}"
+    url = f"{base_url}/a/changes/{change_id}/detail?{query_params}"
 
     result_json_str = await run_curl([url], base_url)
     details = json.loads(result_json_str)
@@ -433,7 +433,7 @@ async def get_commit_message(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/message"
+    url = f"{base_url}/a/changes/{change_id}/message"
 
     try:
         result_str = await run_curl([url], base_url)
@@ -483,12 +483,12 @@ async def list_change_files(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/revisions/current/files/"
+    url = f"{base_url}/a/changes/{change_id}/revisions/current/files/"
     result_json_str = await run_curl([url], base_url)
     files = json.loads(result_json_str)
 
     # We need the revision number for the patch set
-    detail_url = f"{base_url}/changes/{change_id}/detail"
+    detail_url = f"{base_url}/a/changes/{change_id}/detail"
     detail_json_str = await run_curl([detail_url], base_url)
     details = json.loads(detail_json_str)
     patch_set = details.get("current_revision_number", "current")
@@ -517,7 +517,7 @@ async def get_file_diff(
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
     encoded_file_path = quote(file_path, safe="")
-    url = f"{base_url}/changes/{change_id}/revisions/current/patch?path={encoded_file_path}"
+    url = f"{base_url}/a/changes/{change_id}/revisions/current/patch?path={encoded_file_path}"
 
     diff_base64 = await run_curl([url], base_url)
     # The response is a base64 encoded string, we need to decode it.
@@ -536,7 +536,7 @@ async def list_change_comments(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/comments"
+    url = f"{base_url}/a/changes/{change_id}/comments"
     result_json_str = await run_curl([url], base_url)
     try:
         comments_by_file = json.loads(result_json_str)
@@ -590,7 +590,7 @@ async def add_reviewer(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/reviewers"
+    url = f"{base_url}/a/changes/{change_id}/reviewers"
     payload = {"reviewer": reviewer, "state": state}
     args = _create_post_args(url, payload)
 
@@ -640,7 +640,7 @@ async def set_ready_for_review(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/ready"
+    url = f"{base_url}/a/changes/{change_id}/ready"
     args = _create_post_args(url)
 
     try:
@@ -673,7 +673,7 @@ async def set_work_in_progress(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/wip"
+    url = f"{base_url}/a/changes/{change_id}/wip"
     payload = {"message": message} if message else None
     args = _create_post_args(url, payload)
 
@@ -707,7 +707,7 @@ async def revert_change(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/revert"
+    url = f"{base_url}/a/changes/{change_id}/revert"
     payload = {"message": message} if message else None
     args = _create_post_args(url, payload)
 
@@ -753,7 +753,7 @@ async def revert_submission(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/revert_submission"
+    url = f"{base_url}/a/changes/{change_id}/revert_submission"
     payload = {"message": message} if message else None
     args = _create_post_args(url, payload)
 
@@ -803,7 +803,7 @@ async def create_change(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/"
+    url = f"{base_url}/a/changes/"
 
     payload = {
         "project": project,
@@ -874,7 +874,7 @@ async def set_topic(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/topic"
+    url = f"{base_url}/a/changes/{change_id}/topic"
 
     payload = json.dumps({"topic": topic})
     args = ["-X", "PUT", "-H", "Content-Type: application/json", "--data", payload, url]
@@ -939,7 +939,7 @@ async def changes_submitted_together(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/submitted_together"
+    url = f"{base_url}/a/changes/{change_id}/submitted_together"
 
     if options:
         query_params = "&".join([f"o={option}" for option in options])
@@ -1008,7 +1008,7 @@ async def suggest_reviewers(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/suggest_reviewers?q={quote(query)}"
+    url = f"{base_url}/a/changes/{change_id}/suggest_reviewers?q={quote(query)}"
 
     if limit:
         url += f"&n={limit}"
@@ -1065,7 +1065,7 @@ async def abandon_change(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/abandon"
+    url = f"{base_url}/a/changes/{change_id}/abandon"
     payload = {"message": message} if message else None
     args = _create_post_args(url, payload)
 
@@ -1111,7 +1111,7 @@ async def get_most_recent_cl(
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
     query = f"owner:{user}"
-    url = f"{base_url}/changes/?q={quote(query)}&n=1"
+    url = f"{base_url}/a/changes/?q={quote(query)}&n=1"
     result_json_str = await run_curl([url], base_url)
     changes = json.loads(result_json_str)
 
@@ -1136,7 +1136,7 @@ async def get_bugs_from_cl(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/revisions/current/commit"
+    url = f"{base_url}/a/changes/{change_id}/revisions/current/commit"
     result_json_str = await run_curl([url], base_url)
     if not result_json_str:
         return [
@@ -1186,7 +1186,7 @@ async def post_review_comment(
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(_get_gerrit_base_url(gerrit_base_url), gerrit_hosts)
-    url = f"{base_url}/changes/{change_id}/revisions/current/review"
+    url = f"{base_url}/a/changes/{change_id}/revisions/current/review"
 
     payload = {
         "comments": {
