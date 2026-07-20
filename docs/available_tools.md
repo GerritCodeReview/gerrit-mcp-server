@@ -35,5 +35,8 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 -   **abandon_change**: Abandons a change.
 -   **get_most_recent_cl**: Gets the most recent CL for a user.
 -   **get_bugs_from_cl**: Extracts bug IDs from the commit message of a CL.
+-   **submit_change**: Submits (merges) a single Gerrit change into its target
+    branch. The change must be submittable (approved, no unresolved comments,
+    etc.).
 -   **post_review_comment**: Posts a review comment on a specific line of a file
     in a CL.
