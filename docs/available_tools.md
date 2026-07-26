@@ -37,3 +37,6 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 -   **get_bugs_from_cl**: Extracts bug IDs from the commit message of a CL.
 -   **post_review_comment**: Posts a review comment on a specific line of a file
     in a CL.
+-   **cherry_pick_change**: Cherry-picks a single change to a destination branch.
+-   **cherry_pick_chain**: Cherry-picks an entire relation chain (series of
+    dependent changes) to a destination branch, maintaining dependency order.
