@@ -94,6 +94,30 @@
       },
       "revId": "7a2c9fe6bc4e6a7ef1a3afae701dac94b849b653",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4827775f_e4c01448",
+        "filename": ".mcp.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-04T23:04:03Z",
+      "side": 1,
+      "message": "Yes, at https://gerrit-review.googlesource.com/c/gerrit-mcp-server/+/591081/3..5",
+      "parentUuid": "f3340177_08a7a112",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 1
+      },
+      "revId": "7a2c9fe6bc4e6a7ef1a3afae701dac94b849b653",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
