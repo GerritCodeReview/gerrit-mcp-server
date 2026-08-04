@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cbfb1850_b6471ebc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-04T23:03:28Z",
+      "side": 1,
+      "message": "See https://py.sdk.modelcontextprotocol.io/whats-new/ for more info",
+      "revId": "f56631418012901a95ba150d25f527562065e0b3",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
