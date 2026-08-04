@@ -22,6 +22,30 @@
       },
       "revId": "db92f8a4bbaca0a9423c746e7896fd90c4c8d0a9",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2cba0be1_a49b63bc",
+        "filename": "gerrit_mcp_server/gerrit_auth.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-04T23:04:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "667e999b_67574040",
+      "range": {
+        "startLine": 45,
+        "startChar": 44,
+        "endLine": 45,
+        "endChar": 74
+      },
+      "revId": "db92f8a4bbaca0a9423c746e7896fd90c4c8d0a9",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
