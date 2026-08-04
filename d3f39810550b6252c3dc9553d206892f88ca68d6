@@ -22,6 +22,30 @@
       },
       "revId": "d3f39810550b6252c3dc9553d206892f88ca68d6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8c343a58_151cf403",
+        "filename": "skills/setup/references/gerrit-config.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-04T23:04:50Z",
+      "side": 1,
+      "message": "That\u0027s not valid JSON though, so I\u0027d rather not put that inline. I added it below where the other keys are explained.",
+      "parentUuid": "1598b702_29a66a47",
+      "range": {
+        "startLine": 65,
+        "startChar": 6,
+        "endLine": 65,
+        "endChar": 26
+      },
+      "revId": "d3f39810550b6252c3dc9553d206892f88ca68d6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
