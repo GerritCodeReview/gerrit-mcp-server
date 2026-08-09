@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "162d9f7a_d64d9be0",
+        "filename": "gerrit_mcp_server/http_headers.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-09T23:25:39Z",
+      "side": 1,
+      "message": "HTTP header injection\n\n  `client_name`, `client_version`, and `protocol_version` come straight from the MCP client\u0027s initialize handshake (`_obs_from_context` in `main.py`) with no validation, and are spliced unsanitized into the -A/-H curl arguments here.\n\n  curl does not strip or reject embedded `\\r\\n` in -H/-A values — it puts them on the wire verbatim. So a client that sends `clientInfo.name \u003d \"evil\\r\\nAuthorization: Bearer x\"` causes curl to send a second, injected Authorization header to Gerrit. A payload with a full blank line + a second request line causes real HTTP request splitting (two requests over one connection). It\u0027s the standard precondition for HTTP request smuggling if there\u0027s any proxy/load balancer in front of Gerrit that reuses backend connections across different callers: the proxy thinks one request went out, the backend processes two, and the response queue gets desynced — so a response meant for one caller can be delivered to another.\n\n  Every other user-controlled value in this codebase gets escaped before reaching curl (`quote()` for URLs, `json.dumps()` for bodies) — this is the one place that doesn\u0027t.\n\n  Suggest stripping/rejecting \\r, \\n, and other control characters from these values before they\u0027re used to build header args (e.g. fall back to \"unknown\" if any are present), rather than passing them through as-is.\n```suggestion\ndef build_curl_header_args(obs: RequestObservabilityContext | None) -\u003e list[str]:\n    \"\"\"Returns curl args that set User-Agent and X-MCP-* attribution headers.\"\"\"\n    server_ver \u003d _package_version(\"gerrit-mcp-server\")\n    sdk_ver \u003d _package_version(\"mcp\")\n\n    def _sanitize(value: str) -\u003e str:\n        return value.replace(\"\\r\", \"\").replace(\"\\n\", \"\")\n\n    ua_parts \u003d [f\"gerrit-mcp-server/{server_ver}\", f\"mcp-python-sdk/{sdk_ver}\"]\n    if obs and obs.client_name:\n        client_ver \u003d _sanitize(obs.client_version or \"unknown\")\n        ua_parts.append(f\"{_sanitize(obs.client_name)}/{client_ver}\")\n\n    result \u003d [\"-A\", \" \".join(ua_parts)]\n\n    if obs:\n        if obs.tool_name:\n            result +\u003d [\"-H\", f\"X-MCP-Tool: {_sanitize(obs.tool_name)}\"]\n        if obs.client_name:\n            result +\u003d [\"-H\", f\"X-MCP-Client: {_sanitize(obs.client_name)}\"]\n        if obs.protocol_version:\n            result +\u003d [\"-H\", f\"X-MCP-Protocol-Version: {_sanitize(obs.protocol_version)}\"]\n\n    return result\n```",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 17
+      },
+      "revId": "dfbc883d322c4c53b675318e0988382c32385063",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8d25257c_c0a1be7e",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-09T23:25:39Z",
+      "side": 1,
+      "message": "nit: Add tests for these",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 29
+      },
+      "revId": "dfbc883d322c4c53b675318e0988382c32385063",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
