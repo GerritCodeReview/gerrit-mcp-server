@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b42925c_a837dc48",
+        "filename": ".claude/skills/writing-extensions/SKILL.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-10T00:13:41Z",
+      "side": 1,
+      "message": "```suggestion\n`pyproject.toml` — see section 8. Without it, setuptools looks for a `./myext/`\n```",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 79
+      },
+      "revId": "df27b12cda3a2b85d37e881dc53e280e8d4c87f2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d83fa42b_9dcb90bc",
+        "filename": ".claude/skills/writing-extensions/SKILL.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-10T00:13:41Z",
+      "side": 1,
+      "message": "`get_git_parent_changes` isn\u0027t in yet. Maybe `get_commit_message`?\n```suggestion\nSee `get_commit_message` in `gerrit_mcp_server/main.py` for a complete\n\n```",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 0
+      },
+      "revId": "df27b12cda3a2b85d37e881dc53e280e8d4c87f2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0d79ee8a_6dc594df",
+        "filename": ".claude/skills/writing-extensions/SKILL.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-10T00:13:41Z",
+      "side": 1,
+      "message": "`gerrit_mcp_server_task/extension.py` does not exist yet.",
+      "range": {
+        "startLine": 335,
+        "startChar": 0,
+        "endLine": 335,
+        "endChar": 0
+      },
+      "revId": "df27b12cda3a2b85d37e881dc53e280e8d4c87f2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
