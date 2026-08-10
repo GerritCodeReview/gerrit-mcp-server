@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9b382cd8_44053780",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-10T00:00:04Z",
+      "side": 1,
+      "message": "Wrap to 72 chars\n\n\n```suggestion\nEnforce verbatim use of commit messages returned by get_commit_message\n\nReturn a typed _CommitMessageResult TypedDict with change_id and\nverbatim_commit_message fields instead of assembling text content blocks\nmanually. The MCP SDK auto-generates an output_schema from the return\nannotation and produces both structured and unstructured content. Error\npaths now raise exceptions rather than returning text error content\nblocks.\n\nThe docstring keeps an explicit IMPORTANT notice instructing callers to\nuse the returned commit message exactly as-is, without paraphrasing or\nreformatting the subject, body, or footers (e.g. Change-Id, Bug:,\nReviewed-by:).\n\nDocuments the TypedDict return-type pattern in AGENT.md (new \"Tool\nDesign\" section), using get_git_parent_changes as the reference example.\n\nAdds tests/unit/test_get_commit_message.py covering the verbatim return,\nthe missing-message fallback, JSON decode errors, and curl exceptions.\n\nCo-Authored-By: Claude Opus 4.8 (1M context) \u003cnoreply@anthropic.com\u003e\nChange-Id: I706c0a4c243eb9e9f9ea3ce4ef635db1d98d1b99\n```",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 52
+      },
+      "revId": "00cbb2f8f75e0aa77b60673e556a2881d1838fce",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c11c63e7_ddd6f871",
+        "filename": "AGENTS.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-10T00:00:04Z",
+      "side": 1,
+      "message": "`get_git_parent_changes` isn\u0027t there yet. Maybe `get_commit_message` instead?\n```suggestion\nSee `get_commit_message` in `gerrit_mcp_server/main.py` for a complete\n```",
+      "range": {
+        "startLine": 211,
+        "startChar": 0,
+        "endLine": 211,
+        "endChar": 74
+      },
+      "revId": "00cbb2f8f75e0aa77b60673e556a2881d1838fce",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "efd5189a_df186d56",
+        "filename": "tests/unit/test_get_commit_message.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-10T00:00:04Z",
+      "side": 1,
+      "message": "```suggestion\n# Copyright 2026 Google LLC\n```",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "00cbb2f8f75e0aa77b60673e556a2881d1838fce",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
