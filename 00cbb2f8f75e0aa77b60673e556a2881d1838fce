@@ -24,6 +24,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0fa3c99d_0ecd1458",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9b382cd8_44053780",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 52
+      },
+      "revId": "00cbb2f8f75e0aa77b60673e556a2881d1838fce",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c11c63e7_ddd6f871",
@@ -47,6 +71,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d55451de_029ac44c",
+        "filename": "AGENTS.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c11c63e7_ddd6f871",
+      "range": {
+        "startLine": 211,
+        "startChar": 0,
+        "endLine": 211,
+        "endChar": 74
+      },
+      "revId": "00cbb2f8f75e0aa77b60673e556a2881d1838fce",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "efd5189a_df186d56",
@@ -60,6 +108,30 @@
       "writtenOn": "2026-08-10T00:00:04Z",
       "side": 1,
       "message": "```suggestion\n# Copyright 2026 Google LLC\n```",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "00cbb2f8f75e0aa77b60673e556a2881d1838fce",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "26875f47_e15f1a99",
+        "filename": "tests/unit/test_get_commit_message.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "Didn\u0027t mean to add this header actually. Thanks for catching.",
+      "parentUuid": "efd5189a_df186d56",
       "range": {
         "startLine": 1,
         "startChar": 12,
