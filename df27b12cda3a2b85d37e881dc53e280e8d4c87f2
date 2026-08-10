@@ -24,6 +24,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7640e905_382d934c",
+        "filename": ".claude/skills/writing-extensions/SKILL.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b42925c_a837dc48",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 79
+      },
+      "revId": "df27b12cda3a2b85d37e881dc53e280e8d4c87f2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d83fa42b_9dcb90bc",
@@ -47,6 +71,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c56005d2_4baf9956",
+        "filename": ".claude/skills/writing-extensions/SKILL.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d83fa42b_9dcb90bc",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 0
+      },
+      "revId": "df27b12cda3a2b85d37e881dc53e280e8d4c87f2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0d79ee8a_6dc594df",
@@ -60,6 +108,30 @@
       "writtenOn": "2026-08-10T00:13:41Z",
       "side": 1,
       "message": "`gerrit_mcp_server_task/extension.py` does not exist yet.",
+      "range": {
+        "startLine": 335,
+        "startChar": 0,
+        "endLine": 335,
+        "endChar": 0
+      },
+      "revId": "df27b12cda3a2b85d37e881dc53e280e8d4c87f2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f34784d6_18c7d74f",
+        "filename": ".claude/skills/writing-extensions/SKILL.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0d79ee8a_6dc594df",
       "range": {
         "startLine": 335,
         "startChar": 0,
