@@ -24,6 +24,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6a6e0fb4_b63c277d",
+        "filename": "gerrit_mcp_server/http_headers.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "162d9f7a_d64d9be0",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 17
+      },
+      "revId": "dfbc883d322c4c53b675318e0988382c32385063",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8d25257c_c0a1be7e",
@@ -37,6 +61,30 @@
       "writtenOn": "2026-08-09T23:25:39Z",
       "side": 1,
       "message": "nit: Add tests for these",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 29
+      },
+      "revId": "dfbc883d322c4c53b675318e0988382c32385063",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4c55e4fe_dbfb99df",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "I think they\u0027re covered by the new tests in `tests/unit/test_main.py`.",
+      "parentUuid": "8d25257c_c0a1be7e",
       "range": {
         "startLine": 141,
         "startChar": 0,
