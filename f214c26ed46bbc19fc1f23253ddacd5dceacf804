@@ -22,6 +22,30 @@
       },
       "revId": "f214c26ed46bbc19fc1f23253ddacd5dceacf804",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "276bf9bc_f175a62f",
+        "filename": "skills/gerrit-workflow/references/change-id-details.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e30f08a2_72b4de6c",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 0
+      },
+      "revId": "f214c26ed46bbc19fc1f23253ddacd5dceacf804",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
