@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "81da2d40_c6814dfc",
+        "filename": "skills/find-dependencies/SKILL.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-10T00:47:54Z",
+      "side": 1,
+      "message": "```suggestion\n`Depends-on: \u003cchange_id\u003e`. This uses the `independson:\u003cchange_id\u003e` query operator.\n```",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 74
+      },
+      "revId": "6a0a1a3ece31e33e287d9e9ffc9d6d2ad61ce719",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
