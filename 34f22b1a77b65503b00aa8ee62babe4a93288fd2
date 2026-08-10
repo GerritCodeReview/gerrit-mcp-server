@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dc20c90b_becc380c",
+        "filename": "docs/available_tools.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-10T04:35:35Z",
+      "side": 1,
+      "message": "Same incorrect status value as in extension.py\n```suggestion\n  `INSUFFICIENT_REVIEWERS` for both its old and new paths (relevant for renames). Supports\n```",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 0
+      },
+      "revId": "34f22b1a77b65503b00aa8ee62babe4a93288fd2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "711accf4_7170ed2d",
+        "filename": "gerrit_mcp_server_code_owners/extension.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-08-10T04:35:35Z",
+      "side": 1,
+      "message": "The documented status values are incorrect. The Gerrit code-owners plugin\u0027s `CodeOwnerStatus` enum has values `INSUFFICIENT_REVIEWERS`, `PENDING`, and `APPROVED` (https://gerrit.googlesource.com/plugins/code-owners/+/refs/heads/master/java/com/google/gerrit/plugins/codeowners/common/CodeOwnerStatus.java#23)\n```suggestion\n          INSUFFICIENT_REVIEWERS - a code owner approval is needed but no code owner is\n                                   currently a reviewer of the change\n```",
+      "range": {
+        "startLine": 105,
+        "startChar": 0,
+        "endLine": 105,
+        "endChar": 0
+      },
+      "revId": "34f22b1a77b65503b00aa8ee62babe4a93288fd2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
