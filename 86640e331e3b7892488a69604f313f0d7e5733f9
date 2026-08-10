@@ -24,6 +24,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5ecbac82_9e182733",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 1241,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "500ebb79_980a39bb",
+      "range": {
+        "startLine": 1241,
+        "startChar": 0,
+        "endLine": 1241,
+        "endChar": 0
+      },
+      "revId": "86640e331e3b7892488a69604f313f0d7e5733f9",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "803a0a69_2d543dd8",
@@ -37,6 +61,30 @@
       "writtenOn": "2026-08-10T00:58:48Z",
       "side": 1,
       "message": "```suggestion\n# Copyright 2026 Google LLC\n```",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "86640e331e3b7892488a69604f313f0d7e5733f9",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "38cad348_15937f11",
+        "filename": "tests/unit/test_get_related_changes.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-10T22:05:00Z",
+      "side": 1,
+      "message": "Done (removed)",
+      "parentUuid": "803a0a69_2d543dd8",
       "range": {
         "startLine": 1,
         "startChar": 12,
