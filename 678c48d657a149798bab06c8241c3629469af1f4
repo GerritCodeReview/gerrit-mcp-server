@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c4e35305_c8817bbd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-11T22:51:26Z",
+      "side": 1,
+      "message": "Checked Gerrit server-side logs and confirmed the User-Agent and X-MCP-* header values.",
+      "revId": "678c48d657a149798bab06c8241c3629469af1f4",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
