@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "70f75382_3d90aa87",
+        "filename": "gerrit_mcp_server_task/extension.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-12T00:19:51Z",
+      "side": 1,
+      "message": "This usage of `NotRequired` is buggy. The happy-path return (when task data exists) omits `note` entirely. The MCP SDK validates the return value against the generated schema and apparently treats the absent `note` as `None`, which fails validation against `str`.\n\nThe fix is to change `note` from `NotRequired[str]` to `Optional[str]` and always include it in all return paths.\n\n(same bug fixed in a few of the later changes in this series)",
+      "revId": "734f15fa067aa3064e04e2960823a4e6b4a8e9be",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
