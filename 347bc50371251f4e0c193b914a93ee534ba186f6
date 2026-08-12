@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e9a2ee81_e63a987c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-12T00:21:50Z",
+      "side": 1,
+      "message": "Tested with a live Gerrit server and ran in-repo tests/checks.",
+      "revId": "347bc50371251f4e0c193b914a93ee534ba186f6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
