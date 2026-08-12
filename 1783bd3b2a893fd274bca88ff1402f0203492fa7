@@ -22,6 +22,30 @@
       },
       "revId": "1783bd3b2a893fd274bca88ff1402f0203492fa7",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1f6e2f4a_348e08e2",
+        "filename": ".claude/skills/writing-extensions/SKILL.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-12T00:19:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f184b641_c37d0450",
+      "range": {
+        "startLine": 333,
+        "startChar": 3,
+        "endLine": 333,
+        "endChar": 6
+      },
+      "revId": "1783bd3b2a893fd274bca88ff1402f0203492fa7",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
