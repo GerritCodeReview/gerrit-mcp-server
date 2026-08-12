@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "044472d8_217fe158",
+        "filename": "skills/find-dependencies/SKILL.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-12T00:19:51Z",
+      "side": 1,
+      "message": "This comes later in the series, but we can move it before this change.",
+      "range": {
+        "startLine": 25,
+        "startChar": 116,
+        "endLine": 25,
+        "endChar": 140
+      },
+      "revId": "e22cb74a22b56ac691387969fba2af336b224ecc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ae752742_63ae6acc",
+        "filename": "skills/find-dependencies/SKILL.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-08-12T00:19:51Z",
+      "side": 1,
+      "message": "Outdated, remove.",
+      "revId": "e22cb74a22b56ac691387969fba2af336b224ecc",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
