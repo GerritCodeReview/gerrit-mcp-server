@@ -51,6 +51,32 @@ class TestSetWorkInProgress(unittest.TestCase):
         asyncio.run(run_test())
 
     @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_set_wip_success_json_empty_string(self, mock_run_curl):
+        async def run_test():
+            # Arrange
+            mock_run_curl.return_value = '""'
+            change_id = "12345"
+            gerrit_base_url = "https://my-gerrit.com"
+
+            # Act
+            result = await main.set_work_in_progress(
+                change_id, gerrit_base_url=gerrit_base_url
+            )
+
+            # Assert
+            self.assertEqual(
+                result,
+                [
+                    {
+                        "type": "text",
+                        "text": f"CL {change_id} is now a work-in-progress.",
+                    }
+                ],
+            )
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
     def test_set_wip_success_with_message(self, mock_run_curl):
         async def run_test():
             # Arrange

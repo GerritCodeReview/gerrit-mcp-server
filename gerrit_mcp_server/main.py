@@ -321,6 +321,15 @@ async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     return stdout_str.strip()
 
 
+def _is_no_content(body: str) -> bool:
+    """Whether a 2xx body carries no payload.
+
+    The wip / ready endpoints answer 200 with a bare JSON "" rather than an
+    empty body.
+    """
+    return body.strip() in ("", '""')
+
+
 def _create_post_args(url: str, payload: Optional[Dict[str, Any]] = None) -> List[str]:
     """Creates the argument list for a curl POST request."""
     args = ["-X", "POST"]
@@ -1085,7 +1094,7 @@ async def set_ready_for_review(
 
     try:
         result_json = await run_curl(args, base_url)
-        if result_json:
+        if not _is_no_content(result_json):
             return [
                 {
                     "type": "text",
@@ -1125,7 +1134,7 @@ async def set_work_in_progress(
 
     try:
         result_json = await run_curl(args, base_url)
-        if result_json:
+        if not _is_no_content(result_json):
             return [
                 {
                     "type": "text",

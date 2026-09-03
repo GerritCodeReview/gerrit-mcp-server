@@ -43,6 +43,25 @@ class TestSetReadyForReview(unittest.TestCase):
         asyncio.run(run_test())
 
     @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_set_ready_for_review_success_json_empty_string(self, mock_run_curl):
+        async def run_test():
+            # Arrange
+            mock_run_curl.return_value = '""'
+            change_id = "12345"
+            gerrit_base_url = "https://my-gerrit.com"
+
+            # Act
+            result = await main.set_ready_for_review(change_id, gerrit_base_url)
+
+            # Assert
+            self.assertEqual(
+                result,
+                [{"type": "text", "text": f"CL {change_id} is now ready for review."}],
+            )
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
     def test_set_ready_for_review_failure(self, mock_run_curl):
         async def run_test():
             # Arrange
