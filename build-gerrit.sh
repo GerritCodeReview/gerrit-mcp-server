@@ -26,10 +26,10 @@ NC='\033[0m' # No Color
 
 echo -e "\n${YELLOW}Setting up the Python environment for the Gerrit MCP server...${NC}"
 
-# Use the host uv if available; otherwise install it via pip.
+# Use host uv if available; otherwise install it via pip with --require-hashes.
 if ! command -v uv &>/dev/null; then
-    echo "uv not found on PATH, installing via pip..."
-    if ! pip3 install uv; then
+    echo "uv not found on PATH, installing via pip with hash verification..."
+    if ! pip3 install --require-hashes -r requirements.txt; then
         echo -e "${RED}Failed to install uv. Install it manually: https://docs.astral.sh/uv/getting-started/installation/${NC}"
         exit 1
     fi
