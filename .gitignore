@@ -8,7 +8,6 @@ server.log
 server.pid
 context/
 gerrit_mcp_server/gerrit_config.json
-requirements.txt
 dist/
 build/
 /.venv/
