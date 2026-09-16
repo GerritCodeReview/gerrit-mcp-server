@@ -26,20 +26,20 @@ from gerrit_mcp_server import gerrit_auth
 class TestGerritAuth(unittest.TestCase):
     def test_get_auth_for_gob(self):
         """Tests that the correct command is returned for gob-curl."""
-        self.assertEqual(gerrit_auth._get_auth_for_gob({}), ["gob-curl", "-s"])
+        self.assertEqual(gerrit_auth._get_auth_for_gob({}).argv, ["gob-curl", "-s"])
 
     def test_get_auth_for_http_basic_success(self):
         """Tests that the correct command is returned for http_basic auth."""
         config = {"username": "testuser", "auth_token": "secret"}
-        expected = ["curl", "--user", "testuser:secret", "-L"]
-        self.assertEqual(gerrit_auth._get_auth_for_http_basic(config), expected)
+        command = gerrit_auth._get_auth_for_http_basic(config)
+        self.assertEqual(command.argv, ["curl", "--user", "testuser:secret", "-L"])
+        self.assertEqual(command.secrets, ("testuser:secret",))
 
     def test_get_auth_for_http_basic_netrc(self):
         """Tests that --netrc is used when no credentials are configured."""
-        self.assertEqual(
-            gerrit_auth._get_auth_for_http_basic({}),
-            ["curl", "--netrc", "-L"],
-        )
+        command = gerrit_auth._get_auth_for_http_basic({})
+        self.assertEqual(command.argv, ["curl", "--netrc", "-L"])
+        self.assertEqual(command.secrets, ())
 
     @patch("os.path.exists", return_value=True)
     def test_get_auth_for_http_basic_netrc_file(self, mock_exists):
@@ -47,9 +47,10 @@ class TestGerritAuth(unittest.TestCase):
         config = {"netrc_path": "~/custom_netrc"}
         command = gerrit_auth._get_auth_for_http_basic(config)
         self.assertEqual(
-            command,
+            command.argv,
             ["curl", "--netrc-file", os.path.expanduser("~/custom_netrc"), "-L"],
         )
+        self.assertEqual(command.secrets, ())
 
     def test_get_auth_for_http_basic_missing_username(self):
         """Tests that an error is raised if only auth_token is provided."""
@@ -71,7 +72,8 @@ class TestGerritAuth(unittest.TestCase):
         )
         with patch("builtins.open", m):
             command = gerrit_auth._get_auth_for_gitcookies(url, config)
-        self.assertEqual(command, ["curl", "-b", "o=git-token", "-L"])
+        self.assertEqual(command.argv, ["curl", "-b", "o=git-token", "-L"])
+        self.assertEqual(command.secrets, ("o=git-token",))
 
     @patch("os.path.exists", return_value=False)
     def test_get_auth_for_gitcookies_file_not_found(self, mock_exists):
@@ -79,7 +81,8 @@ class TestGerritAuth(unittest.TestCase):
         config = {"gitcookies_path": "~/.gitcookies"}
         url = "https://my-gerrit.com"
         command = gerrit_auth._get_auth_for_gitcookies(url, config)
-        self.assertEqual(command, ["curl", "-s", "-L"])
+        self.assertEqual(command.argv, ["curl", "-s", "-L"])
+        self.assertEqual(command.secrets, ())
 
     def test_get_auth_for_gitcookies_missing_path(self):
         """Tests that an error is raised if gitcookies_path is missing."""
@@ -101,7 +104,8 @@ class TestGerritAuth(unittest.TestCase):
         m = mock_open(read_data=multi_cookie_content)
         with patch("builtins.open", m):
             command = gerrit_auth._get_auth_for_gitcookies(url, config)
-        self.assertEqual(command, ["curl", "-b", "o=git-lasttoken", "-L"])
+        self.assertEqual(command.argv, ["curl", "-b", "o=git-lasttoken", "-L"])
+        self.assertEqual(command.secrets, ("o=git-lasttoken",))
 
     @patch("os.path.exists", return_value=True)
     def test_get_auth_for_gitcookies_wildcard_matches_subdomain(self, mock_exists):
@@ -113,7 +117,8 @@ class TestGerritAuth(unittest.TestCase):
         )
         with patch("builtins.open", m):
             command = gerrit_auth._get_auth_for_gitcookies(url, config)
-        self.assertEqual(command, ["curl", "-b", "o=git-token", "-L"])
+        self.assertEqual(command.argv, ["curl", "-b", "o=git-token", "-L"])
+        self.assertEqual(command.secrets, ("o=git-token",))
 
     @patch("os.path.exists", return_value=True)
     def test_get_auth_for_gitcookies_wildcard_matches_exact(self, mock_exists):
@@ -125,7 +130,8 @@ class TestGerritAuth(unittest.TestCase):
         )
         with patch("builtins.open", m):
             command = gerrit_auth._get_auth_for_gitcookies(url, config)
-        self.assertEqual(command, ["curl", "-b", "o=git-token", "-L"])
+        self.assertEqual(command.argv, ["curl", "-b", "o=git-token", "-L"])
+        self.assertEqual(command.secrets, ("o=git-token",))
 
     @patch("os.path.exists", return_value=True)
     def test_get_auth_for_gitcookies_non_wildcard_ignores_subdomain(self, mock_exists):
@@ -138,7 +144,8 @@ class TestGerritAuth(unittest.TestCase):
         with patch("builtins.open", m):
             command = gerrit_auth._get_auth_for_gitcookies(url, config)
         # No matching entry, so it falls back to an unauthenticated request.
-        self.assertEqual(command, ["curl", "-s", "-L"])
+        self.assertEqual(command.argv, ["curl", "-s", "-L"])
+        self.assertEqual(command.secrets, ())
 
 
 if __name__ == "__main__":

@@ -17,15 +17,29 @@ This module handles the creation of authentication-specific curl commands for Ge
 """
 
 import os
-from typing import Any, Dict, List
+from dataclasses import dataclass
+from typing import Any, Dict, List, Tuple
 
 
-def _get_auth_for_gob(config: Dict[str, Any]) -> List[str]:
+@dataclass(frozen=True)
+class CurlAuth:
+    """A curl command prefix together with the credentials it puts on it.
+
+    The function that builds an authenticated command is the one that knows
+    which of its arguments are credentials, so it names them here instead of
+    leaving a later caller to recognise them in a flat argument list.
+    """
+
+    argv: List[str]
+    secrets: Tuple[str, ...] = ()
+
+
+def _get_auth_for_gob(config: Dict[str, Any]) -> CurlAuth:
     """Returns the command for gob-curl authentication."""
-    return ["gob-curl", "-s"]
+    return CurlAuth(["gob-curl", "-s"])
 
 
-def _get_auth_for_http_basic(config: Dict[str, Any]) -> List[str]:
+def _get_auth_for_http_basic(config: Dict[str, Any]) -> CurlAuth:
     """Returns the command for HTTP basic authentication.
 
     The preferred setup omits both 'username' and 'auth_token', so curl reads
@@ -47,18 +61,19 @@ def _get_auth_for_http_basic(config: Dict[str, Any]) -> List[str]:
                 raise ValueError(
                     f"Specified 'netrc_path' does not exist: {expanded_netrc_path}"
                 )
-            return ["curl", "--netrc-file", expanded_netrc_path, "-L"]
-        return ["curl", "--netrc", "-L"]
+            return CurlAuth(["curl", "--netrc-file", expanded_netrc_path, "-L"])
+        return CurlAuth(["curl", "--netrc", "-L"])
 
     if not username or not auth_token:
         raise ValueError(
             "For 'http_basic' authentication, provide both 'username' and "
             "'auth_token', or omit both to use credentials from your netrc file."
         )
-    return ["curl", "--user", f"{username}:{auth_token}", "-L"]
+    credentials = f"{username}:{auth_token}"
+    return CurlAuth(["curl", "--user", credentials, "-L"], secrets=(credentials,))
 
 
-def _get_auth_for_gitcookies(gerrit_base_url: str, config: Dict[str, Any]) -> List[str]:
+def _get_auth_for_gitcookies(gerrit_base_url: str, config: Dict[str, Any]) -> CurlAuth:
     """
     Returns the command for gitcookies authentication, falling back to an
     unauthenticated request if the cookie is not found.
@@ -95,7 +110,9 @@ def _get_auth_for_gitcookies(gerrit_base_url: str, config: Dict[str, Any]) -> Li
                         last_found_cookie = f"{parts[5]}={parts[6]}"
 
         if last_found_cookie:
-            return ["curl", "-b", last_found_cookie, "-L"]
+            return CurlAuth(
+                ["curl", "-b", last_found_cookie, "-L"], secrets=(last_found_cookie,)
+            )
 
     # Fallback for when the cookie file doesn't exist or has no matching cookie.
-    return ["curl", "-s", "-L"]
+    return CurlAuth(["curl", "-s", "-L"])

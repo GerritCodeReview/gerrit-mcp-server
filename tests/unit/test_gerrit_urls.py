@@ -19,14 +19,14 @@ Tests for the gerrit_urls module, focusing on its role as a dispatcher.
 import unittest
 from unittest.mock import patch
 
-from gerrit_mcp_server import gerrit_urls
+from gerrit_mcp_server import gerrit_auth, gerrit_urls
 
 
 class TestGerritUrlsDispatcher(unittest.TestCase):
     @patch("gerrit_mcp_server.gerrit_auth._get_auth_for_gob")
     def test_dispatches_to_gob_curl(self, mock_get_auth):
         """Tests that the dispatcher correctly calls the gob-curl auth function."""
-        mock_get_auth.return_value = ["gob-curl", "-s"]
+        mock_get_auth.return_value = gerrit_auth.CurlAuth(["gob-curl", "-s"])
         config = {
             "gerrit_hosts": [
                 {
@@ -40,13 +40,15 @@ class TestGerritUrlsDispatcher(unittest.TestCase):
             "https://fuchsia-review.googlesource.com", config
         )
         mock_get_auth.assert_called_once_with({"type": "gob_curl"})
-        self.assertEqual(command, ["gob-curl", "-s"])
+        self.assertEqual(command.argv, ["gob-curl", "-s"])
 
     @patch("gerrit_mcp_server.gerrit_auth._get_auth_for_http_basic")
     def test_dispatches_to_http_basic(self, mock_get_auth):
         """Tests that the dispatcher correctly calls the http_basic auth function."""
         auth_config = {"type": "http_basic", "username": "test", "auth_token": "token"}
-        mock_get_auth.return_value = ["curl", "--user", "test:token", "-L"]
+        mock_get_auth.return_value = gerrit_auth.CurlAuth(
+            ["curl", "--user", "test:token", "-L"], secrets=("test:token",)
+        )
         config = {
             "gerrit_hosts": [
                 {
@@ -60,13 +62,16 @@ class TestGerritUrlsDispatcher(unittest.TestCase):
             "https://public-gerrit.com", config
         )
         mock_get_auth.assert_called_once_with(auth_config)
-        self.assertEqual(command, ["curl", "--user", "test:token", "-L"])
+        self.assertEqual(command.argv, ["curl", "--user", "test:token", "-L"])
+        self.assertEqual(command.secrets, ("test:token",))
 
     @patch("gerrit_mcp_server.gerrit_auth._get_auth_for_gitcookies")
     def test_dispatches_to_gitcookies(self, mock_get_auth):
         """Tests that the dispatcher correctly calls the gitcookies auth function."""
         auth_config = {"type": "git_cookies", "gitcookies_path": "~/.gitcookies"}
-        mock_get_auth.return_value = ["curl", "-b", "cookie", "-L"]
+        mock_get_auth.return_value = gerrit_auth.CurlAuth(
+            ["curl", "-b", "cookie", "-L"], secrets=("cookie",)
+        )
         config = {
             "gerrit_hosts": [
                 {
@@ -79,14 +84,17 @@ class TestGerritUrlsDispatcher(unittest.TestCase):
         url = "https://fuchsia-review.googlesource.com"
         command = gerrit_urls.get_curl_command_for_gerrit_url(url, config)
         mock_get_auth.assert_called_once_with(url, auth_config)
-        self.assertEqual(command, ["curl", "-b", "cookie", "-L"])
+        self.assertEqual(command.argv, ["curl", "-b", "cookie", "-L"])
+        self.assertEqual(command.secrets, ("cookie",))
 
     @patch("gerrit_mcp_server.gerrit_auth._get_auth_for_http_basic")
     def test_dispatches_correctly_with_a_prefix_in_url(self, mock_get_auth):
         """Tests that the dispatcher matches the host when the URL
         contains /a suffix."""
         auth_config = {"type": "http_basic", "username": "test", "auth_token": "token"}
-        mock_get_auth.return_value = ["curl", "--user", "test:token", "-L"]
+        mock_get_auth.return_value = gerrit_auth.CurlAuth(
+            ["curl", "--user", "test:token", "-L"], secrets=("test:token",)
+        )
         config = {
             "gerrit_hosts": [
                 {
@@ -100,7 +108,7 @@ class TestGerritUrlsDispatcher(unittest.TestCase):
             "https://review.gerrithub.io/a", config
         )
         mock_get_auth.assert_called_once_with(auth_config)
-        self.assertEqual(command, ["curl", "--user", "test:token", "-L"])
+        self.assertEqual(command.argv, ["curl", "--user", "test:token", "-L"])
 
     def test_http_basic_without_credentials_dispatches_to_netrc(self):
         """End-to-end: an http_basic host with no inline credentials produces a
@@ -117,7 +125,8 @@ class TestGerritUrlsDispatcher(unittest.TestCase):
         command = gerrit_urls.get_curl_command_for_gerrit_url(
             "https://public-gerrit.com", config
         )
-        self.assertEqual(command, ["curl", "--netrc", "-L"])
+        self.assertEqual(command.argv, ["curl", "--netrc", "-L"])
+        self.assertEqual(command.secrets, ())
 
     def test_no_matching_host_raises_error(self):
         """Tests that a ValueError is raised when no matching host is found."""
