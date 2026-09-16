@@ -458,3 +458,88 @@ async def test_list_change_files_handles_empty_response(mock_run_curl):
     result = await main.list_change_files("123")
     assert "Files in CL 123 (Patch Set 1)" in result[0]["text"]
     assert "[" not in result[0]["text"]
+
+
+# --- Credential redaction ---
+
+
+@pytest.mark.asyncio
+async def test_run_curl_logs_a_command_without_credentials_verbatim(
+    tmp_path, monkeypatch
+):
+    """A command that carries no credential is logged without a placeholder."""
+    config = {
+        "default_gerrit_base_url": "https://public-gerrit.com/",
+        "gerrit_hosts": [
+            {
+                "name": "Public",
+                "external_url": "https://public-gerrit.com/",
+                "authentication": {"type": "http_basic"},
+            }
+        ],
+    }
+    log_path = tmp_path / "server.log"
+    monkeypatch.setattr(main, "LOG_FILE_PATH", log_path)
+
+    process = AsyncMock()
+    process.communicate.return_value = (b"{}", b"")
+    process.returncode = 0
+
+    with (
+        patch("gerrit_mcp_server.main.load_gerrit_config", return_value=config),
+        patch(
+            "asyncio.create_subprocess_exec",
+            new_callable=AsyncMock,
+            return_value=process,
+        ),
+    ):
+        await main.run_curl(
+            ["https://public-gerrit.com/a/changes/"], "https://public-gerrit.com/"
+        )
+
+    logged = log_path.read_text()
+    assert "Executing: curl --netrc -L " in logged
+    assert "https://public-gerrit.com/a/changes/" in logged
+    assert "<redacted>" not in logged
+
+
+@pytest.mark.asyncio
+async def test_run_curl_does_not_log_credentials(tmp_path, monkeypatch):
+    """The line run_curl appends to the log never carries the HTTP password."""
+    config = {
+        "default_gerrit_base_url": "https://public-gerrit.com/",
+        "gerrit_hosts": [
+            {
+                "name": "Public",
+                "external_url": "https://public-gerrit.com/",
+                "authentication": {
+                    "type": "http_basic",
+                    "username": "testuser",
+                    "auth_token": "s3cr3t-token",
+                },
+            }
+        ],
+    }
+    log_path = tmp_path / "server.log"
+    monkeypatch.setattr(main, "LOG_FILE_PATH", log_path)
+
+    process = AsyncMock()
+    process.communicate.return_value = (b"{}", b"")
+    process.returncode = 0
+
+    with (
+        patch("gerrit_mcp_server.main.load_gerrit_config", return_value=config),
+        patch(
+            "asyncio.create_subprocess_exec",
+            new_callable=AsyncMock,
+            return_value=process,
+        ),
+    ):
+        await main.run_curl(
+            ["https://public-gerrit.com/a/changes/"], "https://public-gerrit.com/"
+        )
+
+    logged = log_path.read_text()
+    assert "s3cr3t-token" not in logged
+    assert "--user <redacted>" in logged
+    assert "https://public-gerrit.com/a/changes/" in logged
