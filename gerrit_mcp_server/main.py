@@ -265,11 +265,11 @@ async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     """Executes a curl command and returns the output."""
     config = load_gerrit_config()
     obs_headers = build_curl_header_args(_request_obs.get())
-    command = (
-        get_curl_command_for_gerrit_url(gerrit_base_url, config) + obs_headers + args
-    )
+    auth = get_curl_command_for_gerrit_url(gerrit_base_url, config)
+    command = auth.argv + obs_headers + args
+    logged_command = " ".join(auth.redacted_argv + obs_headers + args)
     with open(LOG_FILE_PATH, "a") as log_file:
-        log_file.write(f"[gerrit-mcp-server] Executing: {' '.join(command)}\n")
+        log_file.write(f"[gerrit-mcp-server] Executing: {logged_command}\n")
 
     process = await asyncio.create_subprocess_exec(
         *command,
