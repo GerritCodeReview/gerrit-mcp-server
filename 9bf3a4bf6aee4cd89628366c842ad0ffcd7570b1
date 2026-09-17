@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8a67f4b1_a1589bcb",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-09-17T14:51:26Z",
+      "side": 1,
+      "message": "Could this over-redact if the credential value happens to be in the url or payload? Since the credential only ever lives in `argv` we can redact per-token instead by substring. \n```\ndef redact(argv, secrets):\n    secret_set \u003d set(filter(None, secrets))\n    return \" \".join(REDACTED if token in secret_set else token for token in argv)\n```\n\nOr better to move it to `CurlAuth` so the object that knows which tokens are secret is the one that masks them:\n```\n@property\ndef redacted_argv(self) -\u003e List\n    secret_set \u003d set(filter(None, self.secrets))\n    return [REDACTED if token in secret_set else token for token in self.argv]\n```",
+      "range": {
+        "startLine": 267,
+        "startChar": 0,
+        "endLine": 272,
+        "endChar": 15
+      },
+      "revId": "9bf3a4bf6aee4cd89628366c842ad0ffcd7570b1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
