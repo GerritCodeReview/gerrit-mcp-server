@@ -35,6 +35,30 @@ class TestPostDraftComment(unittest.TestCase):
         asyncio.run(run_test())
 
     @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_post_draft_comment_patchset_level(self, mock_run_curl):
+        """Without line_number the draft goes to the whole file or patch set."""
+
+        async def run_test():
+            mock_run_curl.return_value = json.dumps({"id": "draft-abc123"})
+
+            result = await main.post_draft_comment(
+                change_id="456",
+                file_path="/PATCHSET_LEVEL",
+                message="The Dockerfile outside the diff needs the same fix.",
+            )
+
+            self.assertEqual(
+                result[0]["text"],
+                "Draft comment created on CL 456, file /PATCHSET_LEVEL.",
+            )
+            curl_args = mock_run_curl.call_args[0][0]
+            payload = json.loads(curl_args[curl_args.index("--data") + 1])
+            self.assertEqual(payload["path"], "/PATCHSET_LEVEL")
+            self.assertNotIn("line", payload)
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
     def test_post_draft_comment_with_suggestion(self, mock_run_curl):
         async def run_test():
             mock_run_curl.return_value = json.dumps({"id": "draft-abc123"})

@@ -1702,8 +1702,8 @@ async def post_review_comment(
 async def post_draft_comment(
     change_id: str,
     file_path: str,
-    line_number: int,
     message: str,
+    line_number: Optional[int] = None,
     unresolved: bool = True,
     gerrit_base_url: Optional[str] = None,
     start_line: Optional[int] = None,
@@ -1714,7 +1714,9 @@ async def post_draft_comment(
     in_reply_to: Optional[str] = None,
 ):
     """
-    Creates a draft review comment on a specific line of a file in a CL.
+    Creates a draft review comment in a CL: on a line of a file, on the whole
+    file when line_number is omitted, or on the whole patch set when file_path
+    is "/PATCHSET_LEVEL" and line_number is omitted.
     Draft comments are only visible to the author until explicitly published.
     Use in_reply_to with a parent comment ID to create a threaded reply.
 
@@ -1731,10 +1733,12 @@ async def post_draft_comment(
 
     payload: Dict[str, Any] = {
         "path": file_path,
-        "line": line_number,
         "message": message,
         "unresolved": unresolved,
     }
+
+    if line_number is not None:
+        payload["line"] = line_number
 
     if in_reply_to is not None:
         payload["in_reply_to"] = in_reply_to
@@ -1752,6 +1756,9 @@ async def post_draft_comment(
         payload["line"] = end_line
 
     args = _create_put_args(url, payload)
+    location = f"file {file_path}"
+    if line_number is not None:
+        location += f" at line {line_number}"
 
     try:
         result_str = await run_curl(args, base_url)
@@ -1760,10 +1767,7 @@ async def post_draft_comment(
             return [
                 {
                     "type": "text",
-                    "text": (
-                        f"Draft comment created on CL {change_id}, "
-                        f"file {file_path} at line {line_number}."
-                    ),
+                    "text": f"Draft comment created on CL {change_id}, {location}.",
                 }
             ]
         else:
