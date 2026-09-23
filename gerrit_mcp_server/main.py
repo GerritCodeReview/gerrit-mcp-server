@@ -642,6 +642,45 @@ async def get_file_diff(
 
 
 @mcp.tool()
+async def get_file_content(
+    change_id: str,
+    file_path: str,
+    revision_id: Optional[str] = None,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Returns the full content of a file as it is in a revision of a CL.
+
+    Use it to read a whole file rather than its diff, e.g. a large fixture.
+    revision_id defaults to "current" (the latest patch set). Pass a
+    patch-set number or commit SHA to read an older revision.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    revision = revision_id or "current"
+    encoded_file_path = quote(file_path, safe="")
+    url = (
+        f"{base_url}/changes/{change_id}/revisions/{revision}/files/"
+        f"{encoded_file_path}/content"
+    )
+
+    result_str = await run_curl([url], base_url)
+    try:
+        content = base64.b64decode(result_str, validate=True)
+    except ValueError:
+        return [{"type": "text", "text": f"Failed to fetch {file_path}.\n{result_str}"}]
+
+    try:
+        text = content.decode("utf-8")
+    except UnicodeDecodeError:
+        text = f"{file_path} is not UTF-8 text ({len(content)} bytes)."
+    return [{"type": "text", "text": text}]
+
+
+@mcp.tool()
 async def list_change_comments(change_id: str, gerrit_base_url: Optional[str] = None):
     """
     list_change_comments is useful for reviewing feedback, reading comments
