@@ -50,6 +50,12 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 - **get_bugs_from_cl**: Extracts bug IDs from the commit message of a CL.
 - **post_review_comment**: Posts a review comment on a specific line of a file
   in a CL.
+- **list_draft_comments**: Lists your draft comments on a CL, on every patch
+  set, each with its patch set, file, line, and the comment it replies to.
+- **delete_draft_comment**: Deletes one of your draft comments, on whichever
+  patch set it is.
+- **delete_draft_comments**: Deletes all your draft comments on a CL, on every
+  patch set, and lists any that Gerrit refused to delete.
 
 ## Extension Tools
 
