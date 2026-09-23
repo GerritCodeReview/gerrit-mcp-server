@@ -15,11 +15,13 @@ class TestListDraftComments(unittest.TestCase):
                     {
                         "id": "draft-001",
                         "line": 10,
+                        "patch_set": 6,
                         "message": "This needs fixing.",
                     },
                     {
                         "id": "draft-002",
                         "line": 25,
+                        "patch_set": 4,
                         "message": "Consider refactoring this block.",
                     },
                 ],
@@ -27,6 +29,7 @@ class TestListDraftComments(unittest.TestCase):
                     {
                         "id": "draft-003",
                         "line": 3,
+                        "patch_set": 6,
                         "message": "Typo here.",
                     }
                 ],
@@ -41,12 +44,17 @@ class TestListDraftComments(unittest.TestCase):
             text = result[0]["text"]
             self.assertIn("Draft comments on CL 789", text)
             self.assertIn("File: src/main.py", text)
-            self.assertIn("[draft-001] L10", text)
+            self.assertIn("[draft-001] PS6 L10", text)
             self.assertIn("This needs fixing.", text)
-            self.assertIn("[draft-002] L25", text)
+            self.assertIn("[draft-002] PS4 L25", text)
             self.assertIn("File: README.md", text)
-            self.assertIn("[draft-003] L3", text)
+            self.assertIn("[draft-003] PS6 L3", text)
             self.assertIn("Total: 3 draft(s)", text)
+
+            # Verify CL-level endpoint (across all patchsets), not /revisions/current/
+            called_url = mock_run_curl.call_args[0][0][0]
+            self.assertIn("/changes/789/drafts/", called_url)
+            self.assertNotIn("revisions/current", called_url)
 
         asyncio.run(run_test())
 
@@ -75,6 +83,7 @@ class TestListDraftComments(unittest.TestCase):
             )
 
             self.assertIn("Failed to parse drafts response", result[0]["text"])
+            self.assertIn("not valid json", result[0]["text"])
 
         asyncio.run(run_test())
 

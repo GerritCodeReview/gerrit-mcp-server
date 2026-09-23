@@ -1901,22 +1901,18 @@ async def post_draft_comment(
 @mcp.tool()
 async def list_draft_comments(change_id: str, gerrit_base_url: Optional[str] = None):
     """
-    Lists all draft comments on a CL.
+    Lists all draft comments on a CL across every patch set.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(
         _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
     )
-    url = f"{base_url}/changes/{change_id}/revisions/current/drafts"
 
-    result_str = await run_curl([url], base_url)
     try:
-        drafts_by_file = json.loads(result_str)
-    except json.JSONDecodeError:
-        return [
-            {"type": "text", "text": f"Failed to parse drafts response.\n{result_str}"}
-        ]
+        drafts_by_file = await _list_drafts_all_revisions(base_url, change_id)
+    except ValueError as e:
+        return [{"type": "text", "text": str(e)}]
 
     if not drafts_by_file:
         return [{"type": "text", "text": f"No draft comments on CL {change_id}."}]
@@ -1928,19 +1924,55 @@ async def list_draft_comments(change_id: str, gerrit_base_url: Optional[str] = N
         for draft in drafts:
             draft_id = draft.get("id", "?")
             line = draft.get("line", "file")
+            patch_set = draft.get("patch_set", "?")
             message = draft.get("message", "")
             preview = message[:120].replace("\n", " ")
-            output += f"  [{draft_id}] L{line}: {preview}\n"
+            output += f"  [{draft_id}] PS{patch_set} L{line}: {preview}\n"
             total += 1
 
     output += f"---\nTotal: {total} draft(s)\n"
     return [{"type": "text", "text": output}]
 
 
-async def _delete_draft_comment(base_url: str, change_id: str, draft_id: str):
-    """Deletes a single draft comment by ID."""
-    delete_url = f"{base_url}/changes/{change_id}/revisions/current/drafts/{draft_id}"
-    await run_curl(_create_delete_args(delete_url), base_url)
+async def _list_drafts_all_revisions(base_url: str, change_id: str) -> Dict[str, Any]:
+    """
+    Returns Gerrit's CL-level drafts response — drafts across ALL revisions
+    that belong to the calling user, grouped by file path.
+
+    Each draft entry carries a ``patch_set`` field identifying its revision,
+    which is required for per-draft DELETE since Gerrit's draft endpoints
+    are revision-scoped.
+    """
+    url = f"{base_url}/changes/{change_id}/drafts/"
+    result_str = await run_curl([url], base_url)
+    try:
+        return json.loads(result_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse drafts response.\n{result_str}") from e
+
+
+async def _find_draft_patch_set(
+    base_url: str, change_id: str, draft_id: str
+) -> Optional[int]:
+    """Looks up which patch set a given draft_id lives on."""
+    drafts_by_file = await _list_drafts_all_revisions(base_url, change_id)
+    for drafts in drafts_by_file.values():
+        for draft in drafts:
+            if draft.get("id") == draft_id:
+                return draft.get("patch_set")
+    return None
+
+
+async def _delete_draft_comment(
+    base_url: str, change_id: str, draft_id: str, patch_set: int
+):
+    """Deletes a single draft comment by ID on a specific patch set."""
+    delete_url = (
+        f"{base_url}/changes/{change_id}/revisions/{patch_set}/drafts/{draft_id}"
+    )
+    result_str = await run_curl(_create_delete_args(delete_url), base_url)
+    if result_str:
+        raise ValueError(f"Gerrit did not delete draft {draft_id}: {result_str}")
 
 
 @mcp.tool()
@@ -1948,7 +1980,9 @@ async def delete_draft_comment(
     change_id: str, draft_id: str, gerrit_base_url: Optional[str] = None
 ):
     """
-    Deletes a single draft comment on a CL by its draft ID.
+    Deletes a single draft comment on a CL by its draft ID. Looks up which
+    patch set the draft lives on, since Gerrit's DELETE endpoint is
+    revision-scoped.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -1957,11 +1991,23 @@ async def delete_draft_comment(
     )
 
     try:
-        await _delete_draft_comment(base_url, change_id, draft_id)
+        patch_set = await _find_draft_patch_set(base_url, change_id, draft_id)
+        if patch_set is None:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Draft {draft_id} not found on CL {change_id} "
+                    "(may have been already deleted or belongs to another user).",
+                }
+            ]
+        await _delete_draft_comment(base_url, change_id, draft_id, patch_set)
         return [
             {
                 "type": "text",
-                "text": f"Deleted draft comment {draft_id} on CL {change_id}.",
+                "text": (
+                    f"Deleted draft comment {draft_id} (PS{patch_set}) "
+                    f"on CL {change_id}."
+                ),
             }
         ]
     except Exception as e:
@@ -1976,7 +2022,7 @@ async def delete_draft_comment(
 @mcp.tool()
 async def delete_draft_comments(change_id: str, gerrit_base_url: Optional[str] = None):
     """
-    Deletes ALL draft comments on a CL.
+    Deletes ALL draft comments on a CL across every patch set.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -1984,15 +2030,10 @@ async def delete_draft_comments(change_id: str, gerrit_base_url: Optional[str] =
         _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
     )
 
-    # First, list all drafts
-    list_url = f"{base_url}/changes/{change_id}/revisions/current/drafts"
-    result_str = await run_curl([list_url], base_url)
     try:
-        drafts_by_file = json.loads(result_str)
-    except json.JSONDecodeError:
-        return [
-            {"type": "text", "text": f"Failed to parse drafts response.\n{result_str}"}
-        ]
+        drafts_by_file = await _list_drafts_all_revisions(base_url, change_id)
+    except ValueError as e:
+        return [{"type": "text", "text": str(e)}]
 
     if not drafts_by_file:
         return [
@@ -2004,13 +2045,16 @@ async def delete_draft_comments(change_id: str, gerrit_base_url: Optional[str] =
     for file_path, drafts in drafts_by_file.items():
         for draft in drafts:
             draft_id = draft.get("id")
-            if not draft_id:
+            patch_set = draft.get("patch_set")
+            if not draft_id or patch_set is None:
                 continue
             try:
-                await _delete_draft_comment(base_url, change_id, draft_id)
+                await _delete_draft_comment(base_url, change_id, draft_id, patch_set)
                 deleted += 1
             except Exception as e:
-                errors.append(f"  Failed to delete {draft_id} on {file_path}: {e}")
+                errors.append(
+                    f"  Failed to delete {draft_id} (PS{patch_set}) on {file_path}: {e}"
+                )
 
     output = f"Deleted {deleted} draft comment(s) on CL {change_id}."
     if errors:
