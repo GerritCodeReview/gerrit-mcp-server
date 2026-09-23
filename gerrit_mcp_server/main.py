@@ -1716,8 +1716,8 @@ async def post_review_comment(
 async def post_draft_comment(
     change_id: str,
     file_path: str,
-    line_number: int,
     message: str,
+    line_number: Optional[int] = None,
     unresolved: bool = True,
     gerrit_base_url: Optional[str] = None,
     start_line: Optional[int] = None,
@@ -1728,11 +1728,34 @@ async def post_draft_comment(
     in_reply_to: Optional[str] = None,
 ):
     """
-    Creates a draft review comment on a specific line of a file in a CL.
+    Creates a draft review comment in a CL: on a line of a file, on the whole
+    file when line_number is omitted, or on the whole patch set when file_path
+    is "/PATCHSET_LEVEL" and line_number is omitted.
+    A range needs all of start_line, start_character, end_line and
+    end_character, and puts the comment on end_line.
     Draft comments are only visible to the author until explicitly published.
     Use in_reply_to with a parent comment ID to create a threaded reply.
 
     """
+    comment_range = {
+        "start_line": start_line,
+        "start_character": start_character,
+        "end_line": end_line,
+        "end_character": end_character,
+    }
+    missing_range_fields = [k for k, v in comment_range.items() if v is None]
+    if 0 < len(missing_range_fields) < len(comment_range):
+        return [
+            {
+                "type": "text",
+                "text": (
+                    "Failed to create draft comment: a range needs start_line, "
+                    "start_character, end_line and end_character; missing "
+                    f"{', '.join(missing_range_fields)}."
+                ),
+            }
+        ]
+
     if suggestion is not None:
         message = message + f"\n```suggestion\n{suggestion}\n```"
 
@@ -1745,27 +1768,25 @@ async def post_draft_comment(
 
     payload: Dict[str, Any] = {
         "path": file_path,
-        "line": line_number,
         "message": message,
         "unresolved": unresolved,
     }
 
+    if line_number is not None:
+        payload["line"] = line_number
+
     if in_reply_to is not None:
         payload["in_reply_to"] = in_reply_to
 
-    if all(
-        v is not None for v in [start_line, start_character, end_line, end_character]
-    ):
-        payload["range"] = {
-            "start_line": start_line,
-            "start_character": start_character,
-            "end_line": end_line,
-            "end_character": end_character,
-        }
+    if not missing_range_fields:
+        payload["range"] = comment_range
         # Gerrit requires line to equal end_line when a range is provided.
         payload["line"] = end_line
 
     args = _create_put_args(url, payload)
+    location = f"file {file_path}"
+    if "line" in payload:
+        location += f" at line {payload['line']}"
 
     try:
         result_str = await run_curl(args, base_url)
@@ -1774,10 +1795,7 @@ async def post_draft_comment(
             return [
                 {
                     "type": "text",
-                    "text": (
-                        f"Draft comment created on CL {change_id}, "
-                        f"file {file_path} at line {line_number}."
-                    ),
+                    "text": f"Draft comment created on CL {change_id}, {location}.",
                 }
             ]
         else:
