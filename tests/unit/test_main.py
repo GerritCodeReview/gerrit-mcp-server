@@ -336,7 +336,11 @@ async def test_post_review_comment(mock_run_curl, unresolved_arg, expected_unres
         kwargs["unresolved"] = unresolved_arg
 
     result = await main.post_review_comment(
-        "123", "file.py", 10, "test comment", **kwargs
+        change_id="123",
+        file_path="file.py",
+        line_number=10,
+        message="test comment",
+        **kwargs,
     )
 
     assert "Successfully posted comment" in result[0]["text"]
@@ -353,7 +357,9 @@ async def test_post_review_comment(mock_run_curl, unresolved_arg, expected_unres
 async def test_post_review_comment_failure(mock_run_curl):
     """Tests handling of a failure response when posting a comment."""
     mock_run_curl.return_value = '{"error": "failed"}'
-    result = await main.post_review_comment("123", "file.py", 10, "test comment")
+    result = await main.post_review_comment(
+        change_id="123", file_path="file.py", line_number=10, message="test comment"
+    )
     assert "Failed to post comment" in result[0]["text"]
 
 
