@@ -1,12 +1,13 @@
 {
   "checks": {
     "zuul-check:gerrit-mcp-server": {
-      "state": "RUNNING",
-      "message": "Jobs have started running",
-      "url": "https://ci.gerritcodereview.com/t/gerrit/status/change/632041,2",
+      "state": "SUCCESSFUL",
+      "message": "Change passed all voting jobs",
+      "url": "https://ci.gerritcodereview.com/t/gerrit/buildset/aaad190e079c459693a46507b993be03",
       "started": "2026-09-23T16:46:25Z",
+      "finished": "2026-09-23T16:56:48Z",
       "created": "2026-09-23T16:46:26Z",
-      "updated": "2026-09-23T16:46:31Z"
+      "updated": "2026-09-23T16:56:49Z"
     }
   }
 }
