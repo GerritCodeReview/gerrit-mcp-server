@@ -64,13 +64,21 @@ async def test_query_changes(mock_run_curl):
         [
             {
                 "_number": 1,
+                "change_id": "I1",
+                "project": "fuchsia",
+                "branch": "main",
                 "subject": "Test Change 1",
+                "status": "NEW",
                 "work_in_progress": False,
                 "updated": "2025-07-02T12:00:00Z",
             },
             {
                 "_number": 2,
+                "change_id": "I2",
+                "project": "fuchsia",
+                "branch": "main",
                 "subject": "Test Change 2",
+                "status": "NEW",
                 "work_in_progress": True,
                 "updated": "2025-07-01T10:00:00Z",
             },
@@ -81,9 +89,9 @@ async def test_query_changes(mock_run_curl):
         gerrit_base_url="https://fuchsia-review.googlesource.com",
         query="status:open",
     )
-    assert "Found 2 changes" in result[0]["text"]
-    assert "1: Test Change 1" in result[0]["text"]
-    assert "2: [WIP] Test Change 2" in result[0]["text"]
+    assert [
+        (c["number"], c["subject"], c["work_in_progress"]) for c in result["changes"]
+    ] == [(1, "Test Change 1", False), (2, "Test Change 2", True)]
 
 
 @pytest.mark.asyncio
@@ -94,7 +102,7 @@ async def test_query_changes_no_results(mock_run_curl):
         gerrit_base_url="https://fuchsia-review.googlesource.com",
         query="status:open",
     )
-    assert "No changes found" in result[0]["text"]
+    assert result == {"query": "status:open", "changes": []}
 
 
 @pytest.mark.asyncio
@@ -490,11 +498,11 @@ async def test_tool_functions_with_malformed_json(mock_run_curl):
     """Tests that tool functions handle malformed JSON responses."""
     mock_run_curl.return_value = "this is not json"
 
-    result = await main.query_changes(
-        gerrit_base_url="https://fuchsia-review.googlesource.com",
-        query="status:open",
-    )
-    assert "Failed to parse JSON" in result[0]["text"]
+    with pytest.raises(ValueError, match="Failed to parse JSON"):
+        await main.query_changes(
+            gerrit_base_url="https://fuchsia-review.googlesource.com",
+            query="status:open",
+        )
 
 
 @pytest.mark.asyncio

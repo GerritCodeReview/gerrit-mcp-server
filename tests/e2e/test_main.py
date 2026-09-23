@@ -118,7 +118,7 @@ async def test_e2e_query_changes(gerrit_base_url):
     result = await main.query_changes(
         query="status:open", gerrit_base_url=gerrit_base_url, limit=5
     )
-    assert "Found 5 changes" in result[0]["text"]
+    assert len(result["changes"]) == 5
 
 
 @pytest.mark.asyncio

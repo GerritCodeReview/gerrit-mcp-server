@@ -36,10 +36,10 @@ get_actionable_tasks(change_id="123")
 get_actionable_tasks(change_id="123", task_only="Jenkins")
 ```
 
-**Using `query_changes` / `get_change_details` (plain-text summary only):**
+**Using `query_changes` / `get_change_details` (summary only, no task data):**
 
 ```python
-# These pass task parameters but only return a text summary — use the task tools above instead
+# These pass task parameters but return no task data — use the task tools above instead
 query_changes(query="change:123", parameters={"task--applicable": None})
 get_change_details(change_id="123", parameters={"task--applicable": None})
 ```

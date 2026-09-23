@@ -358,15 +358,36 @@ def _create_delete_args(url: str) -> List[str]:
 # --- Tool Implementations ---
 
 
+class _QueriedChange(TypedDict):
+    number: int
+    change_id: str
+    project: str
+    branch: str
+    subject: str
+    status: str
+    work_in_progress: bool
+    updated: str
+
+
+class _QueryChangesResult(TypedDict):
+    query: str
+    changes: List[_QueriedChange]
+
+
 @mcp.tool()
 async def query_changes(
     query: str,
     gerrit_base_url: Optional[str] = None,
     limit: Optional[int] = None,
     options: Optional[List[str]] = None,
-):
+) -> _QueryChangesResult:
     """
     Searches for CLs matching a given query string.
+
+    Returns the changes newest first, each with its number, Change-Id,
+    project, branch, subject, status, work-in-progress flag and the time
+    of its last update. changes is empty when nothing matches. Raises
+    ValueError when Gerrit's answer is not JSON.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -383,27 +404,28 @@ async def query_changes(
     result_json_str = await run_curl([url], base_url)
     try:
         changes = json.loads(result_json_str)
-    except json.JSONDecodeError:
-        return [
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Failed to parse JSON response from Gerrit. "
+            f"Raw response: '{result_json_str}'"
+        ) from e
+
+    return {
+        "query": query,
+        "changes": [
             {
-                "type": "text",
-                "text": (
-                    f"Failed to parse JSON response from Gerrit. "
-                    f"Raw response: '{result_json_str}'"
-                ),
+                "number": change["_number"],
+                "change_id": change["change_id"],
+                "project": change["project"],
+                "branch": change["branch"],
+                "subject": change["subject"],
+                "status": change["status"],
+                "work_in_progress": change.get("work_in_progress", False),
+                "updated": change["updated"],
             }
-        ]
-    changes = sort_changes_by_date(changes)
-
-    if not changes:
-        return [{"type": "text", "text": f"No changes found for query: {query}"}]
-
-    output = f'Found {len(changes)} changes for query "{query}":\n'
-    for change in changes:
-        wip_prefix = "[WIP] " if change.get("work_in_progress") else ""
-        output += f"- {change['_number']}: {wip_prefix}{change['subject']}\n"
-
-    return [{"type": "text", "text": output}]
+            for change in sort_changes_by_date(changes)
+        ],
+    }
 
 
 @mcp.tool()
@@ -415,7 +437,7 @@ async def query_changes_by_date_and_filters(  # Renamed method
     project: Optional[str] = None,
     message_substring: Optional[str] = None,
     status: str = "merged",
-):
+) -> _QueryChangesResult:
     """
     Searches for Gerrit changes within a specified date range, optionally
     filtered by project, a substring in the commit message, and change
@@ -433,21 +455,18 @@ async def query_changes_by_date_and_filters(  # Renamed method
         message_substring: An optional substring to search for in the commit message.
         status: The status of the changes to search for (e.g., "merged",
             "open", "abandoned"). Defaults to "merged".
+
+    Returns the same result as query_changes for the query it builds.
+    Raises ValueError when a date is not in YYYY-MM-DD format.
     """
     # Parse dates and increment end_date by one day for Gerrit's 'before' operator
     try:
         parsed_start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
         parsed_end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
-    except ValueError:
-        return [
-            {
-                "type": "text",
-                "text": (
-                    "Invalid date format. Please use YYYY-MM-DD "
-                    "for start_date and end_date."
-                ),
-            }
-        ]
+    except ValueError as e:
+        raise ValueError(
+            "Invalid date format. Please use YYYY-MM-DD for start_date and end_date."
+        ) from e
 
     # Increment the end date by one day to make the 'before' query
     # inclusive of the target end_date
