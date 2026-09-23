@@ -14,6 +14,7 @@
 
 import asyncio
 import json
+import re
 import unittest
 from unittest.mock import AsyncMock, patch
 
@@ -70,6 +71,35 @@ class TestQueryChanges(unittest.TestCase):
             self.assertEqual(
                 result,
                 [{"type": "text", "text": f"No changes found for query: {query}"}],
+            )
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_query_changes_project_and_branch(self, mock_run_curl):
+        """Each line names the change's project and branch in a parseable suffix."""
+
+        async def run_test():
+            mock_run_curl.return_value = json.dumps(
+                [
+                    {
+                        "_number": 123,
+                        "subject": "Fix it",
+                        "updated": "2023-01-01T00:00:00.000000000Z",
+                        "project": "my/project",
+                        "branch": "master",
+                        "work_in_progress": True,
+                    }
+                ]
+            )
+
+            result = await main.query_changes("status:open")
+
+            line = result[0]["text"].splitlines()[1]
+            self.assertEqual(line, "- 123: [WIP] Fix it [my/project:master]")
+            match = re.match(r"^- (\d+): (.*?) \[([^:]+):([^\]]+)\]$", line)
+            self.assertEqual(
+                match.groups(), ("123", "[WIP] Fix it", "my/project", "master")
             )
 
         asyncio.run(run_test())

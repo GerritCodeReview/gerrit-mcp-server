@@ -401,7 +401,12 @@ async def query_changes(
     output = f'Found {len(changes)} changes for query "{query}":\n'
     for change in changes:
         wip_prefix = "[WIP] " if change.get("work_in_progress") else ""
-        output += f"- {change['_number']}: {wip_prefix}{change['subject']}\n"
+        project = change.get("project", "?")
+        branch = change.get("branch", "?")
+        output += (
+            f"- {change['_number']}: {wip_prefix}{change['subject']} "
+            f"[{project}:{branch}]\n"
+        )
 
     return [{"type": "text", "text": output}]
 

@@ -5,7 +5,8 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 
 ## Tools
 
-- **query_changes**: Searches for CLs matching a given query string.
+- **query_changes**: Searches for CLs matching a given query string. The result
+  lists each CL with its number, subject, project, and branch.
 - **query_changes_by_date_and_filters**: Searches for Gerrit changes within a
   specified date range, optionally filtered by project, a substring in the
   commit message, and change status.
