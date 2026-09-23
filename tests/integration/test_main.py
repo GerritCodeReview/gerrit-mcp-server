@@ -553,7 +553,7 @@ async def test_command_injection(mock_exec):
 @pytest.mark.asyncio
 async def test_post_review_comment_with_labels(mock_run_curl):
     """Tests posting a review comment with labels."""
-    mock_run_curl.return_value = ')]}\'\\n{"done": true}'
+    mock_run_curl.return_value = '{"labels": {"Verified": 1}}'
 
     result = await main.post_review_comment(
         gerrit_base_url="https://fuchsia-review.googlesource.com",
@@ -563,7 +563,8 @@ async def test_post_review_comment_with_labels(mock_run_curl):
         message="Setting Verified to +1",
         labels={"Verified": 1},
     )
-    assert "Successfully posted comment" in result[0]["text"]
+    assert result["file_path"] == "/COMMIT_MSG"
+    assert result["line"] == 1
 
     # Verify the JSON payload sent to Gerrit
     expected_payload = {
