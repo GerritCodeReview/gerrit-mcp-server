@@ -489,11 +489,22 @@ async def get_change_details(
         "revisions", {}
     ):
         current_rev_info = details["revisions"][details["current_revision"]]
+        output += (
+            f"Current patch set: {current_rev_info['_number']} "
+            f"(commit {details['current_revision']}, ref {current_rev_info['ref']})\n"
+        )
         if "commit" in current_rev_info and "message" in current_rev_info["commit"]:
             commit_message = current_rev_info["commit"]["message"]
             bugs = extract_bugs_from_commit_message(commit_message)
             if bugs:
                 output += f"Bugs: {', '.join(sorted(list(bugs)))}\n"
+
+    if len(details.get("revisions", {})) > 1:
+        output += "Patch sets:\n"
+        for commit_sha, revision_info in sorted(
+            details["revisions"].items(), key=lambda item: item[1]["_number"]
+        ):
+            output += f"- {revision_info['_number']}: {commit_sha}\n"
 
     if "reviewers" in details and "REVIEWER" in details["reviewers"]:
         output += "Reviewers:\n"
