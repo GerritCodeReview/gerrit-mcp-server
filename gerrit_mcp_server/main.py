@@ -16,6 +16,7 @@ import argparse
 import asyncio
 import base64
 import datetime
+import io
 import ipaddress
 import json
 import os
@@ -653,6 +654,90 @@ async def get_file_diff(
     # to bytes for b64decode
     diff_text = base64.b64decode(diff_base64.encode("utf-8")).decode("utf-8")
     return [{"type": "text", "text": diff_text}]
+
+
+class _FileContentResult(TypedDict):
+    change_id: str
+    file_path: str
+    revision: str
+    first_line: Optional[int]
+    last_line: Optional[int]
+    line_count: int
+    content: str
+
+
+@mcp.tool()
+async def get_file_content(
+    change_id: str,
+    file_path: str,
+    revision_id: Optional[str] = None,
+    start_line: Optional[int] = None,
+    end_line: Optional[int] = None,
+    gerrit_base_url: Optional[str] = None,
+) -> _FileContentResult:
+    """
+    Returns the content of a file as it is in a revision of a CL.
+
+    Use it to read a whole file rather than its diff, e.g. a large fixture.
+    revision_id defaults to "current" (the latest patch set). Pass a
+    patch-set number or commit SHA to read an older revision.
+
+    The whole file is returned untruncated, so a large file uses a large
+    share of the context. To read only some lines, pass start_line,
+    end_line, or both (1-based, inclusive). If only the changed lines
+    matter, use get_file_diff instead.
+
+    first_line and last_line number the lines content holds (None for an
+    empty file), and line_count counts the lines of the whole file. Raises
+    ValueError when the file cannot be fetched, is not UTF-8 text, or has
+    no line in the requested range.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    revision = revision_id or "current"
+    encoded_file_path = quote(file_path, safe="")
+    url = (
+        f"{base_url}/changes/{change_id}/revisions/{revision}/files/"
+        f"{encoded_file_path}/content"
+    )
+
+    result_str = await run_curl([url], base_url)
+    try:
+        content = base64.b64decode(result_str, validate=True)
+    except ValueError as e:
+        raise ValueError(f"Failed to fetch {file_path}.\n{result_str}") from e
+
+    try:
+        text = content.decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise ValueError(
+            f"{file_path} is not UTF-8 text ({len(content)} bytes)."
+        ) from e
+
+    # Only "\n" ends a line, as in Gerrit. str.splitlines() would also
+    # split on form feeds and other separators and shift the numbers.
+    lines = io.StringIO(text, newline="\n").readlines()
+    first = 1 if start_line is None else start_line
+    last = len(lines) if end_line is None else min(end_line, len(lines))
+    range_given = start_line is not None or end_line is not None
+    if range_given and (first < 1 or first > last):
+        raise ValueError(
+            f"start_line={start_line}, end_line={end_line} selects "
+            f"no lines of {file_path} (line count: {len(lines)})."
+        )
+    selected = lines[first - 1 : last]
+    return {
+        "change_id": change_id,
+        "file_path": file_path,
+        "revision": revision,
+        "first_line": first if selected else None,
+        "last_line": last if selected else None,
+        "line_count": len(lines),
+        "content": "".join(selected),
+    }
 
 
 @mcp.tool()
