@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e1b116be_7d9fa91e",
+        "filename": "tests/unit/test_main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 472,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-09-23T18:31:21Z",
+      "side": 1,
+      "message": "Let\u0027s make sure we use `example.com` as the domain always. I know there\u0027s some tests above that already break that rule, but I don\u0027t want to add more. I\u0027ll try to get a change up to fix the existing ones.",
+      "revId": "e0f483cefb2e49b0bb91a935c8fd82a9a76c156f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
