@@ -16,6 +16,9 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
   of a CL.
 - **get_file_diff**: Retrieves the diff for a single, specified file within a
   CL.
+- **get_file_content**: Returns the content of a file as it is in a revision of
+  a CL. The revision is the current patch set unless `revision_id` names another
+  one. Pass `start_line`, `end_line`, or both to read only a range of lines.
 - **list_change_comments**: list_change_comments is useful for reviewing
   feedback, reading comments on a change, analyzing comments, and responding to
   comments.

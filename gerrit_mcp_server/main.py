@@ -16,6 +16,7 @@ import argparse
 import asyncio
 import base64
 import datetime
+import io
 import json
 import os
 import sys
@@ -639,6 +640,75 @@ async def get_file_diff(
     # to bytes for b64decode
     diff_text = base64.b64decode(diff_base64.encode("utf-8")).decode("utf-8")
     return [{"type": "text", "text": diff_text}]
+
+
+@mcp.tool()
+async def get_file_content(
+    change_id: str,
+    file_path: str,
+    revision_id: Optional[str] = None,
+    start_line: Optional[int] = None,
+    end_line: Optional[int] = None,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Returns the content of a file as it is in a revision of a CL.
+
+    Use it to read a whole file rather than its diff, e.g. a large fixture.
+    revision_id defaults to "current" (the latest patch set). Pass a
+    patch-set number or commit SHA to read an older revision.
+
+    The whole file is returned untruncated, so a large file uses a large
+    share of the context. To read only some lines, pass start_line,
+    end_line, or both (1-based, inclusive). If only the changed lines
+    matter, use get_file_diff instead.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    revision = revision_id or "current"
+    encoded_file_path = quote(file_path, safe="")
+    url = (
+        f"{base_url}/changes/{change_id}/revisions/{revision}/files/"
+        f"{encoded_file_path}/content"
+    )
+
+    result_str = await run_curl([url], base_url)
+    try:
+        content = base64.b64decode(result_str, validate=True)
+    except ValueError:
+        return [{"type": "text", "text": f"Failed to fetch {file_path}.\n{result_str}"}]
+
+    try:
+        text = content.decode("utf-8")
+    except UnicodeDecodeError:
+        return [
+            {
+                "type": "text",
+                "text": f"{file_path} is not UTF-8 text ({len(content)} bytes).",
+            }
+        ]
+
+    if start_line is not None or end_line is not None:
+        # Only "\n" ends a line, as in Gerrit. str.splitlines() would also
+        # split on form feeds and other separators and shift the numbers.
+        lines = io.StringIO(text, newline="\n").readlines()
+        first = 1 if start_line is None else start_line
+        last = len(lines) if end_line is None else min(end_line, len(lines))
+        if first < 1 or first > last:
+            return [
+                {
+                    "type": "text",
+                    "text": (
+                        f"start_line={start_line}, end_line={end_line} selects "
+                        f"no lines of {file_path} (line count: {len(lines)})."
+                    ),
+                }
+            ]
+        text = "".join(lines[first - 1 : last])
+    return [{"type": "text", "text": text}]
 
 
 @mcp.tool()
