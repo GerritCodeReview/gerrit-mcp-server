@@ -183,7 +183,7 @@
     }
   },
   "post_review_comment": {
-    "description": "Posts a review comment on a specific line of a file in a CL.",
+    "description": "Posts a review comment in a CL: on a line, on a whole file, or on the whole patch set.",
     "parameters": {
       "gerrit_base_url": {
         "type": "string",
@@ -197,13 +197,13 @@
       },
       "file_path": {
         "type": "string",
-        "description": "The full path of the file to comment on.",
-        "required": true
+        "description": "The full path of the file to comment on, or /PATCHSET_LEVEL. Taken from the parent comment when in_reply_to is given.",
+        "required": false
       },
       "line_number": {
         "type": "number",
-        "description": "The line number to post the comment on.",
-        "required": true
+        "description": "The line number to post the comment on. Without it, the comment goes on the whole file.",
+        "required": false
       },
       "message": {
         "type": "string",
@@ -213,6 +213,11 @@
       "labels": {
         "type": "object",
         "description": "A dictionary of labels to apply to the review (e.g., {'Verified': 1})."
+      },
+      "in_reply_to": {
+        "type": "string",
+        "description": "The ID of a published comment to reply to. The reply goes on that comment's patch set.",
+        "required": false
       }
     }
   }
