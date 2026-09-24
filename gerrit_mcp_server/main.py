@@ -470,9 +470,15 @@ async def get_change_details(
     change_id: str,
     gerrit_base_url: Optional[str] = None,
     options: Optional[List[str]] = None,
+    full_messages: bool = False,
 ):
     """
     Retrieves a comprehensive summary of a single CL.
+
+    By default the summary ends with the first line of the three latest
+    messages. Pass full_messages=True to get every message in full, e.g. to
+    read what a CI bot wrote after its vote: the build result and the link
+    to the build.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -538,15 +544,23 @@ async def get_change_details(
             output += f"- {reviewer_email} ({', '.join(votes)})\n"
 
     if "messages" in details and details["messages"]:
-        output += "Recent Messages:\n"
-        for msg in details["messages"][-3:]:
+        messages = details["messages"] if full_messages else details["messages"][-3:]
+        output += "Messages:\n" if full_messages else "Recent Messages:\n"
+        for msg in messages:
             author = msg.get("author", {}).get("name", "Gerrit")
             timestamp = msg.get("date", "No date")
-            message_summary = msg["message"].splitlines()[0]
-            output += (
-                f"- (Patch Set {msg['_revision_number']}) [{timestamp}] "
-                f"({author}): {message_summary}\n"
+            header = (
+                f"- (Patch Set {msg['_revision_number']}) [{timestamp}] ({author}):"
             )
+            if full_messages:
+                body = "".join(
+                    f"    {line}\n" if line else "\n"
+                    for line in msg["message"].splitlines()
+                )
+                output += f"{header}\n{body}"
+            else:
+                message_summary = msg["message"].splitlines()[0]
+                output += f"{header} {message_summary}\n"
 
     return [{"type": "text", "text": output}]
 
