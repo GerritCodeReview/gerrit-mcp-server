@@ -106,6 +106,51 @@ class TestGetChangeDetails(unittest.TestCase):
 
         asyncio.run(run_test())
 
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_get_change_details_full_messages(self, mock_run_curl):
+        """full_messages returns every message in full, a CI bot's link included."""
+
+        async def run_test():
+            notes = [{"_revision_number": 1, "message": f"Note {n}."} for n in range(3)]
+            ci_message = {
+                "_revision_number": 1,
+                "author": {"name": "CI Bot"},
+                "date": "2026-09-22 18:17:52",
+                "message": (
+                    "Patch Set 1: Verified-1\n\nBuild Failed\n\n"
+                    "https://ci.example.com/job/check/42/ : FAILURE"
+                ),
+            }
+            mock_run_curl.return_value = json.dumps(
+                {
+                    "_number": 12345,
+                    "subject": "Test Subject",
+                    "owner": {"email": "owner@example.com"},
+                    "status": "NEW",
+                    "messages": notes + [ci_message],
+                }
+            )
+
+            short = (await main.get_change_details("12345"))[0]["text"]
+            full = (await main.get_change_details("12345", full_messages=True))[0][
+                "text"
+            ]
+
+            self.assertNotIn("Note 0.", short)
+            self.assertNotIn("https://ci.example.com/job/check/42/", short)
+            self.assertIn("Note 0.", full)
+            self.assertIn(
+                "- (Patch Set 1) [2026-09-22 18:17:52] (CI Bot):\n"
+                "    Patch Set 1: Verified-1\n"
+                "\n"
+                "    Build Failed\n"
+                "\n"
+                "    https://ci.example.com/job/check/42/ : FAILURE\n",
+                full,
+            )
+
+        asyncio.run(run_test())
+
 
 if __name__ == "__main__":
     unittest.main()
