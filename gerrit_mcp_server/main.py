@@ -16,12 +16,13 @@ import argparse
 import asyncio
 import base64
 import datetime
+import ipaddress
 import json
 import os
 import sys
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, TypedDict
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 from mcp.server.fastmcp import Context, FastMCP
 
@@ -208,6 +209,17 @@ def _apply_authenticated_prefix(url: str, host: Dict[str, Any]) -> str:
     return url
 
 
+def _is_loopback_url(url: str) -> bool:
+    """True when the URL host is loopback (localhost, 127.0.0.0/8, ::1, 0.0.0.0)."""
+    host = urlparse(url).hostname or ""
+    if host in ("localhost", "0.0.0.0"):
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return host.endswith(".localhost")
+
+
 def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
     """Normalizes a Gerrit URL based on the mappings in the provided gerrit_hosts."""
 
@@ -245,12 +257,14 @@ def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
             matched_host = host
             break  # Found a match, so we can exit the loop.
 
-    # Ensure https, then strip trailing slash
+    # Ensure https, then strip trailing slash. Plain http:// is kept only for a
+    # loopback host (a local docker or test instance); everywhere else the
+    # credentials sent with each request must not travel in cleartext.
     if not (
         normalized_url.startswith("http://") or normalized_url.startswith("https://")
     ):
         normalized_url = "https://" + normalized_url
-    elif normalized_url.startswith("http://"):
+    elif normalized_url.startswith("http://") and not _is_loopback_url(normalized_url):
         normalized_url = normalized_url.replace("http://", "https://")
 
     normalized_url = normalized_url.rstrip("/")
