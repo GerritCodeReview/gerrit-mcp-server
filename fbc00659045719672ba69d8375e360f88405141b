@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3733607f_6205aaf7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-09-30T09:47:10Z",
+      "side": 1,
+      "message": "Update `docs/available_tools.md`",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 25
+      },
+      "revId": "fbc00659045719672ba69d8375e360f88405141b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5d90f672_c0fb5169",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 657,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-09-30T09:47:10Z",
+      "side": 1,
+      "message": "Maybe add a warning in the docstring like\n```\nThe whole file is returned untruncated, so a large file uses a large share of the context.\nIf only the changed lines matter, use get_file_diff instead.\n```\n\nmaybe add optional line-range params",
+      "revId": "fbc00659045719672ba69d8375e360f88405141b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
