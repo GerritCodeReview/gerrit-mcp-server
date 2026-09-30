@@ -43,6 +43,38 @@ class TestGerritConfig(unittest.TestCase):
         )
 
     @patch("gerrit_mcp_server.main.load_gerrit_config")
+    def test_normalize_gerrit_url_keeps_explicit_http_scheme(self, mock_load_config):
+        mock_load_config.return_value = {
+            "gerrit_hosts": [
+                {
+                    "name": "Local dev",
+                    "external_url": "http://localhost:8080/",
+                    "authentication": {"type": "http_basic"},
+                }
+            ]
+        }
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
+        # A configured plain-HTTP host keeps its scheme (and gets the /a prefix).
+        self.assertEqual(
+            _normalize_gerrit_url("http://localhost:8080", gerrit_hosts),
+            "http://localhost:8080/a",
+        )
+        self.assertEqual(
+            _normalize_gerrit_url("localhost:8080", gerrit_hosts),
+            "http://localhost:8080/a",
+        )
+        # A bare host that is not configured still defaults to https.
+        self.assertEqual(
+            _normalize_gerrit_url("other.example.com", gerrit_hosts),
+            "https://other.example.com",
+        )
+        # An explicit http:// URL for an unconfigured host is left as given.
+        self.assertEqual(
+            _normalize_gerrit_url("http://other.example.com/", gerrit_hosts),
+            "http://other.example.com",
+        )
+
+    @patch("gerrit_mcp_server.main.load_gerrit_config")
     def test_normalize_gerrit_url_with_internal_only_mapping(self, mock_load_config):
         mock_load_config.return_value = {
             "gerrit_hosts": [

@@ -76,7 +76,8 @@ def test_get_gerrit_base_url_with_parameter(mock_load_config):
         ),
         ("fuchsia-review.googlesource.com", "https://fuchsia-review.googlesource.com"),
         ("another-gerrit.com", "https://another-gerrit.com"),
-        ("http://another-gerrit.com", "https://another-gerrit.com"),
+        # An explicit http:// scheme is kept (local and test instances).
+        ("http://another-gerrit.com", "http://another-gerrit.com"),
         ("https://another-gerrit.com", "https://another-gerrit.com"),
     ],
 )

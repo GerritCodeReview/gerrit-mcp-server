@@ -245,13 +245,12 @@ def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
             matched_host = host
             break  # Found a match, so we can exit the loop.
 
-    # Ensure https, then strip trailing slash
+    # Default to https when no scheme was given; keep an explicit http:// (local or
+    # test instances declare it deliberately in gerrit_config.json).
     if not (
         normalized_url.startswith("http://") or normalized_url.startswith("https://")
     ):
         normalized_url = "https://" + normalized_url
-    elif normalized_url.startswith("http://"):
-        normalized_url = normalized_url.replace("http://", "https://")
 
     normalized_url = normalized_url.rstrip("/")
 
