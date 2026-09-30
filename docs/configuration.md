@@ -43,12 +43,12 @@ given request.
 
 Each host object has the following structure:
 
-| Key              | Type   | Description                                                                                                                                          |
-| ---------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`           | string | A user-friendly name for the Gerrit instance (e.g., "Fuchsia", "Public Gerrit").                                                                     |
-| `internal_url`   | string | (Optional) An alternative URL for the same host, often used for internal network access. The server will recognize both this and the `external_url`. |
-| `external_url`   | string | The primary, publicly accessible URL for the Gerrit host.                                                                                            |
-| `authentication` | object | A required object that specifies which authentication method to use for this host. See the detailed section below.                                   |
+| Key              | Type   | Description                                                                                                                                                                                                                   |
+| ---------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`           | string | A user-friendly name for the Gerrit instance (e.g., "Fuchsia", "Public Gerrit").                                                                                                                                              |
+| `internal_url`   | string | (Optional) An alternative URL for the same host, often used for internal network access. The server will recognize both this and the `external_url`.                                                                          |
+| `external_url`   | string | The primary, publicly accessible URL for the Gerrit host. URLs are normalized to `https://`; a plain `http://` URL is kept only for a loopback host (`localhost`, `127.0.0.1`, `::1`, `0.0.0.0`), e.g. a local test instance. |
+| `authentication` | object | A required object that specifies which authentication method to use for this host. See the detailed section below.                                                                                                            |
 
 ______________________________________________________________________
 
