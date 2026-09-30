@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "47ca782d_5907e748",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1706,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-09-30T10:07:24Z",
+      "side": 1,
+      "message": "I fear the range comments might become whole file comment as clients can now call it without `line_number`",
+      "range": {
+        "startLine": 1706,
+        "startChar": 4,
+        "endLine": 1706,
+        "endChar": 38
+      },
+      "revId": "0c782ef2fe6002c892f80e0ca193fdeaf55353a3",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ce45f767_5bb09cfa",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1762,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-09-30T10:07:24Z",
+      "side": 1,
+      "message": "Make it work for range as well\n \n```suggestion\n    if \"line\" in payload:\n        location +\u003d f\" at line {payload[\u0027line\u0027]}\"\n\n```",
+      "range": {
+        "startLine": 1760,
+        "startChar": 4,
+        "endLine": 1762,
+        "endChar": 0
+      },
+      "revId": "0c782ef2fe6002c892f80e0ca193fdeaf55353a3",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
