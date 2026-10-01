@@ -51,6 +51,45 @@ class TestListDraftComments(unittest.TestCase):
         asyncio.run(run_test())
 
     @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_list_draft_comments_includes_older_patch_sets(self, mock_run_curl):
+        async def run_test():
+            # A draft written on patch set 1 stays there after patch set 2 is
+            # uploaded; publish_drafts still publishes it, so it must be listed.
+            mock_response = {
+                "a.py": [
+                    {
+                        "id": "old-draft",
+                        "patch_set": 1,
+                        "line": 3,
+                        "message": "Written on patch set 1.",
+                    },
+                    {
+                        "id": "new-draft",
+                        "patch_set": 2,
+                        "line": 7,
+                        "message": "Written on patch set 2.",
+                    },
+                ],
+            }
+            mock_run_curl.return_value = json.dumps(mock_response)
+
+            result = await main.list_draft_comments(
+                change_id="789",
+                gerrit_base_url="https://gerrit-review.googlesource.com",
+            )
+
+            mock_run_curl.assert_called_once_with(
+                ["https://gerrit-review.googlesource.com/changes/789/drafts"],
+                "https://gerrit-review.googlesource.com",
+            )
+            text = result[0]["text"]
+            self.assertIn("[old-draft] L3 (patch set 1)", text)
+            self.assertIn("[new-draft] L7 (patch set 2)", text)
+            self.assertIn("Total: 2 draft(s)", text)
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
     def test_list_draft_comments_empty(self, mock_run_curl):
         async def run_test():
             mock_run_curl.return_value = json.dumps({})
