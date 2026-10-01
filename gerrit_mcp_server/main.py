@@ -261,6 +261,18 @@ def _normalize_gerrit_url(url: str, gerrit_hosts: List[Dict[str, Any]]) -> str:
     return normalized_url
 
 
+def _redact_command_for_logging(command: List[str]) -> List[str]:
+    """Returns a copy of a curl command with credentials masked for logging."""
+    redacted = list(command)
+    for i, arg in enumerate(redacted):
+        if arg == "--user" and i + 1 < len(redacted):
+            user_part = redacted[i + 1].split(":", 1)[0]
+            redacted[i + 1] = f"{user_part}:***REDACTED***"
+        elif arg == "-b" and i + 1 < len(redacted):
+            redacted[i + 1] = "***REDACTED***"
+    return redacted
+
+
 async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     """Executes a curl command and returns the output."""
     config = load_gerrit_config()
@@ -268,8 +280,9 @@ async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     command = (
         get_curl_command_for_gerrit_url(gerrit_base_url, config) + obs_headers + args
     )
+    redacted_command = " ".join(_redact_command_for_logging(command))
     with open(LOG_FILE_PATH, "a") as log_file:
-        log_file.write(f"[gerrit-mcp-server] Executing: {' '.join(command)}\n")
+        log_file.write(f"[gerrit-mcp-server] Executing: {redacted_command}\n")
 
     process = await asyncio.create_subprocess_exec(
         *command,
