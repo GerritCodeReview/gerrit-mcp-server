@@ -1688,6 +1688,110 @@ async def post_review_comment(
 
 
 @mcp.tool()
+async def post_review_comments(
+    change_id: str,
+    comments: List[Dict[str, Any]],
+    message: Optional[str] = None,
+    labels: Optional[Dict[str, int]] = None,
+    gerrit_base_url: Optional[str] = None,
+):
+    """
+    Posts multiple review comments on a CL as a single review.
+
+    All comments are sent in one request, so they are published atomically
+    (all or nothing) and reviewers receive a single notification. Each item in
+    `comments` must contain `file_path` (str), `line_number` (positive int) and
+    `message` (str), and may set `unresolved` (bool, defaults to True).
+    """
+    if not comments:
+        return [{"type": "text", "text": "No comments provided; nothing was posted."}]
+
+    errors = []
+    comments_by_file: Dict[str, List[Dict[str, Any]]] = {}
+    for i, comment in enumerate(comments):
+        if not isinstance(comment, dict):
+            errors.append(f"  Comment {i}: must be an object.")
+            continue
+        error_count = len(errors)
+        file_path = comment.get("file_path")
+        line_number = comment.get("line_number")
+        text = comment.get("message")
+        if not isinstance(file_path, str) or not file_path:
+            errors.append(f"  Comment {i}: 'file_path' must be a non-empty string.")
+        if (
+            not isinstance(line_number, int)
+            or isinstance(line_number, bool)
+            or line_number < 1
+        ):
+            errors.append(f"  Comment {i}: 'line_number' must be a positive integer.")
+        if not isinstance(text, str) or not text:
+            errors.append(f"  Comment {i}: 'message' must be a non-empty string.")
+        if len(errors) > error_count:
+            continue
+        comments_by_file.setdefault(file_path, []).append(
+            {
+                "line": line_number,
+                "message": text,
+                "unresolved": comment.get("unresolved", True),
+            }
+        )
+
+    if errors:
+        return [
+            {
+                "type": "text",
+                "text": "Invalid comments; nothing was posted:\n" + "\n".join(errors),
+            }
+        ]
+
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    url = f"{base_url}/changes/{change_id}/revisions/current/review"
+
+    payload: Dict[str, Any] = {"comments": comments_by_file}
+    if message:
+        payload["message"] = message
+    if labels:
+        payload["labels"] = labels
+
+    args = _create_post_args(url, payload)
+
+    try:
+        result_str = await run_curl(args, base_url)
+        # Gerrit returns a JSON ReviewResult on success and a plain-text
+        # error body (e.g. for an unknown file or line) on failure.
+        try:
+            result = json.loads(result_str)
+        except json.JSONDecodeError:
+            result = None
+        if not isinstance(result, dict) or "error" in result:
+            return [
+                {
+                    "type": "text",
+                    "text": f"Failed to post comments. Response: {result_str}",
+                }
+            ]
+        return [
+            {
+                "type": "text",
+                "text": (
+                    f"Successfully posted {len(comments)} comment(s) across "
+                    f"{len(comments_by_file)} file(s) to CL {change_id}."
+                ),
+            }
+        ]
+    except Exception as e:
+        with open(LOG_FILE_PATH, "a") as log_file:
+            log_file.write(
+                f"[gerrit-mcp-server] Error posting comments to CL {change_id}: {e}\n"
+            )
+        raise e
+
+
+@mcp.tool()
 async def post_draft_comment(
     change_id: str,
     file_path: str,
