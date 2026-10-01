@@ -21,7 +21,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, TypedDict
+from typing import Any, Callable, Dict, List, NotRequired, Optional, TypedDict
 from urllib.parse import quote, urlparse
 
 from mcp.server.fastmcp import Context, FastMCP
@@ -1710,6 +1710,175 @@ async def post_review_comment(
                 f"[gerrit-mcp-server] Error posting comment to CL {change_id}: {e}\n"
             )
         raise e
+
+
+class _ReviewCommentInput(TypedDict):
+    file_path: str
+    line_number: int
+    message: str
+    unresolved: NotRequired[bool]
+
+
+class _PostReviewCommentsResult(TypedDict):
+    change_id: str
+    comment_count: int
+    file_count: int
+    message: Optional[str]
+    labels: Optional[Dict[str, int]]
+
+
+def _validate_review_comment(index: int, comment: Any) -> List[str]:
+    """Returns the problems with one post_review_comments item (empty if valid)."""
+    if not isinstance(comment, dict):
+        return [f"comment {index}: must be an object"]
+    errors = []
+    file_path = comment.get("file_path")
+    line_number = comment.get("line_number")
+    message = comment.get("message")
+    if not isinstance(file_path, str) or not file_path:
+        errors.append(f"comment {index}: 'file_path' must be a non-empty string")
+    if (
+        not isinstance(line_number, int)
+        or isinstance(line_number, bool)
+        or line_number < 1
+    ):
+        errors.append(f"comment {index}: 'line_number' must be a positive integer")
+    if not isinstance(message, str) or not message:
+        errors.append(f"comment {index}: 'message' must be a non-empty string")
+    if "unresolved" in comment and not isinstance(comment["unresolved"], bool):
+        errors.append(f"comment {index}: 'unresolved' must be true or false")
+    return errors
+
+
+async def _check_votes_permitted(
+    base_url: str, change_id: str, labels: Dict[str, int]
+) -> None:
+    """Raises ValueError unless the caller may cast every vote in `labels`.
+
+    Gerrit silently drops a vote outside the label's range (e.g. Code-Review
+    +5) but still publishes the comments, so votes are checked up front
+    against the change's permitted_labels.
+    """
+    url = f"{base_url}/changes/{change_id}?o=DETAILED_LABELS"
+    result_str = await run_curl([url], base_url)
+    try:
+        permitted = json.loads(result_str).get("permitted_labels") or {}
+    except (json.JSONDecodeError, AttributeError) as e:
+        raise RuntimeError(
+            f"Failed to read permitted votes for CL {change_id}: {result_str}"
+        ) from e
+
+    errors = []
+    for label, value in labels.items():
+        if not isinstance(value, int) or isinstance(value, bool):
+            errors.append(f"{label}: vote must be an integer")
+            continue
+        allowed = sorted(int(v) for v in permitted.get(label, []))
+        if not allowed:
+            errors.append(f"{label}: not a label you can vote on for this change")
+        elif value not in allowed:
+            errors.append(
+                f"{label} {value:+d} is not allowed; "
+                f"permitted: {', '.join(f'{v:+d}' for v in allowed)}"
+            )
+    if errors:
+        raise ValueError("Invalid labels; nothing was posted:\n" + "\n".join(errors))
+
+
+@mcp.tool()
+async def post_review_comments(
+    change_id: str,
+    comments: List[_ReviewCommentInput],
+    message: Optional[str] = None,
+    labels: Optional[Dict[str, int]] = None,
+    gerrit_base_url: Optional[str] = None,
+) -> _PostReviewCommentsResult:
+    """
+    Posts multiple review comments on a CL as a single review.
+
+    All comments are sent in one request, so they are published atomically
+    (all or nothing) and reviewers receive a single notification. Each item in
+    `comments` must contain `file_path`, `line_number` (1-based) and `message`,
+    and may set `unresolved` (defaults to true). An optional top-level
+    `message` and `labels` (e.g. {"Code-Review": -1}) are sent with the review.
+
+    Every comment and vote is validated before anything is sent: comments are
+    checked locally and votes against the labels the caller may cast on the
+    change. Invalid input raises ValueError and nothing is posted. The returned
+    `labels` are the votes Gerrit reports as applied.
+    """
+    if not comments:
+        raise ValueError("No comments provided; nothing was posted.")
+
+    errors = [
+        error
+        for index, comment in enumerate(comments)
+        for error in _validate_review_comment(index, comment)
+    ]
+    if errors:
+        raise ValueError("Invalid comments; nothing was posted:\n" + "\n".join(errors))
+
+    comments_by_file: Dict[str, List[Dict[str, Any]]] = {}
+    for comment in comments:
+        comments_by_file.setdefault(comment["file_path"], []).append(
+            {
+                "line": comment["line_number"],
+                "message": comment["message"],
+                "unresolved": comment.get("unresolved", True),
+            }
+        )
+
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    if labels:
+        await _check_votes_permitted(base_url, change_id, labels)
+
+    url = f"{base_url}/changes/{change_id}/revisions/current/review"
+
+    payload: Dict[str, Any] = {"comments": comments_by_file}
+    if message:
+        payload["message"] = message
+    if labels:
+        payload["labels"] = labels
+
+    args = _create_post_args(url, payload)
+
+    try:
+        result_str = await run_curl(args, base_url)
+    except Exception as e:
+        with open(LOG_FILE_PATH, "a") as log_file:
+            log_file.write(
+                f"[gerrit-mcp-server] Error posting comments to CL {change_id}: {e}\n"
+            )
+        raise e
+
+    # Gerrit rejects a review either with a plain-text body (e.g. an unknown
+    # file) or with a ReviewResult whose "error" field is set.
+    try:
+        result = json.loads(result_str)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(
+            f"Failed to post comments to CL {change_id}: {result_str}"
+        ) from e
+    if not isinstance(result, dict):
+        raise RuntimeError(
+            f"Unexpected response posting comments to CL {change_id}: {result_str}"
+        )
+    if result.get("error"):
+        raise RuntimeError(
+            f"Failed to post comments to CL {change_id}: {result['error']}"
+        )
+
+    return {
+        "change_id": change_id,
+        "comment_count": len(comments),
+        "file_count": len(comments_by_file),
+        "message": message or None,
+        "labels": result.get("labels") if labels else None,
+    }
 
 
 @mcp.tool()
