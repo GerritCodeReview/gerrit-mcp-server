@@ -215,6 +215,34 @@
         "description": "A dictionary of labels to apply to the review (e.g., {'Verified': 1})."
       }
     }
+  },
+  "post_review_comments": {
+    "description": "Posts multiple review comments on a CL as a single, atomic review.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      },
+      "comments": {
+        "type": "array",
+        "description": "The comments to post. Each item is an object with 'file_path' (string), 'line_number' (number), 'message' (string) and an optional 'unresolved' (boolean, default true).",
+        "required": true
+      },
+      "message": {
+        "type": "string",
+        "description": "An optional top-level review message shown on the change."
+      },
+      "labels": {
+        "type": "object",
+        "description": "A dictionary of labels to apply to the review (e.g., {'Code-Review': 1})."
+      }
+    }
   }
 }
 

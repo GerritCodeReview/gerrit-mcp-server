@@ -50,6 +50,9 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 - **get_bugs_from_cl**: Extracts bug IDs from the commit message of a CL.
 - **post_review_comment**: Posts a review comment on a specific line of a file
   in a CL.
+- **post_review_comments**: Posts multiple review comments across one or more
+  files in a CL as a single review, optionally with a summary message and
+  labels. All comments are published atomically in one request.
 
 ## Extension Tools
 
