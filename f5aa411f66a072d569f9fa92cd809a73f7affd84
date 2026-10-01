@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7d4e2bdf_f1df40a0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-01T22:07:36Z",
+      "side": 1,
+      "message": "`/review` may return a JSON [`ReviewResult`](https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#review-result) containing `\"error\":`.",
+      "revId": "f5aa411f66a072d569f9fa92cd809a73f7affd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3e73928b_2ef0d8b3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-01T22:07:36Z",
+      "side": 1,
+      "message": "Findings:\n\n1. **[P1] The new tool violates the repository’s MCP result contract**  \n   `gerrit_mcp_server/main.py` — `post_review_comments`\n\n   The function has no return annotation and returns manually assembled content\n   blocks. The project guide requires tool results to use a typed `TypedDict`,\n   return the dictionary directly, and raise exceptions for errors. This also\n   means the new tool will not expose a useful MCP `output_schema`, unlike newer\n   tools such as `get_commit_message`.\n\n   Define a typed result, for example containing the change ID, comment/file\n   counts, and an optional message. Return that structure on success and raise\n   `ValueError`/`RuntimeError` for validation and Gerrit failures.\n\n2. **[P2] `unresolved` is documented as boolean but is never validated**  \n   `gerrit_mcp_server/main.py` — comment construction\n\n   Values such as `\"false\"`, `0`, or `None` are copied directly into the request:\n\n   ```python\n   \"unresolved\": comment.get(\"unresolved\", True)\n   ```\n\n   This contradicts the claim that every comment is validated up front and can\n   cause Gerrit to reject the entire batch. Validate that the value is a real\n   boolean before adding the comment, and include an invalid-`unresolved` test.\n\n3. **[P2] The generated input schema is too vague for batch comments**  \n   The parameter is typed as `List[Dict[str, Any]]`, so MCP clients receive an\n   array of unconstrained objects. The JSON argument-definition file only\n   provides prose and is not used to generate the FastMCP schema.\n\n   Introduce a typed comment input structure with required `file_path`,\n   `line_number`, and `message` fields, plus optional `unresolved`, so clients\n   can construct requests correctly before runtime validation.\n\nThe tests miss the important failure cases of invalid `unresolved` values and the tool’s MCP output schema.",
+      "revId": "f5aa411f66a072d569f9fa92cd809a73f7affd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d1cec257_8957b748",
+        "filename": "tests/unit/test_post_review_comments.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-01T22:07:36Z",
+      "side": 1,
+      "message": "Can you use example.com instead?\n```suggestion\nBASE_URL \u003d \"https://gerrit.example.com\"\n```",
+      "revId": "f5aa411f66a072d569f9fa92cd809a73f7affd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
