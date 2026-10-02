@@ -33,7 +33,11 @@ class TestGetChangeDetails(unittest.TestCase):
                 "status": "NEW",
                 "current_revision": "abc",
                 "revisions": {
-                    "abc": {"commit": {"message": "Test commit message\n\nBug: 123"}}
+                    "abc": {
+                        "_number": 1,
+                        "ref": "refs/changes/45/12345/1",
+                        "commit": {"message": "Test commit message\n\nBug: 123"},
+                    }
                 },
                 "reviewers": {
                     "REVIEWER": [{"email": "reviewer@example.com", "_account_id": 1}]
@@ -56,6 +60,11 @@ class TestGetChangeDetails(unittest.TestCase):
             self.assertIn("Subject: Test Subject", result[0]["text"])
             self.assertIn("Owner: owner@example.com", result[0]["text"])
             self.assertIn("Status: NEW", result[0]["text"])
+            self.assertIn(
+                "Current patch set: 1 (commit abc, ref refs/changes/45/12345/1)",
+                result[0]["text"],
+            )
+            self.assertNotIn("Patch sets:", result[0]["text"])
             self.assertIn("Bugs: 123", result[0]["text"])
             self.assertIn("Reviewers:", result[0]["text"])
             self.assertIn("- reviewer@example.com (Code-Review: +2)", result[0]["text"])
@@ -64,6 +73,36 @@ class TestGetChangeDetails(unittest.TestCase):
                 "- (Patch Set 1) [No date] (Gerrit): Uploaded patch set 1.",
                 result[0]["text"],
             )
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_get_change_details_all_revisions(self, mock_run_curl):
+        """ALL_REVISIONS lists every patch set with its commit, oldest first."""
+
+        async def run_test():
+            mock_response = {
+                "_number": 12345,
+                "subject": "Test Subject",
+                "owner": {"email": "owner@example.com"},
+                "status": "NEW",
+                "current_revision": "bbb",
+                "revisions": {
+                    "bbb": {"_number": 2, "ref": "refs/changes/45/12345/2"},
+                    "aaa": {"_number": 1, "ref": "refs/changes/45/12345/1"},
+                },
+            }
+            mock_run_curl.return_value = json.dumps(mock_response)
+
+            result = await main.get_change_details("12345", options=["ALL_REVISIONS"])
+
+            text = result[0]["text"]
+            self.assertIn(
+                "Current patch set: 2 (commit bbb, ref refs/changes/45/12345/2)", text
+            )
+            self.assertIn("Patch sets:\n- 1: aaa\n- 2: bbb\n", text)
+            url = mock_run_curl.call_args[0][0][0]
+            self.assertIn("o=ALL_REVISIONS", url)
 
         asyncio.run(run_test())
 

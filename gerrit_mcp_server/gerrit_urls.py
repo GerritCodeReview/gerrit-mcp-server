@@ -17,17 +17,17 @@ This module is responsible for determining the correct curl command for a given
 Gerrit URL by dispatching to the appropriate authentication module.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from gerrit_mcp_server import gerrit_auth
 
 
 def get_curl_command_for_gerrit_url(
     gerrit_base_url: str, config: Dict[str, Any]
-) -> List[str]:
+) -> gerrit_auth.CurlAuth:
     """
     Determines the appropriate curl command based on the authentication settings
-    for the given Gerrit host.
+    for the given Gerrit host, together with the credentials that command carries.
     """
     gerrit_hosts = config.get("gerrit_hosts", [])
     auth_config = None

@@ -265,11 +265,11 @@ async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     """Executes a curl command and returns the output."""
     config = load_gerrit_config()
     obs_headers = build_curl_header_args(_request_obs.get())
-    command = (
-        get_curl_command_for_gerrit_url(gerrit_base_url, config) + obs_headers + args
-    )
+    auth = get_curl_command_for_gerrit_url(gerrit_base_url, config)
+    command = auth.argv + obs_headers + args
+    logged_command = " ".join(auth.redacted_argv + obs_headers + args)
     with open(LOG_FILE_PATH, "a") as log_file:
-        log_file.write(f"[gerrit-mcp-server] Executing: {' '.join(command)}\n")
+        log_file.write(f"[gerrit-mcp-server] Executing: {logged_command}\n")
 
     process = await asyncio.create_subprocess_exec(
         *command,
@@ -489,11 +489,22 @@ async def get_change_details(
         "revisions", {}
     ):
         current_rev_info = details["revisions"][details["current_revision"]]
+        output += (
+            f"Current patch set: {current_rev_info['_number']} "
+            f"(commit {details['current_revision']}, ref {current_rev_info['ref']})\n"
+        )
         if "commit" in current_rev_info and "message" in current_rev_info["commit"]:
             commit_message = current_rev_info["commit"]["message"]
             bugs = extract_bugs_from_commit_message(commit_message)
             if bugs:
                 output += f"Bugs: {', '.join(sorted(list(bugs)))}\n"
+
+    if len(details.get("revisions", {})) > 1:
+        output += "Patch sets:\n"
+        for commit_sha, revision_info in sorted(
+            details["revisions"].items(), key=lambda item: item[1]["_number"]
+        ):
+            output += f"- {revision_info['_number']}: {commit_sha}\n"
 
     if "reviewers" in details and "REVIEWER" in details["reviewers"]:
         output += "Reviewers:\n"
