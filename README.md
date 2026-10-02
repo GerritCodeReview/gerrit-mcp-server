@@ -34,6 +34,18 @@ For detailed information, please see the documents in the `docs/` directory:
 - **[Example Use Cases](docs/use_cases.md)**: Scenarios demonstrating how to use
   the server.
 
+## Reporting bugs and feature requests
+
+Please report bugs and feature requests in the
+[Gerrit MCP Server component](https://issues.gerritcodereview.com/components/1895778)
+of the [Gerrit issue tracker](https://issues.gerritcodereview.com/).
+
+Due to spam abuse, membership in the
+[repo-discuss Google Group](https://groups.google.com/group/repo-discuss) is
+required to create issues. See the
+[announcement](https://www.gerritcodereview.com/2025-06-05-community-managers-minutes.html#reducing-spam-on-both-issue-tracker-and-gerritgooglesource)
+for more information.
+
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
@@ -100,7 +112,14 @@ For on-demand STDIO mode or client-specific installation instructions, see the
 **[Claude Code Setup Guide](docs/claude-code.md)**, or
 **[Codex Setup Guide](docs/codex.md)**.
 
-### Security
+## Contributing
+
+To contribute code or other changes, use the canonical
+[gerrit-mcp-server repository](https://gerrit.googlesource.com/gerrit-mcp-server)
+hosted on Gerrit and follow the [contribution guidelines](docs/contributing.md).
+This project does not accept GitHub pull requests.
+
+## Security
 
 This is not an officially supported Google product. This project is not eligible
 for the
