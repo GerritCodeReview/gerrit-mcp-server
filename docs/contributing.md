@@ -38,3 +38,19 @@ uv run ruff format .   # format
 ### Code reviews
 
 All submissions, including submissions by project members, require review.
+
+### Submit changes through Gerrit
+
+The canonical repository is
+[`gerrit.googlesource.com/gerrit-mcp-server`](https://gerrit.googlesource.com/gerrit-mcp-server).
+This project does not accept GitHub pull requests. Submit changes through Gerrit
+for review instead:
+
+```bash
+git checkout -b <your-feature-branch>
+git commit -m "Your descriptive commit message"
+git push origin HEAD:refs/for/master
+```
+
+Direct pushes to `master` are not permitted. See `AGENTS.md` for the complete
+Gerrit workflow, including Change-Id requirements.
