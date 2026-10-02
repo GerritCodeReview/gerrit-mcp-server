@@ -43,6 +43,45 @@ class TestGerritConfig(unittest.TestCase):
         )
 
     @patch("gerrit_mcp_server.main.load_gerrit_config")
+    def test_normalize_gerrit_url_keeps_http_for_loopback_hosts(self, mock_load_config):
+        mock_load_config.return_value = {
+            "gerrit_hosts": [
+                {
+                    "name": "Local dev",
+                    "external_url": "http://localhost:8080/",
+                    "authentication": {"type": "http_basic"},
+                }
+            ]
+        }
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
+        # A configured plain-HTTP loopback host keeps its scheme (and gets /a).
+        self.assertEqual(
+            _normalize_gerrit_url("http://localhost:8080", gerrit_hosts),
+            "http://localhost:8080/a",
+        )
+        self.assertEqual(
+            _normalize_gerrit_url("localhost:8080", gerrit_hosts),
+            "http://localhost:8080/a",
+        )
+        # Other loopback spellings are kept even when not configured.
+        for url in (
+            "http://127.0.0.1:8080",
+            "http://[::1]:8080",
+            "http://0.0.0.0:8080",
+        ):
+            self.assertEqual(_normalize_gerrit_url(url, gerrit_hosts), url)
+        # A non-loopback http:// host is still rewritten to https.
+        self.assertEqual(
+            _normalize_gerrit_url("http://other.example.com/", gerrit_hosts),
+            "https://other.example.com",
+        )
+        # A bare host still defaults to https.
+        self.assertEqual(
+            _normalize_gerrit_url("other.example.com", gerrit_hosts),
+            "https://other.example.com",
+        )
+
+    @patch("gerrit_mcp_server.main.load_gerrit_config")
     def test_normalize_gerrit_url_with_internal_only_mapping(self, mock_load_config):
         mock_load_config.return_value = {
             "gerrit_hosts": [

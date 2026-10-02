@@ -77,6 +77,8 @@ def test_get_gerrit_base_url_with_parameter(mock_load_config):
         ("fuchsia-review.googlesource.com", "https://fuchsia-review.googlesource.com"),
         ("another-gerrit.com", "https://another-gerrit.com"),
         ("http://another-gerrit.com", "https://another-gerrit.com"),
+        ("http://localhost:8080", "http://localhost:8080"),
+        ("http://127.0.0.1:8080/", "http://127.0.0.1:8080"),
         ("https://another-gerrit.com", "https://another-gerrit.com"),
     ],
 )
