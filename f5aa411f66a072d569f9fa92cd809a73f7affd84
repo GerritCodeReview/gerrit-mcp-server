@@ -18,6 +18,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5444d870_fd2fabbd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-10-02T20:16:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7d4e2bdf_f1df40a0",
+      "revId": "f5aa411f66a072d569f9fa92cd809a73f7affd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3e73928b_2ef0d8b3",
@@ -35,6 +53,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c7b071be_85b7d1cf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-10-02T20:16:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3e73928b_2ef0d8b3",
+      "revId": "f5aa411f66a072d569f9fa92cd809a73f7affd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d1cec257_8957b748",
@@ -48,6 +84,24 @@
       "writtenOn": "2026-10-01T22:07:36Z",
       "side": 1,
       "message": "Can you use example.com instead?\n```suggestion\nBASE_URL \u003d \"https://gerrit.example.com\"\n```",
+      "revId": "f5aa411f66a072d569f9fa92cd809a73f7affd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2b371fd_42109f5d",
+        "filename": "tests/unit/test_post_review_comments.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-10-02T20:16:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d1cec257_8957b748",
       "revId": "f5aa411f66a072d569f9fa92cd809a73f7affd84",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
