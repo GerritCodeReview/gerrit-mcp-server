@@ -24,6 +24,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "05097b5f_6e3ac413",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1706,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-02T09:55:24Z",
+      "side": 1,
+      "message": "A full range is safe: the code sets `line` to `end_line`, so the comment stays on the range. A partial range was dropped silently, and without `line_number` the comment then landed on the whole file. `post_draft_comment` rejects a partial range with an error that names the missing fields, and tests cover both cases.",
+      "parentUuid": "47ca782d_5907e748",
+      "range": {
+        "startLine": 1706,
+        "startChar": 4,
+        "endLine": 1706,
+        "endChar": 38
+      },
+      "revId": "0c782ef2fe6002c892f80e0ca193fdeaf55353a3",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ce45f767_5bb09cfa",
@@ -37,6 +61,30 @@
       "writtenOn": "2026-09-30T10:07:24Z",
       "side": 1,
       "message": "Make it work for range as well\n \n```suggestion\n    if \"line\" in payload:\n        location +\u003d f\" at line {payload[\u0027line\u0027]}\"\n\n```",
+      "range": {
+        "startLine": 1760,
+        "startChar": 4,
+        "endLine": 1762,
+        "endChar": 0
+      },
+      "revId": "0c782ef2fe6002c892f80e0ca193fdeaf55353a3",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f0367410_902433d3",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1762,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-02T09:55:24Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "ce45f767_5bb09cfa",
       "range": {
         "startLine": 1760,
         "startChar": 4,
