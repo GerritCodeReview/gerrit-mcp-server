@@ -1,0 +1,7 @@
+interface:
+  display_name: "Gerrit setup"
+  short_description: "Configure Gerrit connections"
+  default_prompt: "Configure or repair the Gerrit MCP server."
+
+policy:
+  allow_implicit_invocation: false
