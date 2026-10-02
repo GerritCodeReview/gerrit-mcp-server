@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "gerrit",
+  "version": "1.0.0",
+  "description": "An MCP server for interacting with the Gerrit code review system.",
+  "author": {
+    "name": "Gerrit Code Review",
+    "url": "https://www.gerritcodereview.com"
+  },
+  "homepage": "https://gerrit.googlesource.com/gerrit-mcp-server/+/refs/heads/master/docs/",
+  "repository": "https://gerrit.googlesource.com/gerrit-mcp-server",
+  "license": "Apache-2.0"
+}

@@ -10,11 +10,19 @@ Help the user create or update their Gerrit MCP Server configuration.
 ## Build check
 
 Before touching the config, verify the server environment and config state by
-running:
+running the command for the current plugin host:
 
 ```
+# Claude Code
 UV_PROJECT_ENVIRONMENT="${CLAUDE_PLUGIN_DATA}/.venv" uv run --directory "${CLAUDE_PLUGIN_ROOT}" gerrit-check-config
+
+# Codex
+UV_PROJECT_ENVIRONMENT="${PLUGIN_DATA}/.venv" uv run --directory "${PLUGIN_ROOT}" gerrit-check-config
 ```
+
+When invoked as a Claude Code skill, use `/gerrit:setup`. When invoked as a
+Codex skill, use `$setup`. Both forms are explicit-only and interactively guide
+the user through the same configuration flow.
 
 Interpret the result as follows:
 

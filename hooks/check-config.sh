@@ -16,11 +16,13 @@
 set -uo pipefail
 
 # pyproject.toml (which defines the gerrit-check-config console script) lives at
-# the repo root = ${CLAUDE_PLUGIN_ROOT}, so `uv run --directory $PLUGIN_ROOT` is
-# correct here. The fallback (hooks/..) resolves to the repo root for standalone
-# runs. ENV_PATH mirrors .mcp.json so the build target and MCP server agree.
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
-ENV_PATH="${CLAUDE_PLUGIN_DATA:-$PLUGIN_ROOT}/.venv"
+# the plugin root, so `uv run --directory $PLUGIN_ROOT` is correct here. Codex
+# provides PLUGIN_ROOT and PLUGIN_DATA; Claude Code provides the CLAUDE_* names.
+# The fallback resolves the repo root for standalone runs. ENV_PATH mirrors the
+# MCP manifests so the build target and MCP server agree.
+PLUGIN_ROOT="${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}}"
+PLUGIN_DATA="${PLUGIN_DATA:-${CLAUDE_PLUGIN_DATA:-$PLUGIN_ROOT}}"
+ENV_PATH="${PLUGIN_DATA}/.venv"
 
 out=$(UV_PROJECT_ENVIRONMENT="$ENV_PATH" \
       uv run --directory "$PLUGIN_ROOT" gerrit-check-config 2>&1)

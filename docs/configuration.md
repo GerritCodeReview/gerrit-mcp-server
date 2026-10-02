@@ -7,18 +7,20 @@ connection and authentication details for multiple Gerrit instances.
 A sample file is provided at `gerrit_mcp_server/gerrit_config.sample.json` which
 you can copy and customize.
 
-## Interactive Setup (`/gerrit:setup`)
+## Interactive Setup
 
-If your harness supports skills (tested with Claude Code), the `/gerrit:setup`
-skill can create or repair `gerrit_config.json` for you interactively instead of
-hand-editing the JSON. It prompts for each Gerrit host's URL and authentication
-method, sets `default_gerrit_base_url`, and writes the file.
+If your harness supports skills, the setup skill can create or repair
+`gerrit_config.json` for you interactively instead of hand-editing the JSON. It
+prompts for each Gerrit host's URL and authentication method, sets
+`default_gerrit_base_url`, and writes the file. Invoke it as `/gerrit:setup` in
+Claude Code or `$setup` in Codex.
 
-The skill is `disable-model-invocation`, so the model cannot run it on your
-behalf — you must invoke `/gerrit:setup` yourself. It is written against the
+The skill is explicit-only, so the model cannot run it on your behalf — you must
+invoke it yourself. It is written against the
 [Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview)
-open standard, so it is also expected to work in Gemini CLI, OpenAI Codex, and
-other compatible harnesses, though only Claude Code has been verified.
+open standard and is shared by the Claude Code and Codex plugin packages. The
+automated package tests cover both clients' artifacts; see the
+[Testing Guide](testing.md) for the manual client smoke tests.
 
 The rest of this document describes the config file in full, which is useful
 whether you write it by hand or want to understand what the skill produces.
