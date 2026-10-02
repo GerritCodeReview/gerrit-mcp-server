@@ -14,6 +14,38 @@ uv run pytest
 If you haven't run `./build-gerrit.sh` yet, `uv run` will set up the virtual
 environment automatically on first use.
 
+## Plugin Artifact Tests
+
+The integration test `tests/integration/test_plugin_package.py` validates the
+installable Claude Code artifacts without launching Claude Code. It checks the
+plugin manifest, marketplace entry, MCP launch configuration, skill metadata,
+and the configuration hook's JSON output and exit-code behavior.
+
+Run it directly with:
+
+```bash
+uv run pytest tests/integration/test_plugin_package.py
+```
+
+The hook tests run the real `hooks/check-config.sh` script and replace only its
+external `uv` invocation with a controlled test command. This keeps the tests
+deterministic while checking the paths, environment, output, and status that the
+client observes.
+
+## Claude Code Smoke Test
+
+The automated tests do not launch a Claude Code client. For a manual plugin
+smoke test, load the repository directly:
+
+```bash
+claude --plugin-dir <path-to-gerrit-mcp-server>
+```
+
+In the new session, verify that the `gerrit` MCP tools are available and that
+`/gerrit:setup` is offered when no configuration file exists. Use a temporary or
+test configuration rather than production credentials when exercising the setup
+flow.
+
 ## Test Structure
 
 The tests are organized as follows:
@@ -64,5 +96,5 @@ Gerrit instance to target and what credentials to use.
 Run them with:
 
 ```bash
-pytest tests/e2e
+uv run pytest tests/e2e
 ```
