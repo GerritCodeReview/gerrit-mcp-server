@@ -1,11 +1,13 @@
 # 🐍 Gerrit MCP Server
 
-An MCP (Model Context Protocol) server for interacting with the Gerrit code
-review system. This server allows a language model like Gemini to query changes,
-retrieve details, and manage reviews by executing `curl` commands against the
-Gerrit REST API.
+An MCP (Model Context Protocol) server that brings Gerrit code-review workflows
+to AI clients including the Gemini CLI, Claude Code, and OpenAI Codex. It
+provides tools to search changes, inspect diffs and review metadata, manage
+reviewers, comments, and change state, and analyze related or dependent changes.
+Optional extensions add tools backed by Gerrit plugins.
 
-This server can be run as a persistent **HTTP server** or on-demand via
+Use it as a **Gemini CLI extension**, **Claude Code plugin**, or **Codex
+plugin**, or run it directly as a persistent **HTTP server** or on-demand via
 **STDIO**.
 
 ## 📚 Documentation
@@ -93,9 +95,10 @@ script:
   ./server.sh stop
   ```
 
-For on-demand STDIO mode, please see the
-**[Gemini CLI Setup Guide](docs/gemini-cli.md)** or, to use this server as a
-Claude Code plugin, the **[Claude Code Setup Guide](docs/claude-code.md)**.
+For on-demand STDIO mode or client-specific installation instructions, see the
+**[Gemini CLI Setup Guide](docs/gemini-cli.md)**,
+**[Claude Code Setup Guide](docs/claude-code.md)**, or
+**[Codex Setup Guide](docs/codex.md)**.
 
 ### Security
 
