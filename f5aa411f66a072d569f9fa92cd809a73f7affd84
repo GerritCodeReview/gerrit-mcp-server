@@ -38,6 +38,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "460950f7_907d454c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-06T22:41:14Z",
+      "side": 1,
+      "message": "It doesn\u0027t look like the commit message was updated though.",
+      "parentUuid": "5444d870_fd2fabbd",
+      "revId": "f5aa411f66a072d569f9fa92cd809a73f7affd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "3e73928b_2ef0d8b3",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 1

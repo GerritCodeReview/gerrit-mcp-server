@@ -16,6 +16,57 @@
       "message": "Thanks @nasser.grainawi@oss.qualcomm.com for the review, addressed the comments, PTAL!",
       "revId": "0b81cc0c7bb864c70b2a5a6ef28adb615c9b7fc8",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "34f75482_791623f3",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1719,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-06T22:41:14Z",
+      "side": 1,
+      "message": "Did you confirm this works as expected? I thought there was an issue with using `NotRequired` when I tried it.",
+      "revId": "0b81cc0c7bb864c70b2a5a6ef28adb615c9b7fc8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9e6dbb36_09739f86",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1730,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-06T22:41:14Z",
+      "side": 1,
+      "message": "It would be nice to share this with `post_review_comment()` above. There\u0027s an open approved change modifying it too: 634444: Allow a draft comment without a line | https://gerrit-review.googlesource.com/c/gerrit-mcp-server/+/634444\n\nNot an issue you have to address now, just pointing it out.",
+      "revId": "0b81cc0c7bb864c70b2a5a6ef28adb615c9b7fc8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c6fb7a89_83c62734",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1837,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-06T22:41:14Z",
+      "side": 1,
+      "message": "I\u0027m not sure it\u0027s worth doing this up front. You can check the response (see [`ReviewResult`](https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#review-result)) and confirm what the user wanted to post is what actually happened.",
+      "revId": "0b81cc0c7bb864c70b2a5a6ef28adb615c9b7fc8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
