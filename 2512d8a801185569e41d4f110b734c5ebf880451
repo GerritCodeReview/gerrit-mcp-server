@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "540889a0_a34fc446",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 660,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-06T23:51:41Z",
+      "side": 1,
+      "message": "We should follow the new standard and return a typed result.",
+      "revId": "2512d8a801185569e41d4f110b734c5ebf880451",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e65fdabc_d9fc73f1",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 696,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-06T23:51:41Z",
+      "side": 1,
+      "message": "Raise an exception for fetch failures",
+      "revId": "2512d8a801185569e41d4f110b734c5ebf880451",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3c5b17d2_33519164",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 706,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-06T23:51:41Z",
+      "side": 1,
+      "message": "Raise an exception",
+      "range": {
+        "startLine": 701,
+        "startChar": 0,
+        "endLine": 706,
+        "endChar": 9
+      },
+      "revId": "2512d8a801185569e41d4f110b734c5ebf880451",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "26cec522_a781833f",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 715,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-06T23:51:41Z",
+      "side": 1,
+      "message": "This is probably also an error that should be an exception?",
+      "revId": "2512d8a801185569e41d4f110b734c5ebf880451",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
