@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "62e36fd7_bf1b5741",
+        "filename": "docs/codex.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-06T12:28:18Z",
+      "side": 1,
+      "message": "**Major:** Codex prefixes plugin skills with the plugin name, so `$setup` attaches no skill and only `$gerrit:setup` works (Codex CLI 0.155.1). A Codex user who follows this line cannot start the setup flow. Please write `$gerrit:setup` here and in `docs/configuration.md:16`, `docs/testing.md:64`, and `skills/setup/SKILL.md:24`.",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4edb4e1a_6174f202",
+        "filename": "docs/codex.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-06T12:28:18Z",
+      "side": 1,
+      "message": "**Minor:** In Codex the server reads this file from the plugin cache, `$CODEX_HOME/plugins/cache/gerrit-mcp/gerrit/1.0.0/`. A repeated `codex plugin add` or a `codex plugin remove` deletes that directory with the configuration in it, while `${PLUGIN_DATA}` survives both (Codex CLI 0.155.1). Please keep the configuration under `${PLUGIN_DATA}`, or document that setup must run again after a reinstall.",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b63714e3_559b8efe",
+        "filename": "docs/codex.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-06T12:28:18Z",
+      "side": 1,
+      "message": "**Major:** Codex CLI 0.155.1 never runs this hook while the root `plugin.json` exists, even with `--dangerously-bypass-hook-trust` or `extensions[\"com.openai\"].hooks` (openai/codex#39895). The same tree without `plugin.json` runs it, so this paragraph is false and the `PLUGIN_ROOT`/`PLUGIN_DATA` handling in `check-config.sh` never takes effect. Please document the limitation, because removing `plugin.json` leaves `${CLAUDE_PLUGIN_ROOT}` unexpanded in `.mcp.json` and the MCP server cannot start.",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1eb777b3_0acbce8b",
+        "filename": "hooks/check-config.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-06T12:28:18Z",
+      "side": 1,
+      "message": "**Minor:** The generic `PLUGIN_ROOT` and `PLUGIN_DATA` take precedence over the `CLAUDE_PLUGIN_*` names. In Claude Code, an unrelated `PLUGIN_DATA` in the user\u0027s environment makes the hook check a virtual environment that the server does not use. Please read the `CLAUDE_PLUGIN_*` names first: Codex hooks receive both pairs with equal values (Codex CLI 0.155.1).",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e2cd3741_797d52d5",
+        "filename": "hooks/check-config.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-06T12:28:18Z",
+      "side": 1,
+      "message": "**Minor:** This message and the ones at lines 66 and 75 address Claude Code only: they name `/gerrit:setup` and say \"Claude can rebuild it for you\". When the hook runs in Codex, the model tells the user to run `/gerrit:setup`, but Codex invokes the skill as `$gerrit:setup`. Please word the messages for both clients, for example by naming both commands.",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ba6b3195_9881b4de",
+        "filename": "skills/setup/SKILL.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-06T12:28:18Z",
+      "side": 1,
+      "message": "**Major:** Codex sets `PLUGIN_ROOT` and `PLUGIN_DATA` only for hooks and MCP servers, so the model\u0027s shell has neither, even with `$gerrit:setup` attached (Codex CLI 0.155.1). This line therefore runs `UV_PROJECT_ENVIRONMENT\u003d\"/.venv\" uv run --directory \"\" gerrit-check-config`, and the build check fails on every Codex run. Please replace these variables with paths the model can resolve in Codex.",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5fe9b8f2_fc193ccc",
+        "filename": "tests/integration/test_plugin_package.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-06T12:28:18Z",
+      "side": 1,
+      "message": "**Minor:** This substring check also passes when the line is commented out or sits under `interface:` instead of `policy:`, where Codex does not read it. The test then stays green while Codex can start the setup skill on its own. Please add PyYAML to the dev dependencies, parse the file, and assert that `policy.allow_implicit_invocation` is `False`.",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
