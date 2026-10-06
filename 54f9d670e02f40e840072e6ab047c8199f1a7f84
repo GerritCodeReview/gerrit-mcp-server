@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "18fcb7ad_61e0f86c",
+        "filename": ".github/pull_request_template.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-06T12:29:03Z",
+      "side": 1,
+      "message": "**Minor:** GitHub resolves a relative link in a pull request description against the pull request URL, so this link most likely opens a 404 page. Please use an absolute link, for example https://gerrit.googlesource.com/gerrit-mcp-server/+/refs/heads/master/docs/contributing.md.",
+      "revId": "54f9d670e02f40e840072e6ab047c8199f1a7f84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bd3658a2_87b02771",
+        "filename": "docs/contributing.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-06T12:29:03Z",
+      "side": 1,
+      "message": "**Minor:** This line sends readers to `AGENTS.md` for the Change-Id requirements, but `AGENTS.md` has none. Without the `commit-msg` hook Gerrit rejects this push by default, and in a clone of the GitHub mirror `origin` does not point to Gerrit. Please add the Gerrit clone URL and the hook installation step, or link `skills/gerrit-workflow/references/change-id-details.md`.",
+      "revId": "54f9d670e02f40e840072e6ab047c8199f1a7f84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
