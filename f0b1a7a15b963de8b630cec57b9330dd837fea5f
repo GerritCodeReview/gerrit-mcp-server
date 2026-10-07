@@ -35,6 +35,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7dcd421a_99ebfb58",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:37:01Z",
+      "side": 1,
+      "message": "No. Intraline data only adds the offsets of the changed characters inside a modified line. Each entry already carries the whole old and new line, so a model sees the change without them.",
+      "parentUuid": "bc89481b_7eb8d406",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "eae1404c_c89c966f",
@@ -48,6 +66,24 @@
       "writtenOn": "2026-06-05T23:16:05Z",
       "side": 1,
       "message": "Would it be better to return the [structured content](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#structured-content) (and schema)?\n\nThen I don\u0027t think you\u0027d need the `DiffFormatter` class at all. Unless I\u0027m missing something, that seems like a simpler solution (that we can probably apply to most of these tools).\n\nIf you do this, then I think most of my other comments aren\u0027t applicable.",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "40cebfa0_03978d3b",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:37:01Z",
+      "side": 1,
+      "message": "get_file_diff returns a typed result with an output schema. I kept the line numbering: Gerrit\u0027s /diff chunks carry no line numbers, so a model would have to add up the lengths of all earlier chunks. That count is what models get wrong, so each line entry carries its number in the new file. The change also folds unchanged lines more than context_lines away from a change, because /diff returns the whole file whatever context it is asked for.",
+      "parentUuid": "eae1404c_c89c966f",
       "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
@@ -69,6 +105,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3ef79c74_3e7b6760",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:37:01Z",
+      "side": 1,
+      "message": "The docstring example is gone together with the text format.",
+      "parentUuid": "8cf37408_c486a05b",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4a781ad7_54add3d9",
@@ -82,6 +136,24 @@
       "writtenOn": "2026-06-05T23:16:05Z",
       "side": 1,
       "message": "[AI review] In the Gerrit diff API a chunk carries exactly one of `ab` (context), `a`/`b` (edit), or `skip` — they\u0027re mutually exclusive. The current code calls all four emitters unconditionally, so a malformed or future-format response with both `ab` and `skip` in the same chunk would double-count line numbers silently. A short comment asserting the invariant (or an early-return guard) would help future readers:\n\n```python\n# Gerrit chunks carry exactly one of: ab (context), a/b (edit), or skip.\n```",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "01a314fe_0be72d4b",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 572,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:37:01Z",
+      "side": 1,
+      "message": "The chunk loop is an if/elif chain over ab, skip, and a/b, so the code states that a chunk carries one of them.",
+      "parentUuid": "4a781ad7_54add3d9",
       "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
@@ -103,6 +175,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "62e36677_e72654c3",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 594,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:37:01Z",
+      "side": 1,
+      "message": "This method is gone. A zero skip still adds no entry and does not shift the line numbers.",
+      "parentUuid": "0454506c_ee7fac5a",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "15dd9479_38a73b3e",
@@ -116,6 +206,24 @@
       "writtenOn": "2026-06-05T23:16:05Z",
       "side": 1,
       "message": "[AI review] This assertion relies on trailing spaces being preserved in the string (`\"     2:  \"` ends with two spaces for the empty `\"\"` line). Many editors and CI formatters strip trailing whitespace, which would silently break the test. Consider asserting against the split lines instead:\n\n```python\nself.assertIn(\"     2:  \", text.splitlines())\n```\n\nThat makes the intent clear and is immune to trailing-space stripping.",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a4cfa0e7_e3ecd1cb",
+        "filename": "tests/unit/test_get_file_diff.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:37:01Z",
+      "side": 1,
+      "message": "The tests compare whole line entries with assertEqual, so no assertion depends on trailing spaces.",
+      "parentUuid": "15dd9479_38a73b3e",
       "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
@@ -137,6 +245,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "aa567ab0_a62e62ae",
+        "filename": "tests/unit/test_get_file_diff.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:37:01Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "ff0f6e58_7ca3c506",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c860be14_788d38ec",
@@ -150,6 +276,24 @@
       "writtenOn": "2026-06-05T23:16:05Z",
       "side": 1,
       "message": "[AI review] No test for an empty `content: []` array (e.g. binary files or files where Gerrit elides all content). The formatter would return only the header lines, but there\u0027s no coverage to guard against regressions there.",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "511e6b50_fdf0326a",
+        "filename": "tests/unit/test_get_file_diff.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:37:01Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "c860be14_788d38ec",
       "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
