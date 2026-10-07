@@ -34,6 +34,24 @@
       "parentUuid": "3c08085e_4930d910",
       "revId": "92d6a489aea98053ccc05c0c56f6745dc6488049",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bf8ec69f_eb8dbd9c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:41:23Z",
+      "side": 1,
+      "message": "Since patch set 6, 561966 folds unchanged lines itself: get_file_diff takes context_lines (10 by default, -1 for the whole file). It covers what this change does, and this change no longer applies on top of it, so I suggest abandoning it. Thank you for finding that Gerrit ignores the context parameter.",
+      "parentUuid": "4f5d0a05_cff31077",
+      "revId": "92d6a489aea98053ccc05c0c56f6745dc6488049",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
