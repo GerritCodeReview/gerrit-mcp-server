@@ -18,6 +18,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f64c1637_033d0ee1",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 660,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:36:14Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "540889a0_a34fc446",
+      "revId": "2512d8a801185569e41d4f110b734c5ebf880451",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e65fdabc_d9fc73f1",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-10-06T23:51:41Z",
       "side": 1,
       "message": "Raise an exception for fetch failures",
+      "revId": "2512d8a801185569e41d4f110b734c5ebf880451",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3e46ae71_ca643bd1",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 696,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:36:14Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "e65fdabc_d9fc73f1",
       "revId": "2512d8a801185569e41d4f110b734c5ebf880451",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
@@ -58,6 +94,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1cc09aa5_86b9a768",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 706,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:36:14Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "3c5b17d2_33519164",
+      "range": {
+        "startLine": 701,
+        "startChar": 0,
+        "endLine": 706,
+        "endChar": 9
+      },
+      "revId": "2512d8a801185569e41d4f110b734c5ebf880451",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "26cec522_a781833f",
@@ -71,6 +131,24 @@
       "writtenOn": "2026-10-06T23:51:41Z",
       "side": 1,
       "message": "This is probably also an error that should be an exception?",
+      "revId": "2512d8a801185569e41d4f110b734c5ebf880451",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c42f0f82_1946f8eb",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 715,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-07T10:36:14Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "26cec522_a781833f",
       "revId": "2512d8a801185569e41d4f110b734c5ebf880451",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
