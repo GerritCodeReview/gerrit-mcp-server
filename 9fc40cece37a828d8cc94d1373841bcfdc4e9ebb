@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3b797049_474d79d6",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1821,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-14T21:19:39Z",
+      "side": 1,
+      "message": "Don\u0027t `file_path` and `line_number` need to match the parent? I don\u0027t think you can save a draft or post a comment in reply to a comment across files/lines. So, if these are set, we need to check that they match the parent values or else it\u0027s an error.",
+      "range": {
+        "startLine": 1819,
+        "startChar": 0,
+        "endLine": 1821,
+        "endChar": 19
+      },
+      "revId": "9fc40cece37a828d8cc94d1373841bcfdc4e9ebb",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
