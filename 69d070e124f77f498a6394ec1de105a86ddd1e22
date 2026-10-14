@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fa7f9376_0de7e66d",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-14T21:41:37Z",
+      "side": 1,
+      "message": "Do we need this in the result? This just comes from the input and we already have `old_path` and `new_path` below.",
+      "revId": "69d070e124f77f498a6394ec1de105a86ddd1e22",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8e6f88f3_8068dc74",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-14T21:41:37Z",
+      "side": 1,
+      "message": "I think it\u0027s worth having tests that directly target this class. They\u0027ll be simpler to read/debug compared to tests wrapping `get_file_diff()`.",
+      "revId": "69d070e124f77f498a6394ec1de105a86ddd1e22",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "648a3822_6c54684d",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 716,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-14T21:41:37Z",
+      "side": 1,
+      "message": "Why aren\u0027t you including the line number for deleted lines?",
+      "revId": "69d070e124f77f498a6394ec1de105a86ddd1e22",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "17af1726_dffd520e",
+        "filename": "tests/unit/test_get_file_diff.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-14T21:41:37Z",
+      "side": 1,
+      "message": "nit: Use `example.com`\n```suggestion\nGERRIT_BASE_URL \u003d \"https://gerrit.example.com\"\n```",
+      "revId": "69d070e124f77f498a6394ec1de105a86ddd1e22",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}

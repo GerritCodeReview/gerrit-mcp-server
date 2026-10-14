@@ -88,6 +88,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "727b4dd1_08875542",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-14T21:41:37Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "40cebfa0_03978d3b",
+      "revId": "f0b1a7a15b963de8b630cec57b9330dd837fea5f",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8cf37408_c486a05b",
