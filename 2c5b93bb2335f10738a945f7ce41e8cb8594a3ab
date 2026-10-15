@@ -1,9 +1,12 @@
 {
   "checks": {
     "zuul-check:gerrit-mcp-server": {
-      "state": "NOT_STARTED",
+      "state": "SCHEDULED",
+      "message": "Change has been enqueued in check",
+      "url": "https://ci.gerritcodereview.com/t/gerrit/status/change/636323,3",
+      "started": "2026-10-15T19:57:59Z",
       "created": "2026-10-15T19:37:33Z",
-      "updated": "2026-10-15T19:57:45Z"
+      "updated": "2026-10-15T19:58:00Z"
     }
   }
 }
