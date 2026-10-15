@@ -54,6 +54,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a03151dc_3f10e574",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-10-15T19:37:19Z",
+      "side": 1,
+      "message": "Sorry, my PS2 amend kept the old message; PS3 updates it to cover both error forms and the vote handling.",
+      "parentUuid": "460950f7_907d454c",
+      "revId": "f5aa411f66a072d569f9fa92cd809a73f7affd84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3e73928b_2ef0d8b3",
