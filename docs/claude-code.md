@@ -92,17 +92,14 @@ configuration guide for details.
 
 ## `gerrit-workflow` skill
 
-`skills/gerrit-workflow/SKILL.md` teaches the model how to drive the git side of
-Gerrit Code Review — pushing for review via `refs/for/<branch>`, creating new
-patch sets by amending without disturbing the `Change-Id` trailer, working with
-dependent change stacks and topics, and diagnosing common push errors such as
-`missing Change-Id in commit message footer` or `prohibited by Gerrit`.
+`skills/gerrit-workflow/SKILL.md` drives the git side of Gerrit: pushing to
+`refs/for/<branch>`, amending without losing the `Change-Id`, relation chains,
+and common push errors. Claude Code invokes it automatically.
 
-Unlike `/gerrit:setup`, this skill is model-invocable: Claude Code activates it
-automatically whenever a task involves Gerrit git operations, so you do not need
-to invoke it by name. Two reference files ship alongside it:
+For relation chains, pushed or not: one concern per change, `Change-Id` from the
+hook only, amend with `--no-edit` or `-F`, re-push the whole chain after editing
+any change in it. Hashtags and topics only when you ask, or the repository's
+`AGENTS.md`, `CONTRIBUTING` or `CLAUDE.md` says so.
 
-- `references/gerrit-vs-github.md` — a side-by-side comparison of Gerrit and
-  GitHub/GitLab workflows for common tasks.
-- `references/change-id-details.md` — a deep dive on `Change-Id` creation,
-  squashing, cherry-picks, and edge cases.
+References: `relation-chains.md` (chain recipes), `gerrit-vs-github.md`,
+`change-id-details.md`.

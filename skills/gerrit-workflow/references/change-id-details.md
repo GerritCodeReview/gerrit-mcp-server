@@ -58,9 +58,9 @@ a fresh one when:
 To force a new `Change-Id` on an existing commit:
 
 ```bash
-git commit --amend   # remove the Change-Id line, save
-# hook runs and inserts a new Change-Id
-git log -1           # verify the new Change-Id
+git log -1 --format=%B | grep -v '^Change-Id:' > <file>
+git commit --amend -F <file>   # hook runs and inserts a new Change-Id
+git log -1                     # verify the new Change-Id
 ```
 
 ## Squashing Commits
@@ -75,14 +75,9 @@ When squashing two or more commits that each have a `Change-Id`, keep exactly
    web UI.
 3. If neither was uploaded, keep any one and delete the rest.
 
-Interactive rebase example:
-
-```bash
-git rebase -i origin/master
-# Mark commits as "squash" or "fixup"
-# In the resulting commit message editor:
-#   Keep ONE Change-Id line, delete the others
-```
+A `fixup` in the rebase todo keeps one message and its `Change-Id`; `fixup -C`
+keeps the squashed commit's instead. Both run without an editor; see "Squashing
+Commits Before Push" in `SKILL.md`.
 
 ## The Link Footer Alternative
 
@@ -131,8 +126,8 @@ one produces:
 ! [remote rejected] HEAD -> refs/for/master (missing Change-Id in commit message footer)
 ```
 
-Fix: amend the commit to add a `Change-Id` line in the footer, or install the
-`commit-msg` hook so it is added automatically on future commits.
+Fix: install the `commit-msg` hook, then `git commit --amend --no-edit`; the
+hook adds the trailer. Do not type one by hand.
 
 Note: some repositories are configured with
 `Require Change-Id in commit message = FALSE`, which suppresses this error.
@@ -143,8 +138,10 @@ Behavior varies per repo.
 If you push a commit without a Change-Id and Gerrit accepts it (repo opt-out),
 Gerrit auto-generates one and displays it in the web UI. This ID is **not** in
 the commit message, so a subsequent amended push will not be associated with
-that change unless you manually copy the displayed `Change-Id` line into the
-commit message footer before pushing again.
+that change unless you copy the `Change-Id` that Gerrit displays for **this**
+change into the commit message footer before pushing again. Re-applying the id
+Gerrit already shows for the same change is the one case where a `Change-Id` is
+written by hand; never invent one or copy one from another change.
 
 Check whether a commit has a `Change-Id`:
 
@@ -164,8 +161,9 @@ git log -1 --format='%(trailers:key=Change-Id)'
 Fix a `Change-Id` that landed in the wrong place:
 
 ```bash
-git commit --amend
-# Move the Change-Id line to the very end of the message (after a blank line)
+git log -1 --format=%B > <file>
+# In <file>, move the Change-Id line to the very end (after a blank line)
+git commit --amend -F <file>
 ```
 
 ## Uniqueness and Scope

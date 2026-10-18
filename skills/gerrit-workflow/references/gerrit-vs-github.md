@@ -13,11 +13,11 @@ This reference maps common GitHub/GitLab operations to their Gerrit equivalents.
 
 ## Updating a Change
 
-| GitHub/GitLab                      | Gerrit                                                        |
-| ---------------------------------- | ------------------------------------------------------------- |
-| Push more commits to the PR branch | Amend the commit, push to `refs/for/<branch>` again           |
-| Force-push the branch              | `git commit --amend` + `git push origin HEAD:refs/for/master` |
-| PR is updated with new commits     | Gerrit adds a new patch set to the same change                |
+| GitHub/GitLab                      | Gerrit                                                                  |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| Push more commits to the PR branch | Amend the commit, push to `refs/for/<branch>` again                     |
+| Force-push the branch              | `git commit --amend --no-edit` + `git push origin HEAD:refs/for/master` |
+| PR is updated with new commits     | Gerrit adds a new patch set to the same change                          |
 
 **Critical difference:** GitHub tracks changes by branch name; Gerrit tracks
 them by `Change-Id` trailer in the commit message. Changing the `Change-Id`

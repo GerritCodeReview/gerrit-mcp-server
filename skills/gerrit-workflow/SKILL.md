@@ -1,6 +1,6 @@
 ---
 name: gerrit-workflow
-description: This skill should be used when the user asks to "submit a change to Gerrit", "push for review", "upload a patch", "update a change in Gerrit", "add a patch set", "work with Gerrit", "push to refs/for", "fix a missing Change-Id", "amend a Gerrit change", or any task involving git operations in a repository hosted on Gerrit Code Review. Also use when the user encounters Gerrit push errors such as "missing Change-Id in commit message footer" or "prohibited by Gerrit".
+description: This skill should be used when the user asks to "submit a change to Gerrit", "push for review", "upload a patch", "update a change in Gerrit", "add a patch set", "work with Gerrit", "push to refs/for", "fix a missing Change-Id", "amend a Gerrit change", "create a relation chain", "stack these changes", "amend a middle change", "re-push the chain", "rebase the chain", or any task involving git operations in a repository hosted on Gerrit Code Review. Also use when the user encounters Gerrit push errors such as "missing Change-Id in commit message footer" or "prohibited by Gerrit".
 allowed-tools: Bash, Read
 ---
 
@@ -87,11 +87,21 @@ existing change.
 ```bash
 # Edit files, then:
 git add <files>
-git commit --amend   # keep Change-Id unchanged in the editor
+git commit --amend --no-edit   # keeps the message and its Change-Id
 
 # Push again — Gerrit creates patch set 2 on the same change:
 git push origin HEAD:refs/for/master
 ```
+
+To change the message too, amend from a file that keeps the `Change-Id` line:
+
+```bash
+git log -1 --format=%B > <file>
+git commit --amend -F <file>
+```
+
+Never `git commit --amend -m`: it drops the `Change-Id`, so Gerrit opens a new
+change.
 
 ### 3. Work on Multiple Independent Changes
 
@@ -120,8 +130,19 @@ git commit -m "Step 2: wire up the UI"     # Change-Id: I222...
 git push origin HEAD:refs/for/master       # creates two linked changes
 ```
 
-Each change can be reviewed and submitted independently, but Gerrit shows the
-dependency chain.
+Each change is reviewed on its own and can be submitted once its ancestors are.
+`get_related_changes` returns the chain.
+
+Rules, pushed or not (recipes: `references/relation-chains.md`):
+
+- **One concern per change**, each building and tested on its own.
+- **Change-Id from the hook only.**
+- **Amend with `--no-edit` or `-F <file>`, never `-m`.**
+- **Fixes go into the change they fix**, from review or your own pass alike:
+  `--fixup` and autosquash, never a fix commit on top. Then the Change-Ids must
+  be unchanged and every commit must still pass.
+- **Re-push the whole chain** after editing any commit in it.
+- **Grouping is opt-in.**
 
 ### 5. Rebase and Re-push
 
@@ -133,17 +154,27 @@ git rebase origin/master   # Change-Ids are preserved automatically
 git push origin HEAD:refs/for/master
 ```
 
+Then verify every commit (`references/relation-chains.md`).
+
 ### 6. Squashing Commits Before Push
 
 When squashing several commits, keep exactly **one** `Change-Id` — prefer the
 one already known to Gerrit (i.e., the one that was previously pushed, if any).
-Remove the others:
+Remove the others.
+
+To squash commit `<sha7>` into the commit right before it, turn its `pick` line
+into `fixup` without opening an editor:
 
 ```bash
-git rebase -i origin/master   # squash commits
-# In the resulting commit message, delete all but one Change-Id line
+# keeps the older commit's message and Change-Id:
+git -c sequence.editor="perl -pi -e 's/^pick <sha7> /fixup <sha7> /'" rebase -i origin/master
+# keeps <sha7>'s message and Change-Id instead:
+git -c sequence.editor="perl -pi -e 's/^pick <sha7> /fixup -C <sha7> /'" rebase -i origin/master
 git push origin HEAD:refs/for/master
 ```
+
+Both leave exactly one `Change-Id`. A change whose Change-Id was dropped stays
+open on the server; ask the user to abandon it.
 
 ### 7. Cherry-pick to Another Branch
 
@@ -153,8 +184,8 @@ new Change-Id** (delete the old one so the hook creates a fresh one):
 ```bash
 git checkout -b backport-3.10 origin/stable-3.10
 git cherry-pick <commit-sha>
-git commit --amend   # delete the Change-Id line; save
-# hook regenerates a new Change-Id
+git log -1 --format=%B | grep -v '^Change-Id:' > <file>
+git commit --amend -F <file>   # hook adds a new Change-Id
 git push origin HEAD:refs/for/stable-3.10
 ```
 
@@ -165,8 +196,15 @@ same change on that branch.
 
 Additional metadata can be sent with the push via `%` options or `-o`:
 
+Add a hashtag or topic only when the user or the repository's contributor docs
+ask for it. With `submitWholeTopic` a topic submits all its changes at once.
+`set_hashtags` and `set_topic` group changes already uploaded.
+
 ```bash
-# Add a topic (groups related changes):
+# Add a hashtag (informational; found with hashtag:my-feature):
+git push origin HEAD:refs/for/master%t=my-feature
+
+# Add a topic (groups related changes, possibly across repositories):
 git push origin HEAD:refs/for/master%topic=my-feature
 
 # Request specific reviewers:
@@ -203,16 +241,17 @@ git fetch origin refs/changes/45/12345/3 && git checkout FETCH_HEAD
 
 ### `missing Change-Id in commit message footer`
 
-The commit has no `Change-Id`. Fix:
+The commit has no `Change-Id`. Install the `commit-msg` hook if it is missing
+(see [The commit-msg Hook](#the-commit-msg-hook)), then amend; the hook adds the
+trailer:
 
 ```bash
-# If hook is installed, amend will add it:
 git commit --amend --no-edit
-
-# If hook is NOT installed, add it manually:
-# Copy the Change-Id from the Gerrit web UI change page, then:
-git commit --amend   # paste "Change-Id: I..." into the footer
 ```
+
+Never type one. For a commit deeper in the chain:
+`git -c sequence.editor=true rebase -i --exec 'git commit --amend --no-edit' origin/master`
+(the hook keeps existing ids).
 
 ### `! [remote rejected] ... (prohibited by Gerrit)`
 
@@ -234,13 +273,19 @@ branch is already up to date with the target.
   review (requires special permissions).
 - **Never change or remove the `Change-Id` trailer** when amending a commit that
   is already under review — doing so creates a second, orphaned change.
-- **One logical change = one commit.** Gerrit reviews commits, not branches.
+- **One concern = one commit = one change.**
+- **Never type a `Change-Id`**, never commit with `--no-verify`, never
+  `git commit --amend -m`. The hook owns the trailer.
 - **Always verify `Change-Id` is present** with `git log -1` before pushing.
-- **Keep Change-Ids when rebasing** — git preserves them through rebase
-  automatically.
+- **Keep Change-Ids when rebasing**; compare the list before and after.
+- **Re-push the whole chain** after editing any commit in it.
+- **Never add a topic or hashtag unasked.**
+- **Never vote or submit** on the user's behalf.
 
 ## Additional Resources
 
+- **`references/relation-chains.md`** — Recipes for relation chains: concerns,
+  Change-Ids, amending, editing a middle change, re-pushing, grouping
 - **`references/gerrit-vs-github.md`** — Side-by-side comparison of Gerrit and
   GitHub/GitLab workflows for common tasks
 - **`references/change-id-details.md`** — Deep dive on Change-Id: creation,
