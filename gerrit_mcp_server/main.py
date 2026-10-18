@@ -1220,6 +1220,56 @@ async def set_topic(
         ]
 
 
+class _HashtagsResult(TypedDict):
+    change_id: str
+    hashtags: List[str]
+
+
+@mcp.tool()
+async def set_hashtags(
+    change_id: str,
+    add: Optional[List[str]] = None,
+    remove: Optional[List[str]] = None,
+    gerrit_base_url: Optional[str] = None,
+) -> _HashtagsResult:
+    """
+    Adds hashtags to and removes hashtags from a change.
+
+    Hashtags are free-form labels; unlike a topic they never change what is
+    submitted together, so they can group related changes for a
+    hashtag:<name> search. Pass neither add nor remove to read the current
+    hashtags. Returns the hashtags of the change after the update. Raises
+    ValueError when Gerrit refuses the update.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+    url = f"{base_url}/changes/{change_id}/hashtags"
+
+    if add or remove:
+        payload: Dict[str, Any] = {}
+        if add:
+            payload["add"] = add
+        if remove:
+            payload["remove"] = remove
+        args = _create_post_args(url, payload)
+    else:
+        args = [url]
+
+    result_str = await run_curl(args, base_url)
+    try:
+        hashtags = json.loads(result_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Failed to set hashtags on CL {change_id}.\n{result_str}"
+        ) from e
+    if not isinstance(hashtags, list):
+        raise ValueError(f"Failed to set hashtags on CL {change_id}.\n{result_str}")
+    return {"change_id": change_id, "hashtags": hashtags}
+
+
 class _ParentChange(TypedDict):
     change_number: int
     subject: str
