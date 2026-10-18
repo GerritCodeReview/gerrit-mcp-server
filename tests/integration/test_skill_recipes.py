@@ -16,6 +16,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).parents[2]
 WORKFLOW = PROJECT_ROOT / "skills/gerrit-workflow/SKILL.md"
 CHAINS = PROJECT_ROOT / "skills/gerrit-workflow/references/relation-chains.md"
+RETRO_SPLIT = PROJECT_ROOT / "skills/stack-planner/references/retro-split.md"
 
 # Stands in for Gerrit's commit-msg hook: skips fixup!/squash! commits and adds
 # a Change-Id, from the message and HEAD, unless one is there.
@@ -257,3 +258,73 @@ def test_cherry_pick_gets_new_change_id(chain, tmp_path):
 
     [new_id] = _change_ids(chain)
     assert new_id != old_id
+
+
+def test_retro_split_of_worktree_keeps_the_tree(repo, tmp_path):
+    lines = [f"line {n}\n" for n in range(1, 21)]
+    _commit(repo, "shared.txt", "".join(lines), "Add shared")
+    _git(repo, "update-ref", "refs/remotes/origin/master", "HEAD")
+    lines[1] = "concern a\n"
+    lines[17] = "concern b\n"
+    (repo / "shared.txt").write_text("".join(lines))
+    (repo / "new.txt").write_text("concern b\n")
+
+    _ok(repo, _recipe(RETRO_SPLIT, "git add -A"))
+    orig = _ok(repo, _recipe(RETRO_SPLIT, "git stash create"))
+    _ok(repo, _recipe(RETRO_SPLIT, "git reset\n"))
+    _ok(repo, _recipe(RETRO_SPLIT, "git tag retro-split/orig <orig>", orig=orig))
+
+    # Concern a's patch: the diff header and the first of its two hunks.
+    header, hunks = _git(repo, "diff", "--", "shared.txt").split("\n@@", 1)
+    first_hunk = hunks.split("\n@@")[0]
+    patch = tmp_path / "concern-a.patch"
+    patch.write_text(f"{header}\n@@{first_hunk}\n")
+    message = tmp_path / "message"
+    _ok(
+        repo,
+        _recipe(
+            RETRO_SPLIT,
+            "git apply --cached --recount <patch-file>",
+            **{"patch-file": str(patch)},
+        ),
+    )
+    message.write_text("Concern a\n")
+    _ok(
+        repo,
+        _recipe(RETRO_SPLIT, "git commit -F <msg-file>", **{"msg-file": str(message)}),
+    )
+    add = _recipe(RETRO_SPLIT, "git add <path>...")
+    _ok(repo, add.replace("<path>...", "shared.txt new.txt"))
+    message.write_text("Concern b\n")
+    _ok(
+        repo,
+        _recipe(RETRO_SPLIT, "git commit -F <msg-file>", **{"msg-file": str(message)}),
+    )
+
+    assert _ok(repo, _recipe(RETRO_SPLIT, "git status --porcelain")) == ""
+    assert (
+        _ok(repo, _recipe(RETRO_SPLIT, "git diff retro-split/orig..HEAD --stat")) == ""
+    )
+    assert "concern b" not in _git(repo, "show", "HEAD~1:shared.txt")
+    assert len(_change_ids(repo)) == 2
+
+
+def test_retro_split_keeping_the_change_as_tip(chain):
+    (chain / "x.txt").write_text("x\n")
+    (chain / "y.txt").write_text("y\n")
+    _git(chain, "add", "x.txt", "y.txt")
+    _git(chain, "commit", "-q", "-m", "Add x and y")
+    tip_id = _change_ids(chain)[-1]
+
+    _ok(chain, _recipe(RETRO_SPLIT, "git tag retro-split/orig HEAD"))
+    base = _ok(chain, _recipe(RETRO_SPLIT, "git rev-parse HEAD~1"))
+    _ok(chain, _recipe(RETRO_SPLIT, "git reset <base>", base=base))
+    _git(chain, "add", "x.txt")
+    _git(chain, "commit", "-q", "-m", "Add x")
+    _git(chain, "add", "y.txt")
+    _ok(chain, _recipe(RETRO_SPLIT, "git commit -C retro-split/orig"))
+
+    assert _change_ids(chain)[-1] == tip_id
+    assert (
+        _ok(chain, _recipe(RETRO_SPLIT, "git diff retro-split/orig..HEAD --stat")) == ""
+    )

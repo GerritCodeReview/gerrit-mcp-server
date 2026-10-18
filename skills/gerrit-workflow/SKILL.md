@@ -135,7 +135,8 @@ Each change is reviewed on its own and can be submitted once its ancestors are.
 
 Rules, pushed or not (recipes: `references/relation-chains.md`):
 
-- **One concern per change**, each building and tested on its own.
+- **One concern per change**, each building and tested on its own; plan the cut
+  with the `stack-planner` skill.
 - **Change-Id from the hook only.**
 - **Amend with `--no-edit` or `-F <file>`, never `-m`.**
 - **Fixes go into the change they fix**, from review or your own pass alike:

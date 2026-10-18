@@ -6,7 +6,8 @@ change, pushed or not, so each must be reviewable on its own.
 
 ## One Concern per Change
 
-A commit belongs in the chain when it:
+Plan the cut with the `stack-planner` skill. A commit belongs in the chain when
+it:
 
 - states one behaviour or one mechanical transformation, with no "and";
 - builds and passes with only the earlier commits present;

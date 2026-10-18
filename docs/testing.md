@@ -35,9 +35,9 @@ client observes.
 ## Skill Recipe Tests
 
 `tests/integration/test_skill_recipes.py` runs the git recipes of the
-`gerrit-workflow` skill in temporary repositories, with a stub `commit-msg` hook
-and no editor. Each recipe must appear verbatim in its skill file, so a recipe
-changed in a skill is changed in the test too.
+`gerrit-workflow` and `stack-planner` skills in temporary repositories, with a
+stub `commit-msg` hook and no editor. Each recipe must appear verbatim in its
+skill file, so a recipe changed in a skill is changed in the test too.
 
 ## Claude Code Smoke Test
 

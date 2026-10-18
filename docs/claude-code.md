@@ -103,3 +103,20 @@ any change in it. Hashtags and topics only when you ask, or the repository's
 
 References: `relation-chains.md` (chain recipes), `gerrit-vs-github.md`,
 `change-id-details.md`.
+
+## `stack-planner` skill
+
+`skills/stack-planner/SKILL.md` splits work into an ordered chain of changes,
+one concern each, every one building and tested on its own, and stops until you
+approve the plan.
+
+- How fine to cut is a judgement call the plan states.
+- Above ~400 production lines (tests and docs not counted) a change needs a
+  one-line justification; it is never split only to get under the number. Set
+  other values in `AGENTS.md`, `CONTRIBUTING` or `CLAUDE.md`.
+- Mechanical changes (rename, migration, formatter) stay one change.
+- Retro-split turns a commit or worktree that mixes concerns into one commit per
+  concern, proven equal to the original by an empty `git diff`.
+
+It works for Gerrit relation chains and stacked GitHub PRs alike. References:
+`plan-template.md`, `split-patterns.md`, `retro-split.md`, `budget.md`.
