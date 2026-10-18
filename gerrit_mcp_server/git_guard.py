@@ -1,8 +1,9 @@
 """PreToolUse guard for git commands run by Claude Code in Gerrit repositories.
 
 Reads the hook payload from stdin and prints a permission decision as JSON:
-"deny" for a command that would lose or forge a Change-Id, "ask" for one the
-user has to confirm, nothing otherwise. It always exits 0 and stays silent on
+"deny" for a command that would lose or forge a Change-Id or bypass review,
+"ask" for one the user has to confirm (every push for review), nothing
+otherwise. It always exits 0 and stays silent on
 anything it cannot parse or check, so a broken guard never blocks git.
 
 Only the standard library is used: the guard runs before every git command.
@@ -630,6 +631,376 @@ def check_commit(
             )
 
 
+@dataclass
+class PushOptions:
+    remote: Optional[str] = None
+    refspecs: List[str] = field(default_factory=list)
+    force: bool = False
+    delete: bool = False
+    all_branches: bool = False
+    tags_only: bool = False
+    push_options: List[str] = field(default_factory=list)
+
+
+_PUSH_LONG_WITH_VALUE = {"--repo", "--receive-pack", "--exec", "--push-option"}
+_PUSH_FORCE = {"--force", "--force-with-lease", "--force-if-includes"}
+_PUSH_ALL = {"--all", "--branches", "--mirror"}
+_PUSH_LONG = _PUSH_LONG_WITH_VALUE | _PUSH_FORCE | _PUSH_ALL | {"--delete", "--tags"}
+
+
+def _may_expand(word: str, patterns: str) -> bool:
+    """Whether the shell may still turn a word into something else.
+
+    shlex keeps $VAR, `cmd`, braces and globs as literal text, so the guard
+    sees a different word than git would.
+    """
+    return any(c in word for c in "$`" + patterns) or word.startswith("~")
+
+
+def parse_push_args(args: List[str]) -> PushOptions:
+    options = PushOptions()
+    positional: List[str] = []
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        i += 1
+        if arg == "--":
+            positional += args[i:]
+            break
+        if arg.startswith("--"):
+            name, has_value, value = arg.partition("=")
+            names = _long_options(name, _PUSH_LONG)
+            if names & _PUSH_LONG_WITH_VALUE and not has_value and i < len(args):
+                value = args[i]
+                i += 1
+            if names & _PUSH_FORCE:
+                options.force = True
+            if "--delete" in names:
+                options.delete = True
+            if names & _PUSH_ALL:
+                options.all_branches = True
+            if names == {"--tags"}:
+                options.tags_only = True
+            if "--push-option" in names:
+                options.push_options.append(value)
+            if "--repo" in names and not options.remote:
+                options.remote = value
+            continue
+        if arg.startswith("-") and arg != "-":
+            for position, flag in enumerate(arg[1:], start=1):
+                if flag == "o":
+                    value = arg[position + 1 :]
+                    if not value and i < len(args):
+                        value = args[i]
+                        i += 1
+                    options.push_options.append(value)
+                    break
+                if flag == "f":
+                    options.force = True
+                elif flag == "d":
+                    options.delete = True
+            continue
+        positional.append(arg)
+    if positional:
+        options.remote = options.remote or positional[0]
+        options.refspecs = positional[1:]
+    return options
+
+
+def _current_branch(directory: Path) -> Optional[str]:
+    return _git(directory, "symbolic-ref", "-q", "--short", "HEAD")
+
+
+def _push_remote(directory: Path, options: PushOptions) -> str:
+    if options.remote:
+        return options.remote
+    branch = _current_branch(directory)
+    keys = [f"branch.{branch}.pushRemote", "remote.pushDefault"] if branch else []
+    keys += [f"branch.{branch}.remote"] if branch else []
+    for key in keys:
+        value = _git(directory, "config", "--get", key)
+        if value:
+            return value
+    return "origin"
+
+
+def _push_refspecs(directory: Path, remote: str, options: PushOptions) -> List[str]:
+    if options.refspecs:
+        return options.refspecs
+    if options.all_branches:
+        return ["refs/heads/*:refs/heads/*"]
+    if options.tags_only:
+        return []
+    configured = _git(directory, "config", "--get-all", f"remote.{remote}.push")
+    if configured:
+        return configured.splitlines()
+    # push.default (simple, current, upstream) pushes the current branch to a
+    # branch of the same or the upstream name: a direct push.
+    return [_current_branch(directory) or "HEAD"]
+
+
+def _is_tag(directory: Path, name: str) -> bool:
+    return (
+        _git(directory, "rev-parse", "-q", "--verify", f"refs/tags/{name}") is not None
+    )
+
+
+def _destination_kind(
+    directory: Path, source: str, destination: str, explicit: bool
+) -> str:
+    """Classifies a push destination as "for", "branch", "tag" or "ref"."""
+    if destination.startswith("refs/for/"):
+        return "for"
+    if destination.startswith("refs/heads/"):
+        return "branch"
+    if destination.startswith("refs/tags/"):
+        return "tag"
+    if destination.startswith("refs/"):
+        return "ref"  # refs/meta/config, refs/changes/*, notes, ...
+    if not destination or destination == "HEAD":
+        return "branch"
+    # git pushes a bare "<tag>" to refs/tags/<tag>; an unqualified
+    # destination written after a colon is taken as a branch.
+    if not explicit and _is_tag(directory, source):
+        return "tag"
+    return "branch"
+
+
+def _chain(directory: Path, remote: str, branch: str, source: str) -> List[str]:
+    base = f"refs/remotes/{remote}/{branch}"
+    if _git(directory, "rev-parse", "-q", "--verify", base) is None:
+        return []
+    out = _git(
+        directory,
+        "log",
+        "--reverse",
+        "--no-show-signature",  # see _check_typed_change_ids
+        "--format=%h %s",
+        f"{base}..{source or 'HEAD'}",
+    )
+    return [line for line in (out or "").splitlines() if line]
+
+
+def _configured_push_options(directory: Path) -> List[str]:
+    """push.pushOption values, used when no -o is given; an empty one resets."""
+    values: List[str] = []
+    out = _git(directory, "config", "--get-all", "push.pushOption")
+    for value in (out or "").split("\n"):
+        values = values + [value] if value else []
+    return values
+
+
+# Push options that vote or submit on upload (%submit, %l=Code-Review+2, ...).
+_REVIEW_BYPASS = re.compile(r"\s*(submit|merged|l|label)\s*(=|$)", re.IGNORECASE)
+
+
+def check_push(invocation: GitInvocation, decision: Decision) -> None:
+    if _ask_on_repository_override(invocation, decision):
+        return
+    directory = invocation.directory
+    if invocation.config:
+        decision.ask.append(
+            f"git push with -c {', '.join(invocation.config)}: the guard checks "
+            "the push against the repository's own config, which this "
+            "overrides. Confirm the push."
+        )
+        return
+    if any(
+        _may_expand(a, "{?[")
+        or ("*" in a and not a.startswith(("refs/", "+refs/", "HEAD")))
+        for a in invocation.args
+    ):
+        decision.ask.append(
+            "git push with a shell expansion in its arguments: the guard cannot "
+            "tell where it pushes. Confirm the push."
+        )
+        return
+    options = parse_push_args(invocation.args)
+    remote = _push_remote(directory, options)
+    if _git(directory, "config", "--bool", "--get", f"remote.{remote}.mirror") == (
+        "true"
+    ):
+        options.all_branches = options.force = True
+    allow_direct = (
+        # Only the clone's own .git/config counts (no global, system or
+        # included files), so the setting stays a per-clone choice.
+        _git(
+            directory,
+            "config",
+            "--local",
+            "--bool",
+            "--get",
+            "gerrit-mcp.allowDirectPush",
+        )
+        == "true"
+    )
+    confirm = (
+        _git(
+            directory, "config", "--local", "--bool", "--get", "gerrit-mcp.confirmPush"
+        )
+        != "false"
+    )
+
+    for refspec in _push_refspecs(directory, remote, options):
+        force = options.force or refspec.startswith("+")
+        refspec = refspec.removeprefix("+")
+        if options.delete:
+            source, destination, explicit = "", refspec, True
+        else:
+            source, explicit, destination = refspec.partition(":")
+            destination = destination or source
+        destination, _, suffix = destination.partition("%")
+        kind = _destination_kind(directory, source, destination, bool(explicit))
+
+        if kind == "branch" and not allow_direct:
+            branch = destination.removeprefix("refs/heads/")
+            if branch in ("", "HEAD") or "*" in branch:
+                branch = _current_branch(directory) or "<branch>"
+            decision.deny.append(
+                f"'git push {remote} {refspec}' pushes straight to branch "
+                f"'{branch}' and bypasses Gerrit review. Push for review instead: "
+                f"git push {remote} HEAD:refs/for/{branch}. Only the user can "
+                "allow direct pushes, per clone (docs/claude-code.md, 'Git "
+                "guard')."
+            )
+        if kind == "ref":
+            decision.ask.append(
+                f"'git push {remote} {refspec}' updates {destination} directly, "
+                "outside review. Confirm the push; a change for review goes to "
+                "refs/for/<branch>."
+            )
+        if kind != "for":
+            continue
+
+        branch = destination.removeprefix("refs/for/")
+        if force:
+            decision.deny.append(
+                f"Force-pushing to refs/for/{branch} has no effect on Gerrit: a "
+                "push to refs/for creates patch sets from the Change-Ids and "
+                "never rewrites anything. Push without --force, -f or '+'."
+            )
+            continue
+        chain = _chain(directory, remote, branch, source)
+        pending = [
+            line for line in chain if re.match(r"^\S+ (fixup|squash|amend)!", line)
+        ]
+        if pending:
+            decision.deny.append(
+                f"The chain to refs/for/{branch} still contains fixup commits "
+                f"({'; '.join(pending)}); Gerrit would upload them as changes of "
+                "their own. Squash them first: git -c sequence.editor=true rebase "
+                f"-i --autosquash {remote}/{branch}"
+            )
+            continue
+
+        push_options = suffix.split(",") if suffix else []
+        push_options += options.push_options or _configured_push_options(directory)
+        bypass = [o for o in push_options if _REVIEW_BYPASS.match(o)]
+        if bypass:
+            decision.deny.append(
+                f"Push option {', '.join(bypass)} votes or submits on upload; "
+                "votes and submit are the user's. Push without it."
+            )
+            continue
+        if not confirm:
+            continue
+        topic = next((o for o in push_options if o.startswith("topic=")), None)
+        reason = (
+            f"Push {len(chain) or 'the'} change(s) to refs/for/{branch} on {remote}"
+        )
+        if chain:
+            shown = chain[:10] + (
+                [f"… {len(chain) - 10} more"] if len(chain) > 10 else []
+            )
+            reason += ":\n  " + "\n  ".join(shown)
+        if topic:
+            reason += (
+                f"\nWith {topic}: if the server has submitWholeTopic enabled, every "
+                "change in the topic is submitted together. Intended?"
+            )
+        decision.ask.append(reason)
+
+
+_CONFIG_READ_ACTIONS = {"--get", "--get-all", "--get-regexp", "get"}
+_CONFIG_READ_FLAGS = {
+    "--local",
+    "--global",
+    "--system",
+    "--worktree",
+    "--bool",
+    "--int",
+    "--show-origin",
+    "--show-scope",
+    "--null",
+    "-z",
+    "--name-only",
+}
+
+
+def _is_plain_read(args: List[str]) -> bool:
+    """`git config [flags] --get <key>`: one read action and only the key."""
+    actions = [a for a in args if a in _CONFIG_READ_ACTIONS]
+    others = [a for a in args if a not in _CONFIG_READ_ACTIONS]
+    positional = [a for a in others if not a.startswith("-")]
+    flags = [a for a in others if a.startswith("-")]
+    return (
+        len(actions) == 1
+        and len(positional) == 1
+        and all(f in _CONFIG_READ_FLAGS for f in flags)
+    )
+
+
+def _is_config_edit(args: List[str]) -> bool:
+    """`git config edit`, `--edit` or an abbreviation of it, or `-e` in a bundle."""
+    positional = [a for a in args if not a.startswith("-")]
+    return (
+        positional[:1] == ["edit"]
+        or any(len(a) >= 3 and "--edit".startswith(a) for a in args)
+        or any(re.match(r"^-[A-Za-z]*e", a) for a in args)
+    )
+
+
+# The guard's config section as a whole word, so "gerrit-mcp-server" in a path
+# does not count.
+_GUARD_SECTION = re.compile(r"gerrit-mcp(?![\w-])", re.IGNORECASE)
+
+
+def _clone_config(args: List[str]) -> List[str]:
+    """The key=value settings `git clone -c` writes into the new clone."""
+    values = []
+    for i, arg in enumerate(args):
+        name, has_value, value = arg.partition("=")
+        if arg == "-c" or (len(name) >= 6 and "--config".startswith(name)):
+            if has_value:
+                values.append(value)
+            elif i + 1 < len(args):
+                values.append(args[i + 1])
+        elif arg.startswith("-c"):
+            values.append(arg[2:])
+    return values
+
+
+def check_config(invocation: GitInvocation, decision: Decision) -> None:
+    """Keeps the guard's own settings (gerrit-mcp.*) the user's to change."""
+    args = invocation.args
+    names_guard = any(
+        _GUARD_SECTION.search(a) or ("gerrit" in a.lower() and _may_expand(a, "{*?["))
+        for a in args
+    )
+    if (names_guard and not _is_plain_read(args)) or _is_config_edit(args):
+        decision.deny.append(
+            "gerrit-mcp.* settings relax the git guard, so only the user changes "
+            "them, and git config --edit can change them without naming them. "
+            "Ask the user to run the git config command themselves."
+        )
+        return
+    if any(_may_expand(a, "{*?[") for a in args):
+        decision.ask.append(
+            "git config with a shell expansion in its arguments: the guard "
+            "cannot tell which setting it changes. Confirm the command."
+        )
+
+
 def evaluate(payload: Dict) -> Decision:
     """Applies the guard rules to a PreToolUse payload of the Bash tool."""
     decision = Decision()
@@ -643,13 +1014,38 @@ def evaluate(payload: Dict) -> Decision:
     except ValueError:
         return decision
     for invocation in invocations:
-        if invocation.verb != "commit":
+        settings = list(invocation.config)
+        if invocation.verb == "clone":
+            settings += _clone_config(invocation.args)
+        if invocation.verb != "config" and any(
+            _GUARD_SECTION.search(s) for s in settings
+        ):
+            decision.deny.append(
+                "gerrit-mcp.* settings relax the git guard, so only the user "
+                "changes them."
+            )
+            continue
+        if invocation.verb in ("send-pack", "http-push"):
+            decision.ask.append(
+                f"git {invocation.verb} sends refs without the push checks. "
+                "Confirm the command; a change for review goes to refs/for/<branch>."
+            )
+            continue
+        if invocation.verb == "config":
+            # Checked in every repository: a global or system setting could
+            # otherwise be written from anywhere.
+            check_config(invocation, decision)
+            continue
+        if invocation.verb not in ("commit", "push"):
             continue
         if not invocation.directory.is_dir() or not is_gerrit_repo(
             invocation.directory
         ):
             continue
-        check_commit(invocation, heredocs, decision)
+        if invocation.verb == "commit":
+            check_commit(invocation, heredocs, decision)
+        else:
+            check_push(invocation, decision)
     return decision
 
 

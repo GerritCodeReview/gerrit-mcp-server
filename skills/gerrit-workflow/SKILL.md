@@ -271,8 +271,8 @@ branch is already up to date with the target.
 
 ## Critical Rules
 
-In Claude Code the plugin's git guard enforces the commit rules. A denial names
-the right command; use it.
+In Claude Code the plugin's git guard enforces these rules and asks before every
+push for review. A denial names the right command; use it.
 
 - **Never push directly to `refs/heads/*`** unless intentionally bypassing
   review (requires special permissions).

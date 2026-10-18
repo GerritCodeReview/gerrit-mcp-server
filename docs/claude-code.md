@@ -99,13 +99,27 @@ nothing.
 | `git commit --amend -F <file>` where the file has no `Change-Id`                     | deny     |
 | `git commit --amend -F` with a heredoc `Change-Id` other than HEAD's                 | deny     |
 | `git commit --amend -F` with a heredoc `Change-Id` equal to HEAD's (adds a note)     | allow    |
+| `git push` to `refs/heads/*` or a bare branch name                                   | deny     |
+| `git push --force` to `refs/for/*`                                                   | deny     |
+| `git push` to `refs/for/*` with `fixup!`/`squash!` commits in the chain              | deny     |
+| `git push` with a push option that votes or submits (`l=`, `submit`, `merged`)       | deny     |
+| any other `git push` to `refs/for/*`; it lists the changes being pushed              | ask      |
+| `git push` to another ref (`refs/meta/config`, ...), or with `-c` overrides          | ask      |
+| `git config` writing a `gerrit-mcp.*` key                                            | deny     |
 
 It sees through wrappers (`env`, `bash -c`), git aliases and abbreviated
 options, and asks when `--git-dir`, `GIT_DIR` or `GIT_CONFIG_*` point git
 elsewhere. It is a safety net, not a security boundary; enforce policy with
 Gerrit's access rules. It allows what it cannot parse, and it does not see file
 edits made outside the Bash tool, nor git commands run by git itself
-(`git submodule foreach`, `git subtree push`).
+(`git submodule foreach`, `git subtree push`). Change-Id checks on push are left
+to Gerrit.
+
+To allow direct pushes in one clone, run
+`git config gerrit-mcp.allowDirectPush true` yourself. To push to `refs/for/*`
+without the confirmation, for automation, run
+`git config gerrit-mcp.confirmPush false`. Only the clone's `.git/config` counts
+for either.
 
 ## `/gerrit:setup` skill
 

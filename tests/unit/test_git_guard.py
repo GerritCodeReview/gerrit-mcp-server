@@ -442,3 +442,287 @@ def test_main_stays_silent_on_bad_payload(monkeypatch, capsys):
 
     assert exit_info.value.code == 0
     assert capsys.readouterr().out == ""
+
+
+@pytest.fixture
+def gerrit_chain(gerrit_repo, tmp_path):
+    """A Gerrit repo with origin/master at Base and two local commits on top."""
+    remote = tmp_path / "remote.git"
+    _git(tmp_path, "init", "-q", "--bare", "-b", "master", str(remote))
+    _git(gerrit_repo, "remote", "add", "origin", str(remote))
+    _git(gerrit_repo, "push", "-q", "origin", "HEAD:refs/heads/master")
+    _git(gerrit_repo, "fetch", "-q", "origin")
+    for name in ("b", "c"):
+        (gerrit_repo / f"{name}.txt").write_text(f"{name}\n")
+        _git(gerrit_repo, "add", f"{name}.txt")
+        _git(gerrit_repo, "commit", "-q", "-m", f"Add {name}")
+    return gerrit_repo
+
+
+def _reason(command: str, cwd: Path) -> str:
+    return _decide(command, cwd)["hookSpecificOutput"]["permissionDecisionReason"]
+
+
+def test_asks_before_push_for_review_with_chain_summary(gerrit_chain):
+    command = "git push origin HEAD:refs/for/master"
+
+    assert _verdict(command, gerrit_chain) == "ask"
+    reason = _reason(command, gerrit_chain)
+    assert "Push 2 change(s) to refs/for/master on origin" in reason
+    assert reason.index("Add b") < reason.index("Add c")
+
+
+def test_lists_chain_without_running_signature_program(
+    gerrit_chain, tmp_path, monkeypatch
+):
+    calls = _commit_signed_with_spy(gerrit_chain, tmp_path, monkeypatch)
+
+    reason = _reason("git push origin HEAD:refs/for/master", gerrit_chain)
+
+    assert "Signed" in reason
+    assert not calls.exists()
+
+
+def test_mentions_topic_submit_on_push_with_topic(gerrit_chain):
+    for command in (
+        "git push origin HEAD:refs/for/master%topic=feature",
+        "git push -o topic=feature origin HEAD:refs/for/master",
+    ):
+        assert "submitWholeTopic" in _reason(command, gerrit_chain)
+
+
+def test_does_not_mention_topic_for_hashtag(gerrit_chain):
+    reason = _reason("git push origin HEAD:refs/for/master%t=feature", gerrit_chain)
+
+    assert "submitWholeTopic" not in reason
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "git push origin HEAD:refs/heads/master",
+        "git push origin HEAD:master",
+        "git push origin master",
+        "git push origin --delete master",
+        "git push",
+        "git push --all origin",
+    ],
+)
+def test_denies_direct_push_to_a_branch(gerrit_chain, command):
+    assert _verdict(command, gerrit_chain) == "deny"
+    assert "refs/for/master" in _reason(command, gerrit_chain)
+
+
+def test_allows_direct_push_when_clone_opts_in(gerrit_chain):
+    _git(gerrit_chain, "config", "gerrit-mcp.allowDirectPush", "true")
+
+    assert _verdict("git push origin HEAD:refs/heads/master", gerrit_chain) is None
+
+
+def test_pushes_for_review_without_asking_when_clone_opts_in(gerrit_chain):
+    _git(gerrit_chain, "config", "gerrit-mcp.confirmPush", "false")
+
+    assert _verdict("git push origin HEAD:refs/for/master", gerrit_chain) is None
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "git push origin HEAD:refs/for/master%submit",
+        "git push origin HEAD:refs/for/master%topic=x,l=Code-Review+2",
+        "git push -o Label=Verified+1 origin HEAD:refs/for/master",
+        "git push --push-option=merged origin HEAD:refs/for/master",
+    ],
+)
+def test_denies_push_options_that_vote_or_submit(gerrit_chain, command):
+    _git(gerrit_chain, "config", "gerrit-mcp.confirmPush", "false")
+
+    assert _verdict(command, gerrit_chain) == "deny"
+
+
+def test_denies_configured_push_options_that_submit(gerrit_chain):
+    _git(gerrit_chain, "config", "gerrit-mcp.confirmPush", "false")
+    _git(gerrit_chain, "config", "push.pushOption", "submit")
+
+    assert _verdict("git push origin HEAD:refs/for/master", gerrit_chain) == "deny"
+    command = "git push -o topic=x origin HEAD:refs/for/master"
+    assert _verdict(command, gerrit_chain) is None
+
+
+def test_uses_configured_push_refspec(gerrit_chain):
+    _git(gerrit_chain, "config", "remote.origin.push", "HEAD:refs/for/master")
+
+    assert _verdict("git push", gerrit_chain) == "ask"
+
+
+def test_ignores_tag_push(gerrit_chain):
+    _git(gerrit_chain, "tag", "v1.0")
+
+    assert _verdict("git push origin v1.0", gerrit_chain) is None
+    assert _verdict("git push origin --tags", gerrit_chain) is None
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "git push --force origin HEAD:refs/for/master",
+        "git push -f origin HEAD:refs/for/master",
+        "git push origin +HEAD:refs/for/master",
+    ],
+)
+def test_denies_force_push_for_review(gerrit_chain, command):
+    assert _verdict(command, gerrit_chain) == "deny"
+
+
+def test_denies_push_with_fixup_commits(gerrit_chain):
+    (gerrit_chain / "b.txt").write_text("b fixed\n")
+    _git(gerrit_chain, "commit", "-q", "-a", "--fixup=HEAD~1")
+
+    reason = _reason("git push origin HEAD:refs/for/master", gerrit_chain)
+
+    assert "fixup! Add b" in reason
+    assert "--autosquash" in reason
+
+
+def test_leaves_change_id_checks_to_gerrit(gerrit_chain):
+    _git(gerrit_chain, "commit", "-q", "--allow-empty", "--no-verify", "-m", "No id")
+
+    assert _verdict("git push origin HEAD:refs/for/master", gerrit_chain) == "ask"
+
+
+def test_ignores_push_outside_gerrit(plain_repo):
+    assert _verdict("git push origin HEAD:refs/heads/master", plain_repo) is None
+
+
+def test_asks_when_push_repository_is_overridden(gerrit_chain):
+    command = "git --git-dir=/elsewhere/.git push origin HEAD:refs/heads/master"
+
+    assert _verdict(command, gerrit_chain) == "ask"
+
+
+def test_treats_unqualified_destination_as_branch_despite_local_tag(gerrit_chain):
+    _git(gerrit_chain, "tag", "v1.0")
+
+    assert _verdict("git push origin HEAD:v1.0", gerrit_chain) == "deny"
+
+
+def test_asks_before_push_to_other_refs(gerrit_chain):
+    assert _verdict("git push origin HEAD:refs/meta/config", gerrit_chain) == "ask"
+    assert _verdict("git push origin v1:refs/tags/v1", gerrit_chain) is None
+
+
+def test_asks_when_push_config_is_overridden(gerrit_chain):
+    command = "git -c remote.origin.push=HEAD:refs/heads/master push"
+
+    assert _verdict(command, gerrit_chain) == "ask"
+    assert "remote.origin.push" in _reason(command, gerrit_chain)
+
+
+def test_keeps_direct_push_opt_out_with_the_user(gerrit_chain):
+    reason = _reason("git push origin HEAD:refs/heads/master", gerrit_chain)
+
+    assert "allowDirectPush" not in reason
+    assert _verdict("git config gerrit-mcp.allowDirectPush true", gerrit_chain) == (
+        "deny"
+    )
+    assert _verdict("git config --get gerrit-mcp.allowDirectPush", gerrit_chain) is None
+
+
+def test_asks_on_any_config_override_for_push(gerrit_chain):
+    command = "git -c user.name=x push origin HEAD:refs/for/master"
+
+    assert _verdict(command, gerrit_chain) == "ask"
+    assert "-c user.name=x" in _reason(command, gerrit_chain)
+
+
+def test_denies_guard_settings_in_any_repository(plain_repo):
+    command = "git config --global gerrit-mcp.allowDirectPush true"
+
+    assert _verdict(command, plain_repo) == "deny"
+
+
+def test_reads_direct_push_opt_out_from_clone_only(gerrit_chain, tmp_path, monkeypatch):
+    global_config = tmp_path / "global-gitconfig"
+    global_config.write_text("[gerrit-mcp]\n\tallowDirectPush = true\n")
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(global_config))
+
+    assert _verdict("git push origin HEAD:refs/heads/master", gerrit_chain) == "deny"
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "git push --forc origin HEAD:refs/for/master",
+        "git push --mirr origin",
+    ],
+)
+def test_reads_abbreviated_push_options_like_git(gerrit_chain, command):
+    assert _verdict(command, gerrit_chain) == "deny"
+
+
+def test_treats_mirror_remote_as_push_of_every_branch(gerrit_chain):
+    _git(gerrit_chain, "config", "remote.origin.mirror", "true")
+
+    assert _verdict("git push", gerrit_chain) == "deny"
+
+
+def test_asks_on_shell_expansion_in_push_or_config(gerrit_chain):
+    assert _verdict("git push origin $REF", gerrit_chain) == "ask"
+    assert _verdict("git config $KEY true", gerrit_chain) == "ask"
+
+
+def test_denies_config_write_that_mentions_a_read_action(gerrit_chain):
+    command = "git config --comment --get gerrit-mcp.allowDirectPush true"
+
+    assert _verdict(command, gerrit_chain) == "deny"
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "git push origin HEAD:refs/{heads,for}/master",
+        "git push origin HEAD:refs/heads/maste?",
+        "git push origin mast*",
+        "git push origin -fo*:refs/for/master",
+        "git config $KEY true",
+    ],
+)
+def test_asks_on_brace_and_glob_expansion(gerrit_chain, command):
+    assert _verdict(command, gerrit_chain) == "ask"
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "git config gerrit-{mcp,x}.allowDirectPush true",
+        "git config gerrit-mc?.allowDirectPush true",
+        "GIT_EDITOR=true git config --edit",
+        "GIT_EDITOR=true git config --ed",
+        "GIT_EDITOR=true git config -ze",
+        "GIT_EDITOR=true git config edit",
+    ],
+)
+def test_denies_config_that_may_reach_guard_settings(gerrit_chain, command):
+    assert _verdict(command, gerrit_chain) == "deny"
+
+
+def test_denies_config_that_names_guard_section_anywhere(gerrit_chain):
+    command = "git config --rename-section x gerrit-mcp"
+
+    assert _verdict(command, gerrit_chain) == "deny"
+
+
+def test_guards_other_ways_to_send_refs_or_settings(gerrit_chain):
+    assert _verdict("git send-pack origin HEAD:master", gerrit_chain) == "ask"
+    command = "git -c gerrit-mcp.allowDirectPush=true push origin HEAD:master"
+    assert _verdict(command, gerrit_chain) == "deny"
+    command = "git clone -c gerrit-mcp.allowDirectPush=true origin copy"
+    assert _verdict(command, gerrit_chain) == "deny"
+
+
+def test_allows_paths_and_messages_that_mention_the_project(gerrit_chain):
+    assert _verdict("git log -- /src/gerrit-mcp-server/README.md", gerrit_chain) is None
+    command = "git config -f /src/gerrit-mcp-server/.git/config user.name x"
+    assert _verdict(command, gerrit_chain) is None
+    command = "git commit -m 'Document gerrit-mcp.allowDirectPush'"
+    assert _verdict(command, gerrit_chain) is None
