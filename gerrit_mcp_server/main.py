@@ -759,6 +759,11 @@ async def list_change_comments(change_id: str, gerrit_base_url: Optional[str] = 
     """
     list_change_comments is useful for reviewing feedback, reading comments
     on a change, analyzing comments, and responding to comments.
+
+    Each comment line carries the comment id, the patch set it was made on,
+    and, for a reply, the in_reply_to id of its parent. The thread state is
+    the unresolved flag of its last comment; reply to a thread with
+    post_draft_comment(in_reply_to=<id of that last comment>).
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -792,7 +797,12 @@ async def list_change_comments(change_id: str, gerrit_base_url: Optional[str] = 
             message = comment["message"]
             status = "UNRESOLVED" if comment.get("unresolved", False) else "RESOLVED"
             comment_id = comment.get("id", "")
-            output += f"L{line}: [{author}] ({timestamp}) - {status} id={comment_id}\n"
+            output += f"L{line}: [{author}] ({timestamp}) - {status} id={comment_id}"
+            if "patch_set" in comment:
+                output += f" patch_set={comment['patch_set']}"
+            if "in_reply_to" in comment:
+                output += f" in_reply_to={comment['in_reply_to']}"
+            output += "\n"
             output += f"  {message}\n"
 
     if not found_comments:

@@ -21,7 +21,9 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
   one. Pass `start_line`, `end_line`, or both to read only a range of lines.
 - **list_change_comments**: list_change_comments is useful for reviewing
   feedback, reading comments on a change, analyzing comments, and responding to
-  comments.
+  comments. Each comment shows its `id`, its `patch_set` and, for a reply, the
+  `in_reply_to` id of its parent, so threads can be rebuilt and answered with
+  `post_draft_comment(in_reply_to=...)`.
 - **add_reviewer**: Adds a user or a group to a CL as either a reviewer or a CC.
 - **set_ready_for_review**: Sets a CL as ready for review.
 - **set_work_in_progress**: Sets a CL as work-in-progress.

@@ -115,6 +115,56 @@ class TestListChangeComments(unittest.TestCase):
 
         asyncio.run(run_test())
 
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_list_change_comments_reports_thread_links(self, mock_run_curl):
+        async def run_test():
+            # Arrange
+            change_id = "11223"
+            mock_response = {
+                "src/main.py": [
+                    {
+                        "id": "root-1",
+                        "patch_set": 1,
+                        "line": 10,
+                        "author": {"name": "user1@example.com"},
+                        "message": "Please handle None.",
+                        "unresolved": True,
+                        "updated": "2025-07-15T10:00:00Z",
+                    },
+                    {
+                        "id": "reply-2",
+                        "patch_set": 2,
+                        "in_reply_to": "root-1",
+                        "line": 10,
+                        "author": {"name": "user2@example.com"},
+                        "message": "Done.",
+                        "unresolved": False,
+                        "updated": "2025-07-15T10:05:00Z",
+                    },
+                ]
+            }
+            mock_run_curl.return_value = json.dumps(mock_response)
+
+            # Act
+            result = await main.list_change_comments(
+                change_id, gerrit_base_url="https://my-gerrit.com"
+            )
+
+            # Assert
+            text = result[0]["text"]
+            self.assertIn(
+                "L10: [user1@example.com] (2025-07-15T10:00:00Z) - UNRESOLVED "
+                "id=root-1 patch_set=1\n",
+                text,
+            )
+            self.assertIn(
+                "L10: [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED "
+                "id=reply-2 patch_set=2 in_reply_to=root-1\n",
+                text,
+            )
+
+        asyncio.run(run_test())
+
 
 if __name__ == "__main__":
     unittest.main()
