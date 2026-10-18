@@ -101,7 +101,7 @@ git commit --amend -F <file>
 ```
 
 Never `git commit --amend -m`: it drops the `Change-Id`, so Gerrit opens a new
-change.
+change. Review threads: the `gerrit-review` skill.
 
 ### 3. Work on Multiple Independent Changes
 

@@ -120,3 +120,16 @@ approve the plan.
 
 It works for Gerrit relation chains and stacked GitHub PRs alike. References:
 `plan-template.md`, `split-patterns.md`, `retro-split.md`, `budget.md`.
+
+## `gerrit-review` skill
+
+`skills/gerrit-review/SKILL.md` answers review threads on your change or chain:
+it lists unresolved threads, drafts the whole batch of replies, and posts them
+only after you approve the batch, as threaded drafts with one `publish_drafts`
+per change. The preview lists drafts already on each change, since they are
+published too. It never votes, submits or changes WIP state.
+
+Comments follow the review-comment convention your `AGENTS.md`, `CLAUDE.md` or
+`CONTRIBUTING` documents, for example
+[Conventional Comments](https://conventionalcomments.org); otherwise plain
+sentences.
