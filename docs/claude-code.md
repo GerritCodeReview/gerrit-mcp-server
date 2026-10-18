@@ -141,6 +141,16 @@ hook only, amend with `--no-edit` or `-F`, re-push the whole chain after editing
 any change in it. Hashtags and topics only when you ask, or the repository's
 `AGENTS.md`, `CONTRIBUTING` or `CLAUDE.md` says so.
 
+Commit messages follow the conventions documented there, including any check
+they name, for example:
+
+```markdown
+## Commit conventions
+
+Subjects follow Conventional Commits. Before pushing, check the chain with
+`npx commitlint --from origin/master --to HEAD`.
+```
+
 References: `relation-chains.md` (chain recipes), `gerrit-vs-github.md`,
 `change-id-details.md`.
 

@@ -54,6 +54,13 @@ git log --reverse --format='%h %(trailers:key=Change-Id,valueonly,separator=%x2C
 Keep the `Change-Id` line in `<file>`. A bare `git commit --amend` opens an
 editor and hangs the shell.
 
+## Commit Messages
+
+Follow the commit conventions the repository documents in `AGENTS.md`,
+`CLAUDE.md` or `CONTRIBUTING`, including any check they name: run it over the
+chain before pushing and reword failing commits, keeping each `Change-Id` line.
+Without documented conventions, match `git log --format=%s -20`.
+
 ## Editing a Middle Change
 
 ```bash

@@ -144,6 +144,7 @@ Rules, pushed or not (recipes: `references/relation-chains.md`):
   be unchanged and every commit must still pass.
 - **Re-push the whole chain** after editing any commit in it.
 - **Grouping is opt-in.**
+- **Commit messages** follow the repository's documented conventions.
 
 ### 5. Rebase and Re-push
 
