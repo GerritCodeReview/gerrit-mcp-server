@@ -27,7 +27,7 @@ rebuild="UV_PROJECT_ENVIRONMENT=\"$ENV_PATH\" bash \"$PLUGIN_ROOT/build-gerrit.s
 # `uv run`: when one is missing, that hook silently does nothing. An
 # environment built by an older release lacks the newer ones until the sync
 # below.
-HOOK_SCRIPTS=(gerrit-git-guard)
+HOOK_SCRIPTS=(gerrit-git-guard gerrit-session-context)
 
 missing_hook_scripts() {
   local script
@@ -36,6 +36,7 @@ missing_hook_scripts() {
   done
 }
 
+missing_before=$(missing_hook_scripts)
 out=$(UV_PROJECT_ENVIRONMENT="$ENV_PATH" \
       uv run --directory "$PLUGIN_ROOT" gerrit-check-config 2>&1)
 rc=$?
@@ -44,8 +45,17 @@ hook_message=""
 hook_context=""
 missing=$(missing_hook_scripts)
 if [ -n "$missing" ]; then
-  hook_message="⚠️  Gerrit git guard not active: ${missing% } missing from the plugin environment. Claude can rebuild it."
-  hook_context="The console scripts ${missing% } are missing from $ENV_PATH even after the sync, so the hooks that run them do nothing: gerrit-git-guard is the git guard. OFFER to run this exact command for the user (it is non-interactive), then ask them to restart the session: ${rebuild}"
+  hook_message="⚠️  Gerrit git guard or session context not active: ${missing% } missing from the plugin environment. Claude can rebuild it."
+  hook_context="The console scripts ${missing% } are missing from $ENV_PATH even after the sync, so the hooks that run them do nothing: gerrit-git-guard is the git guard, gerrit-session-context adds the chain rules at session start. OFFER to run this exact command for the user (it is non-interactive), then ask them to restart the session: ${rebuild}"
+else
+  case " $missing_before " in
+    *" gerrit-session-context "*)
+      # The session context hook runs alongside this one, so it most likely
+      # found no script. The guard checks on every command and needs nothing.
+      hook_message="Gerrit plugin environment updated. Restart the session to get the chain rules context."
+      hook_context="The Gerrit plugin environment was updated at session start, so this session may lack the Gerrit chain rules context. Tell the user to restart the session."
+      ;;
+  esac
 fi
 
 # Emit a JSON object with optional systemMessage + additionalContext, adding

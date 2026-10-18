@@ -77,12 +77,26 @@ the setup state:
 - any other non-zero code: the Python environment is not built. The hook offers
   the exact `build-gerrit.sh` command to rebuild it.
 
-It also warns when the git guard's console script is missing after the sync, as
-the guard would otherwise do nothing without a word.
+It also warns when the console script of the git guard or the session context is
+missing after the sync, as that hook would otherwise do nothing without a word,
+and asks for a restart when the sync has just installed the session context's
+script.
 
 The hook emits JSON with a `systemMessage` (shown to the user) and
 `additionalContext` (telling the model what to do), because `SessionStart`
 stdout goes to the model's context rather than the user's terminal.
+
+## Session context
+
+A second `SessionStart` hook (`hooks/session-context.sh`) tells the model the
+chain rules when the session starts in a Gerrit repository, detected as the git
+guard does. It names the `gerrit-workflow`, `stack-planner` and `gerrit-review`
+skills and the commands the guard denies, and points at `AGENTS.md`,
+`CONTRIBUTING` or `CLAUDE.md` when the repository has one. The skills'
+descriptions alone match requests such as "push for review" or "break this
+down", but not a plain "add a flag" or "commit it". Elsewhere the hook adds
+nothing. Like the guard, it runs from the server's environment and adds nothing
+while that environment is not built.
 
 ## Git guard
 

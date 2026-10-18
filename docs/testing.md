@@ -19,10 +19,11 @@ environment automatically on first use.
 The integration test `tests/integration/test_plugin_package.py` validates the
 installable Claude Code artifacts without launching Claude Code. It checks the
 plugin manifest, marketplace entry, MCP launch configuration, skill metadata,
-the configuration hook's JSON output and exit-code behavior, and the git guard
-hook's wrapper (`hooks/git-guard.sh`). The guard's rules themselves are covered
-by `tests/unit/test_git_guard.py`, which runs real `git` in temporary
-repositories.
+the configuration hook's JSON output and exit-code behavior, and the wrappers of
+the git guard and session context hooks (`hooks/git-guard.sh`,
+`hooks/session-context.sh`). The guard's rules and the context text are covered
+by `tests/unit/test_git_guard.py` and `tests/unit/test_session_context.py`,
+which run real `git` in temporary repositories.
 
 Run it directly with:
 

@@ -25,14 +25,22 @@ def _skill_metadata(path: Path) -> dict[str, str]:
 
 
 # Console scripts the hooks run from the environment without `uv run`.
-HOOK_SCRIPTS = ("gerrit-git-guard",)
+HOOK_SCRIPTS = ("gerrit-git-guard", "gerrit-session-context")
 
 
 def _run_config_hook(
-    tmp_path: Path, return_code: int, synced_scripts: tuple[str, ...] = HOOK_SCRIPTS
+    tmp_path: Path,
+    return_code: int,
+    synced_scripts: tuple[str, ...] = HOOK_SCRIPTS,
+    scripts_before: tuple[str, ...] = HOOK_SCRIPTS,
 ) -> subprocess.CompletedProcess:
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
+    environment_bin = tmp_path / "plugin-data" / ".venv" / "bin"
+    environment_bin.mkdir(parents=True)
+    for script in scripts_before:
+        (environment_bin / script).write_text("#!/bin/sh\n")
+        (environment_bin / script).chmod(0o755)
     args_path = tmp_path / "uv-args"
     environment_path = tmp_path / "uv-environment"
     fake_uv = fake_bin / "uv"
@@ -176,15 +184,26 @@ def test_config_hook_reports_invalid_configuration(tmp_path):
 
 
 def test_config_hook_warns_when_git_guard_is_missing_after_sync(tmp_path):
-    result = _run_config_hook(tmp_path, return_code=0, synced_scripts=())
+    result = _run_config_hook(
+        tmp_path, return_code=0, synced_scripts=(), scripts_before=()
+    )
 
     assert result.returncode == 0
     payload = json.loads(result.stdout)
-    assert "git guard not active" in payload["systemMessage"]
+    assert "not active" in payload["systemMessage"]
     context = payload["hookSpecificOutput"]["additionalContext"]
     assert "tools are available" in context
     assert "gerrit-git-guard" in context
     assert "build-gerrit.sh" in context
+
+
+def test_config_hook_asks_for_restart_after_environment_update(tmp_path):
+    result = _run_config_hook(tmp_path, return_code=0, scripts_before=())
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert "Restart the session" in payload["systemMessage"]
+    assert "restart" in payload["hookSpecificOutput"]["additionalContext"]
 
 
 def test_config_hook_passes_plugin_paths_to_uv(tmp_path):
@@ -197,6 +216,75 @@ def test_config_hook_passes_plugin_paths_to_uv(tmp_path):
     assert (tmp_path / "uv-environment").read_text().strip() == (
         f"{tmp_path / 'plugin-data'}/.venv"
     )
+
+
+def _run_session_context_hook(
+    tmp_path: Path, install: bool = True
+) -> subprocess.CompletedProcess:
+    plugin_data = tmp_path / "plugin-data"
+    bin_dir = plugin_data / ".venv" / "bin"
+    bin_dir.mkdir(parents=True)
+    calls_path = tmp_path / "context-calls"
+    if install:
+        script = bin_dir / "gerrit-session-context"
+        script.write_text(
+            "#!/usr/bin/env bash\n"
+            'cat > "$FAKE_CONTEXT_CALLS_PATH"\n'
+            'echo \'{"hookSpecificOutput": {"additionalContext": "rules"}}\'\n'
+        )
+        script.chmod(0o755)
+
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "CLAUDE_PLUGIN_ROOT": str(PROJECT_ROOT),
+            "CLAUDE_PLUGIN_DATA": str(plugin_data),
+            "FAKE_CONTEXT_CALLS_PATH": str(calls_path),
+        }
+    )
+    return subprocess.run(
+        ["bash", str(PROJECT_ROOT / "hooks/session-context.sh")],
+        input=json.dumps({"hook_event_name": "SessionStart", "cwd": "/repo"}),
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_hooks_register_session_context_after_config_check():
+    session_start = _load_json("hooks/hooks.json")["hooks"]["SessionStart"]
+
+    commands = [hook["command"] for entry in session_start for hook in entry["hooks"]]
+    assert commands == [
+        "${CLAUDE_PLUGIN_ROOT}/hooks/check-config.sh",
+        "${CLAUDE_PLUGIN_ROOT}/hooks/session-context.sh",
+    ]
+
+
+def test_session_context_entry_point_is_declared():
+    pyproject = (PROJECT_ROOT / "pyproject.toml").read_text()
+
+    assert (
+        'gerrit-session-context = "gerrit_mcp_server.session_context:main"' in pyproject
+    )
+
+
+def test_session_context_hook_passes_payload_to_script(tmp_path):
+    result = _run_session_context_hook(tmp_path)
+
+    assert result.returncode == 0
+    assert (
+        json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"] == "rules"
+    )
+    assert json.loads((tmp_path / "context-calls").read_text())["cwd"] == "/repo"
+
+
+def test_session_context_hook_is_silent_when_environment_is_not_built(tmp_path):
+    result = _run_session_context_hook(tmp_path, install=False)
+
+    assert result.returncode == 0
+    assert result.stdout == ""
 
 
 def test_hooks_register_git_guard_for_bash():
