@@ -33,6 +33,10 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
   CLs.
 - **create_change**: Creates a new change in Gerrit.
 - **set_topic**: Sets the topic of a change. An empty string deletes the topic.
+- **set_hashtags**: Adds hashtags to and removes hashtags from a change, and
+  returns its hashtags after the update. Unlike a topic, a hashtag never changes
+  what is submitted together. With neither `add` nor `remove` it only reads the
+  hashtags.
 - **changes_submitted_together**: Computes and lists all changes that would be
   submitted together with a given CL.
 - **get_related_changes**: Returns the relation chain for a change — the queried
