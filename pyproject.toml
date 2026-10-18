@@ -36,6 +36,7 @@ env = [
 [project.scripts]
 gerrit-mcp-server = "gerrit_mcp_server.main:main"
 gerrit-check-config = "gerrit_mcp_server.main:check_config_main"
+gerrit-git-guard = "gerrit_mcp_server.git_guard:main"
 
 [build-system]
 requires = ["setuptools>=61"]

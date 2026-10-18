@@ -59,7 +59,8 @@ To force a new `Change-Id` on an existing commit:
 
 ```bash
 git log -1 --format=%B | grep -v '^Change-Id:' > <file>
-git commit --amend -F <file>   # hook runs and inserts a new Change-Id
+git reset --soft HEAD~1
+git commit -F <file>           # hook runs and inserts a new Change-Id
 git log -1                     # verify the new Change-Id
 ```
 

@@ -21,21 +21,45 @@ set -uo pipefail
 # runs. ENV_PATH mirrors .mcp.json so the build target and MCP server agree.
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
 ENV_PATH="${CLAUDE_PLUGIN_DATA:-$PLUGIN_ROOT}/.venv"
+rebuild="UV_PROJECT_ENVIRONMENT=\"$ENV_PATH\" bash \"$PLUGIN_ROOT/build-gerrit.sh\""
+
+# Console scripts the other hooks run straight from the environment, without
+# `uv run`: when one is missing, that hook silently does nothing. An
+# environment built by an older release lacks the newer ones until the sync
+# below.
+HOOK_SCRIPTS=(gerrit-git-guard)
+
+missing_hook_scripts() {
+  local script
+  for script in "${HOOK_SCRIPTS[@]}"; do
+    [ -x "$ENV_PATH/bin/$script" ] || printf '%s ' "$script"
+  done
+}
 
 out=$(UV_PROJECT_ENVIRONMENT="$ENV_PATH" \
       uv run --directory "$PLUGIN_ROOT" gerrit-check-config 2>&1)
 rc=$?
 
-# Emit a JSON object with optional systemMessage + additionalContext.
+hook_message=""
+hook_context=""
+missing=$(missing_hook_scripts)
+if [ -n "$missing" ]; then
+  hook_message="⚠️  Gerrit git guard not active: ${missing% } missing from the plugin environment. Claude can rebuild it."
+  hook_context="The console scripts ${missing% } are missing from $ENV_PATH even after the sync, so the hooks that run them do nothing: gerrit-git-guard is the git guard. OFFER to run this exact command for the user (it is non-interactive), then ask them to restart the session: ${rebuild}"
+fi
+
+# Emit a JSON object with optional systemMessage + additionalContext, adding
+# the hook script warnings.
 # Args: <systemMessage-or-empty> <additionalContext>
 emit() {
   if ! command -v python3 &>/dev/null; then
     echo '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"python3 not found; Gerrit MCP server config check hook could not emit status."}}'
     return
   fi
-  python3 - "$1" "$2" <<'PY'
+  python3 - "$1" "$2" "$hook_message" "$hook_context" <<'PY'
 import json, sys
-sys_msg, ctx = sys.argv[1], sys.argv[2]
+sys_msg = "\n".join(m for m in sys.argv[1::2] if m)
+ctx = " ".join(c for c in sys.argv[2::2] if c)
 obj = {"hookSpecificOutput": {
     "hookEventName": "SessionStart",
     "additionalContext": ctx,
@@ -67,7 +91,9 @@ case "$rc" in
   *)
     # Env failure: uv/venv not built, package not installed, etc. This is the
     # non-interactive case, so the model SHOULD offer to run the build itself.
-    rebuild="UV_PROJECT_ENVIRONMENT=\"$ENV_PATH\" bash \"$PLUGIN_ROOT/build-gerrit.sh\""
+    # The rebuild also restores the hook scripts, so no separate warning.
+    hook_message=""
+    hook_context=""
     echo "gerrit-check-config env failure (rc=$rc): $out" >&2
     emit \
       "⚠️  Gerrit MCP server environment is not built. Claude can rebuild it for you." \

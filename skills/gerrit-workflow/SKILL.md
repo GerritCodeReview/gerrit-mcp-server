@@ -186,7 +186,8 @@ new Change-Id** (delete the old one so the hook creates a fresh one):
 git checkout -b backport-3.10 origin/stable-3.10
 git cherry-pick <commit-sha>
 git log -1 --format=%B | grep -v '^Change-Id:' > <file>
-git commit --amend -F <file>   # hook adds a new Change-Id
+git reset --soft HEAD~1
+git commit -F <file>           # hook adds a new Change-Id
 git push origin HEAD:refs/for/stable-3.10
 ```
 
@@ -269,6 +270,9 @@ All commits being pushed are already known to Gerrit. This often means the
 branch is already up to date with the target.
 
 ## Critical Rules
+
+In Claude Code the plugin's git guard enforces the commit rules. A denial names
+the right command; use it.
 
 - **Never push directly to `refs/heads/*`** unless intentionally bypassing
   review (requires special permissions).

@@ -24,7 +24,13 @@ def _skill_metadata(path: Path) -> dict[str, str]:
     return metadata
 
 
-def _run_config_hook(tmp_path: Path, return_code: int) -> subprocess.CompletedProcess:
+# Console scripts the hooks run from the environment without `uv run`.
+HOOK_SCRIPTS = ("gerrit-git-guard",)
+
+
+def _run_config_hook(
+    tmp_path: Path, return_code: int, synced_scripts: tuple[str, ...] = HOOK_SCRIPTS
+) -> subprocess.CompletedProcess:
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
     args_path = tmp_path / "uv-args"
@@ -35,6 +41,11 @@ def _run_config_hook(tmp_path: Path, return_code: int) -> subprocess.CompletedPr
         'printf \'%s\\n\' "$*" > "$FAKE_UV_ARGS_PATH"\n'
         'printf \'%s\\n\' "$UV_PROJECT_ENVIRONMENT" > "$FAKE_UV_ENVIRONMENT_PATH"\n'
         "printf '%s\\n' \"$FAKE_UV_OUTPUT\"\n"
+        'mkdir -p "$UV_PROJECT_ENVIRONMENT/bin"\n'
+        "for script in $FAKE_UV_SCRIPTS; do\n"
+        '  printf "#!/bin/sh\\n" > "$UV_PROJECT_ENVIRONMENT/bin/$script"\n'
+        '  chmod +x "$UV_PROJECT_ENVIRONMENT/bin/$script"\n'
+        "done\n"
         'exit "$FAKE_UV_RETURN_CODE"\n'
     )
     fake_uv.chmod(0o755)
@@ -49,6 +60,7 @@ def _run_config_hook(tmp_path: Path, return_code: int) -> subprocess.CompletedPr
             "FAKE_UV_ENVIRONMENT_PATH": str(environment_path),
             "FAKE_UV_OUTPUT": "controlled uv output",
             "FAKE_UV_RETURN_CODE": str(return_code),
+            "FAKE_UV_SCRIPTS": " ".join(synced_scripts),
             "PATH": f"{fake_bin}{os.pathsep}{environment['PATH']}",
         }
     )
@@ -56,6 +68,41 @@ def _run_config_hook(tmp_path: Path, return_code: int) -> subprocess.CompletedPr
     return subprocess.run(
         ["bash", str(PROJECT_ROOT / "hooks/check-config.sh")],
         cwd=PROJECT_ROOT,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def _run_git_guard_hook(
+    tmp_path: Path, command: str, install_guard: bool = True
+) -> subprocess.CompletedProcess:
+    plugin_data = tmp_path / "plugin-data"
+    guard_bin = plugin_data / ".venv" / "bin"
+    guard_bin.mkdir(parents=True)
+    calls_path = tmp_path / "guard-calls"
+    if install_guard:
+        guard = guard_bin / "gerrit-git-guard"
+        guard.write_text(
+            "#!/usr/bin/env bash\n"
+            'cat > "$FAKE_GUARD_CALLS_PATH"\n'
+            'echo \'{"hookSpecificOutput": {"permissionDecision": "deny"}}\'\n'
+        )
+        guard.chmod(0o755)
+
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "CLAUDE_PLUGIN_ROOT": str(PROJECT_ROOT),
+            "CLAUDE_PLUGIN_DATA": str(plugin_data),
+            "FAKE_GUARD_CALLS_PATH": str(calls_path),
+        }
+    )
+    payload = {"tool_name": "Bash", "tool_input": {"command": command}, "cwd": "/"}
+    return subprocess.run(
+        ["bash", str(PROJECT_ROOT / "hooks/git-guard.sh")],
+        input=json.dumps(payload),
         env=environment,
         capture_output=True,
         text=True,
@@ -128,6 +175,18 @@ def test_config_hook_reports_invalid_configuration(tmp_path):
     assert "controlled uv output" in payload["hookSpecificOutput"]["additionalContext"]
 
 
+def test_config_hook_warns_when_git_guard_is_missing_after_sync(tmp_path):
+    result = _run_config_hook(tmp_path, return_code=0, synced_scripts=())
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert "git guard not active" in payload["systemMessage"]
+    context = payload["hookSpecificOutput"]["additionalContext"]
+    assert "tools are available" in context
+    assert "gerrit-git-guard" in context
+    assert "build-gerrit.sh" in context
+
+
 def test_config_hook_passes_plugin_paths_to_uv(tmp_path):
     result = _run_config_hook(tmp_path, return_code=0)
 
@@ -138,3 +197,44 @@ def test_config_hook_passes_plugin_paths_to_uv(tmp_path):
     assert (tmp_path / "uv-environment").read_text().strip() == (
         f"{tmp_path / 'plugin-data'}/.venv"
     )
+
+
+def test_hooks_register_git_guard_for_bash():
+    pre_tool_use = _load_json("hooks/hooks.json")["hooks"]["PreToolUse"]
+
+    assert [entry["matcher"] for entry in pre_tool_use] == ["Bash"]
+    assert pre_tool_use[0]["hooks"][0]["command"] == (
+        "${CLAUDE_PLUGIN_ROOT}/hooks/git-guard.sh"
+    )
+
+
+def test_git_guard_entry_point_is_declared():
+    pyproject = (PROJECT_ROOT / "pyproject.toml").read_text()
+
+    assert 'gerrit-git-guard = "gerrit_mcp_server.git_guard:main"' in pyproject
+
+
+def test_git_guard_hook_passes_git_command_to_guard(tmp_path):
+    result = _run_git_guard_hook(tmp_path, "git commit -n -m x")
+
+    assert result.returncode == 0
+    assert json.loads(result.stdout)["hookSpecificOutput"]["permissionDecision"] == (
+        "deny"
+    )
+    passed = json.loads((tmp_path / "guard-calls").read_text())
+    assert passed["tool_input"]["command"] == "git commit -n -m x"
+
+
+def test_git_guard_hook_skips_commands_without_git(tmp_path):
+    result = _run_git_guard_hook(tmp_path, "ls -la")
+
+    assert result.returncode == 0
+    assert result.stdout == ""
+    assert not (tmp_path / "guard-calls").exists()
+
+
+def test_git_guard_hook_allows_when_environment_is_not_built(tmp_path):
+    result = _run_git_guard_hook(tmp_path, "git commit -n -m x", install_guard=False)
+
+    assert result.returncode == 0
+    assert result.stdout == ""

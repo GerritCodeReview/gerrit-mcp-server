@@ -77,9 +77,35 @@ the setup state:
 - any other non-zero code: the Python environment is not built. The hook offers
   the exact `build-gerrit.sh` command to rebuild it.
 
+It also warns when the git guard's console script is missing after the sync, as
+the guard would otherwise do nothing without a word.
+
 The hook emits JSON with a `systemMessage` (shown to the user) and
 `additionalContext` (telling the model what to do), because `SessionStart`
 stdout goes to the model's context rather than the user's terminal.
+
+## Git guard
+
+A `PreToolUse` hook (`hooks/git-guard.sh`) checks the `git` commands the model
+runs in a Gerrit repository: one with a `.gitreview`, a remote on a host from
+`gerrit_config.json`, or the Gerrit `commit-msg` hook. Elsewhere it does
+nothing.
+
+| Command                                                                              | Decision |
+| ------------------------------------------------------------------------------------ | -------- |
+| `git commit --no-verify`, without the `commit-msg` hook, or with `-c core.hooksPath` | deny     |
+| `git commit` with a hand-written `Change-Id:` trailer                                | deny     |
+| `git commit --amend -m`                                                              | deny     |
+| `git commit --amend -F <file>` where the file has no `Change-Id`                     | deny     |
+| `git commit --amend -F` with a heredoc `Change-Id` other than HEAD's                 | deny     |
+| `git commit --amend -F` with a heredoc `Change-Id` equal to HEAD's (adds a note)     | allow    |
+
+It sees through wrappers (`env`, `bash -c`), git aliases and abbreviated
+options, and asks when `--git-dir`, `GIT_DIR` or `GIT_CONFIG_*` point git
+elsewhere. It is a safety net, not a security boundary; enforce policy with
+Gerrit's access rules. It allows what it cannot parse, and it does not see file
+edits made outside the Bash tool, nor git commands run by git itself
+(`git submodule foreach`, `git subtree push`).
 
 ## `/gerrit:setup` skill
 

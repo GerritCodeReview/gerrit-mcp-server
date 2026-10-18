@@ -254,7 +254,8 @@ def test_cherry_pick_gets_new_change_id(chain, tmp_path):
             file=str(message),
         ),
     )
-    _ok(chain, _recipe(WORKFLOW, "git commit --amend -F <file>", file=str(message)))
+    _ok(chain, _recipe(WORKFLOW, "git reset --soft HEAD~1"))
+    _ok(chain, _recipe(WORKFLOW, "git commit -F <file>", file=str(message)))
 
     [new_id] = _change_ids(chain)
     assert new_id != old_id
