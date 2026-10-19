@@ -16,6 +16,24 @@
       "message": "Should this have an optional `patch_set` if the caller already knows the patch set the draft is on? Then we could skip the `_find_draft_patch_set()` call. Could be added as an optimization in a follow up.",
       "revId": "70ba05fe22864a7dd7723afcde09913779141a56",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0d99db41_eb7a9b25",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 2014,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-19T10:17:25Z",
+      "side": 1,
+      "message": "The lookup costs one GET of the change\u0027s drafts, about 0.6 s on gerrit-review. A caller does not always know the patch set: in 639424, `post_draft_comment` returns `revision` \"current\" for a draft that is not a reply. With a wrong patch set, Gerrit answers \"Not found\", the same as for a deleted draft. The tool would then need the lookup as a fallback to tell the two apart. I prefer to leave it out until a caller needs it. If you want it, I can add it in a follow up change.",
+      "parentUuid": "45f106f9_39ac366c",
+      "revId": "70ba05fe22864a7dd7723afcde09913779141a56",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
