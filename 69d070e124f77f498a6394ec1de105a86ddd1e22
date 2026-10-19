@@ -18,6 +18,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "33e74089_5abe12b1",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-19T10:48:37Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "fa7f9376_0de7e66d",
+      "revId": "69d070e124f77f498a6394ec1de105a86ddd1e22",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8e6f88f3_8068dc74",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-10-14T21:41:37Z",
       "side": 1,
       "message": "I think it\u0027s worth having tests that directly target this class. They\u0027ll be simpler to read/debug compared to tests wrapping `get_file_diff()`.",
+      "revId": "69d070e124f77f498a6394ec1de105a86ddd1e22",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fb75cc10_7a33d4cc",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-19T10:48:37Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "8e6f88f3_8068dc74",
       "revId": "69d070e124f77f498a6394ec1de105a86ddd1e22",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
@@ -52,6 +88,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "681bdabf_46b4a110",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 716,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-19T10:48:37Z",
+      "side": 1,
+      "message": "Each `line` is the line number in the new file, which is what post_draft_comment and post_review_comment take. A deleted line has no place in the new file. An old-file number would add a key to every entry. An agent could also pass that number to the comment tools by mistake, and the comment would land on the wrong line. Commenting on deleted lines needs a `side` parameter on the comment tools. If you want it, I can add both in a follow-up change.",
+      "parentUuid": "648a3822_6c54684d",
+      "revId": "69d070e124f77f498a6394ec1de105a86ddd1e22",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "17af1726_dffd520e",
@@ -65,6 +119,24 @@
       "writtenOn": "2026-10-14T21:41:37Z",
       "side": 1,
       "message": "nit: Use `example.com`\n```suggestion\nGERRIT_BASE_URL \u003d \"https://gerrit.example.com\"\n```",
+      "revId": "69d070e124f77f498a6394ec1de105a86ddd1e22",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "390173fc_0537bf00",
+        "filename": "tests/unit/test_get_file_diff.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-19T10:48:37Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "17af1726_dffd520e",
       "revId": "69d070e124f77f498a6394ec1de105a86ddd1e22",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
