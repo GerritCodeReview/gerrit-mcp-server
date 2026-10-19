@@ -795,6 +795,37 @@ class _FileContentResult(TypedDict):
     content: str
 
 
+async def _fetch_file_lines(
+    base_url: str, change_id: str, revision: str, file_path: str
+) -> List[str]:
+    """The lines of a file in a revision of a CL, each with its newline.
+
+    Raises ValueError when the file cannot be fetched or is not UTF-8 text.
+    """
+    encoded_file_path = quote(file_path, safe="")
+    url = (
+        f"{base_url}/changes/{change_id}/revisions/{revision}/files/"
+        f"{encoded_file_path}/content"
+    )
+
+    result_str = await run_curl([url], base_url)
+    try:
+        content = base64.b64decode(result_str, validate=True)
+    except ValueError as e:
+        raise ValueError(f"Failed to fetch {file_path}.\n{result_str}") from e
+
+    try:
+        text = content.decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise ValueError(
+            f"{file_path} is not UTF-8 text ({len(content)} bytes)."
+        ) from e
+
+    # Only "\n" ends a line, as in Gerrit. str.splitlines() would also
+    # split on form feeds and other separators and shift the numbers.
+    return io.StringIO(text, newline="\n").readlines()
+
+
 @mcp.tool()
 async def get_file_content(
     change_id: str,
@@ -827,28 +858,7 @@ async def get_file_content(
         _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
     )
     revision = revision_id or "current"
-    encoded_file_path = quote(file_path, safe="")
-    url = (
-        f"{base_url}/changes/{change_id}/revisions/{revision}/files/"
-        f"{encoded_file_path}/content"
-    )
-
-    result_str = await run_curl([url], base_url)
-    try:
-        content = base64.b64decode(result_str, validate=True)
-    except ValueError as e:
-        raise ValueError(f"Failed to fetch {file_path}.\n{result_str}") from e
-
-    try:
-        text = content.decode("utf-8")
-    except UnicodeDecodeError as e:
-        raise ValueError(
-            f"{file_path} is not UTF-8 text ({len(content)} bytes)."
-        ) from e
-
-    # Only "\n" ends a line, as in Gerrit. str.splitlines() would also
-    # split on form feeds and other separators and shift the numbers.
-    lines = io.StringIO(text, newline="\n").readlines()
+    lines = await _fetch_file_lines(base_url, change_id, revision, file_path)
     first = 1 if start_line is None else start_line
     last = len(lines) if end_line is None else min(end_line, len(lines))
     range_given = start_line is not None or end_line is not None
@@ -1968,8 +1978,12 @@ def _reply_location_mismatch(
 
     Gerrit accepts a reply anywhere on its parent's patch set, but its web UI
     shows the reply in the parent's thread, so a reply goes where its parent
-    is. Returns None when every location given is the parent's.
+    is. comment_range holds only the range fields given, and only those must
+    be the parent's. Returns None when every location given is the parent's.
     """
+    parent_range = parent.get("range")
+    if comment_range is not None and parent_range is not None:
+        parent_range = {k: parent_range.get(k) for k in comment_range}
     given = {
         "file_path": file_path,
         "line_number": line_number,
@@ -1978,7 +1992,7 @@ def _reply_location_mismatch(
     parents = {
         "file_path": parent.get("path"),
         "line_number": parent.get("line"),
-        "range": parent.get("range"),
+        "range": parent_range,
     }
     for name, value in given.items():
         if value is not None and value != parents[name]:
@@ -2117,6 +2131,42 @@ async def post_review_comment(
     }
 
 
+async def _whole_line_range(
+    base_url: str,
+    change_id: str,
+    revision: str,
+    file_path: str,
+    start_line: int,
+    end_line: int,
+) -> Dict[str, int]:
+    """The range from the start of start_line to the end of end_line.
+
+    The Gerrit web UI selects whole lines this way, so a comment on the range
+    sits on end_line. Raises ValueError when the file does not hold the lines,
+    or when file_path starts with /, as /COMMIT_MSG does: Gerrit numbers its
+    lines after a header that the file content lacks.
+    """
+    if file_path.startswith("/"):
+        raise ValueError(
+            f"{file_path} is not a file of the revision, so a range on it "
+            "needs start_character and end_character."
+        )
+    lines = await _fetch_file_lines(base_url, change_id, revision, file_path)
+    if not 1 <= start_line <= end_line <= len(lines):
+        raise ValueError(
+            f"start_line={start_line}, end_line={end_line} selects lines that "
+            f"are not all in {file_path} (line count: {len(lines)})."
+        )
+    last_line = lines[end_line - 1].rstrip("\n")
+    return {
+        "start_line": start_line,
+        "start_character": 0,
+        "end_line": end_line,
+        # Gerrit counts characters in UTF-16 code units, as Java does.
+        "end_character": len(last_line.encode("utf-16-le")) // 2,
+    }
+
+
 class _PostedDraftResult(TypedDict):
     change_id: str
     draft_id: str
@@ -2145,18 +2195,24 @@ async def post_draft_comment(
     Creates a draft review comment in a CL: on a line of a file, on the whole
     file when line_number is omitted, or on the whole patch set when file_path
     is "/PATCHSET_LEVEL" and line_number is omitted.
-    A range needs all of start_line, start_character, end_line and
-    end_character, and puts the comment on end_line.
+    A range needs start_line and end_line, and puts the comment on end_line.
+    With start_character and end_character it covers exactly those
+    characters. Without both, it covers the lines whole, from the start of
+    start_line to the end of end_line, as the Gerrit web UI selects them. A
+    path that starts with /, such as /COMMIT_MSG, needs both.
     Draft comments are only visible to the author until explicitly published.
 
     With in_reply_to, the draft is a reply in the thread of that published
     comment. It goes where the parent is: on its patch set, file, line, range
     and side. file_path, line_number and the range can be left unset, and
-    when given they must be the parent's.
+    when given they must be the parent's. start_line and end_line given alone
+    must be the lines of the parent's range.
 
-    Raises ValueError when the range is partial, the parent comment is not
-    found, a location given for a reply is not the parent's, the draft has
-    no file, or Gerrit refuses the draft.
+    Raises ValueError when the range has one character offset without the
+    other, selects lines the file does not hold, or has no offsets on a path
+    that starts with /. Also raises ValueError when the parent comment is
+    not found, a location given for a reply is not the parent's, the draft
+    has no file, or Gerrit refuses the draft.
     """
     comment_range = {
         "start_line": start_line,
@@ -2164,13 +2220,16 @@ async def post_draft_comment(
         "end_line": end_line,
         "end_character": end_character,
     }
-    missing_range_fields = [k for k, v in comment_range.items() if v is None]
-    if 0 < len(missing_range_fields) < len(comment_range):
+    given_range_fields = [k for k, v in comment_range.items() if v is not None]
+    whole_lines = given_range_fields == ["start_line", "end_line"]
+    if 0 < len(given_range_fields) < len(comment_range) and not whole_lines:
+        missing = [k for k in comment_range if k not in given_range_fields]
         raise ValueError(
-            "Failed to create draft comment: a range needs start_line, "
-            "start_character, end_line and end_character; missing "
-            f"{', '.join(missing_range_fields)}."
+            "Failed to create draft comment: a range needs start_line and "
+            "end_line, with both start_character and end_character or neither; "
+            f"missing {', '.join(missing)}."
         )
+    range_given = bool(given_range_fields)
 
     if suggestion is not None:
         message = message + f"\n```suggestion\n{suggestion}\n```"
@@ -2190,13 +2249,20 @@ async def post_draft_comment(
                 f"Failed to create draft comment: parent comment "
                 f"{in_reply_to!r} was not found on CL {change_id}."
             )
-        given_range = None if missing_range_fields else comment_range
+        given_range = {k: comment_range[k] for k in given_range_fields} or None
         mismatch = _reply_location_mismatch(parent, file_path, line_number, given_range)
         if mismatch:
             raise ValueError(f"Failed to create draft comment: {mismatch}")
         revision = parent.get("patch_set", "current")
         file_path = parent.get("path")
         inherited = _inherited_location(parent)
+        if range_given:
+            # Lines given alone take the parent's characters.
+            comment_range = parent["range"]
+    elif whole_lines and file_path is not None:
+        comment_range = await _whole_line_range(
+            base_url, change_id, revision, file_path, start_line, end_line
+        )
 
     if file_path is None:
         raise ValueError(
@@ -2219,10 +2285,10 @@ async def post_draft_comment(
     if in_reply_to is not None:
         payload["in_reply_to"] = in_reply_to
 
-    if not missing_range_fields:
+    if range_given:
         payload["range"] = comment_range
         # Gerrit requires line to equal end_line when a range is provided.
-        payload["line"] = end_line
+        payload["line"] = comment_range["end_line"]
 
     args = _create_put_args(url, payload)
 
