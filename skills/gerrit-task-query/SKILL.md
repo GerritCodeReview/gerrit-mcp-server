@@ -1,7 +1,7 @@
 ---
 name: gerrit-task-query
 description: Use when asked to check, list, or act on tasks for a Gerrit change. Triggers on phrases like "what tasks are blocking", "which tasks are actionable", "check task status", "what do I need to do for this change", "what is blocking this change".
-allowed-tools: Bash, mcp__gerrit__get_task_tree, mcp__gerrit__get_actionable_tasks, mcp__gerrit__post_review_comment, mcp__gerrit__list_change_comments, mcp__gerrit__get_change_details
+allowed-tools: Bash, mcp__plugin_gerrit_gerrit__get_task_tree, mcp__plugin_gerrit_gerrit__get_actionable_tasks, mcp__plugin_gerrit_gerrit__post_review_comment, mcp__plugin_gerrit_gerrit__list_change_comments, mcp__plugin_gerrit_gerrit__get_change_details
 ---
 
 # Gerrit Task Query
