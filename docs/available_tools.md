@@ -21,9 +21,10 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 - **get_file_content**: Returns the content of a file as it is in a revision of
   a CL. The revision is the current patch set unless `revision_id` names another
   one. Pass `start_line`, `end_line`, or both to read only a range of lines.
-- **list_change_comments**: list_change_comments is useful for reviewing
-  feedback, reading comments on a change, analyzing comments, and responding to
-  comments.
+- **list_change_comments**: Lists the published comments on a CL, grouped into
+  threads. Each thread has the patch set, file, and line of its first comment,
+  its comments in order with the comment each one replies to, and its state:
+  unresolved when its latest comment is.
 - **add_reviewer**: Adds a user or a group to a CL as either a reviewer or a CC.
 - **set_ready_for_review**: Sets a CL as ready for review.
 - **set_work_in_progress**: Sets a CL as work-in-progress.
