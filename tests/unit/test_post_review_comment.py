@@ -178,7 +178,39 @@ class TestPostReviewComment(unittest.TestCase):
             self.assertIn(
                 "parent comment 'missing-id' was not found", str(context.exception)
             )
-            self.assertEqual(mock_run_curl.call_count, 1)
+            self.assertEqual(mock_run_curl.call_count, 2)
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_reply_to_own_unpublished_draft_explained(self, mock_run_curl):
+        """Gerrit takes a reply only to a published comment."""
+
+        async def run_test():
+            drafts = {
+                "src/main.py": [
+                    {"id": "my-draft", "patch_set": 3, "line": 42, "message": "nit"}
+                ]
+            }
+            mock_run_curl.side_effect = [
+                json.dumps({}),
+                json.dumps(drafts),
+                '{"comments": {}}',
+            ]
+
+            with self.assertRaises(ValueError) as context:
+                await post_review_comment(
+                    change_id="123",
+                    message="Also here.",
+                    in_reply_to="my-draft",
+                    gerrit_base_url=GERRIT_BASE_URL,
+                )
+
+            self.assertIn("unpublished draft", str(context.exception))
+            self.assertIn("src/main.py", str(context.exception))
+            self.assertIn("'nit'", str(context.exception))
+            for call in mock_run_curl.call_args_list:
+                self.assertNotIn("POST", call.args[0])
 
         asyncio.run(run_test())
 

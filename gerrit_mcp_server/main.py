@@ -2003,6 +2003,22 @@ async def _own_draft_in_thread(
     return None
 
 
+async def _missing_parent_reason(base_url: str, change_id: str, comment_id: str) -> str:
+    """Why comment_id, which no published comment of the CL has, takes no reply."""
+    drafts_by_file = await _list_drafts_all_revisions(base_url, change_id)
+    for file_path, drafts in drafts_by_file.items():
+        for draft in drafts:
+            if draft.get("id") == comment_id:
+                return (
+                    f"comment {comment_id!r} is your unpublished draft on "
+                    f"{file_path}: {draft.get('message', '')!r}. Gerrit takes a "
+                    "reply only to a published comment. Post one draft with "
+                    "both texts instead, after deleting this one with "
+                    "delete_draft_comment, or publish it first."
+                )
+    return f"parent comment {comment_id!r} was not found on CL {change_id}."
+
+
 def _inherited_location(parent: Dict[str, Any]) -> Dict[str, Any]:
     """The line, range, side and base that place a reply next to its parent."""
     return {
@@ -2089,9 +2105,9 @@ async def post_review_comment(
     they must be the parent's. Gerrit keeps a vote on the patch set it is
     cast on, so a reply on an older patch set cannot carry labels.
 
-    Raises ValueError when the parent comment is not found, a location given
-    for a reply is not the parent's, the comment has no file, or Gerrit
-    refuses the comment.
+    Raises ValueError when the parent comment is not found or is your
+    unpublished draft, a location given for a reply is not the parent's, the
+    comment has no file, or Gerrit refuses the comment.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -2104,10 +2120,8 @@ async def post_review_comment(
     if in_reply_to is not None:
         parent = await _fetch_comment_by_id(base_url, change_id, in_reply_to)
         if parent is None:
-            raise ValueError(
-                f"Failed to post comment: parent comment {in_reply_to!r} "
-                f"was not found on CL {change_id}."
-            )
+            reason = await _missing_parent_reason(base_url, change_id, in_reply_to)
+            raise ValueError(f"Failed to post comment: {reason}")
         mismatch = _reply_location_mismatch(parent, file_path, line_number)
         if mismatch:
             raise ValueError(f"Failed to post comment: {mismatch}")
@@ -2255,9 +2269,9 @@ async def post_draft_comment(
     Raises ValueError when the range has one character offset without the
     other, selects lines the file does not hold, or has no offsets on a path
     that starts with /. Also raises ValueError when the parent comment is
-    not found, a location given for a reply is not the parent's, the thread
-    already holds your draft, the draft has no file, or Gerrit refuses the
-    draft.
+    not found or is your unpublished draft, a location given for a reply is
+    not the parent's, the thread already holds your draft, the draft has no
+    file, or Gerrit refuses the draft.
     """
     comment_range = {
         "start_line": start_line,
@@ -2291,10 +2305,8 @@ async def post_draft_comment(
         published = await _published_comments_by_id(base_url, change_id)
         parent = published.get(in_reply_to)
         if parent is None:
-            raise ValueError(
-                f"Failed to create draft comment: parent comment "
-                f"{in_reply_to!r} was not found on CL {change_id}."
-            )
+            reason = await _missing_parent_reason(base_url, change_id, in_reply_to)
+            raise ValueError(f"Failed to create draft comment: {reason}")
         given_range = {k: comment_range[k] for k in given_range_fields} or None
         mismatch = _reply_location_mismatch(parent, file_path, line_number, given_range)
         if mismatch:
