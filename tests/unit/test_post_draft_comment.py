@@ -1,9 +1,15 @@
 import asyncio
+import base64
 import json
 import unittest
 from unittest.mock import AsyncMock, patch
 
 from gerrit_mcp_server import main
+
+
+def _base64(text):
+    """A file's content as Gerrit's /content endpoint returns it."""
+    return base64.b64encode(text.encode("utf-8")).decode("ascii")
 
 
 class TestPostDraftComment(unittest.TestCase):
@@ -153,7 +159,7 @@ class TestPostDraftComment(unittest.TestCase):
 
     @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
     def test_post_draft_comment_partial_range_rejected(self, mock_run_curl):
-        """A range missing a field fails instead of becoming a file comment."""
+        """One character offset without the other fails instead of guessing."""
 
         async def run_test():
             mock_run_curl.return_value = json.dumps({"id": "draft-abc123"})
@@ -164,11 +170,139 @@ class TestPostDraftComment(unittest.TestCase):
                     file_path="src/main.py",
                     message="Multi-line comment",
                     start_line=8,
+                    start_character=2,
                     end_line=12,
                 )
 
-            self.assertIn("start_character, end_character", str(context.exception))
+            self.assertIn("end_character", str(context.exception))
             mock_run_curl.assert_not_called()
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_line_numbers_alone_select_whole_lines(self, mock_run_curl):
+        """The range ends at the end of end_line, where the comment sits."""
+
+        async def run_test():
+            content = "line one\nline two\nthird line here\nlast\n"
+            mock_run_curl.side_effect = [
+                _base64(content),
+                json.dumps({"id": "draft-lines"}),
+            ]
+
+            result = await main.post_draft_comment(
+                change_id="456",
+                file_path="src/main.py",
+                message="Use a loop here.",
+                start_line=2,
+                end_line=3,
+                gerrit_base_url="https://gerrit-review.googlesource.com",
+            )
+
+            self.assertEqual(result["line"], 3)
+            content_url = mock_run_curl.call_args_list[0].args[0][-1]
+            self.assertEqual(
+                content_url,
+                "https://gerrit-review.googlesource.com/changes/456/revisions/"
+                "current/files/src%2Fmain.py/content",
+            )
+            curl_args = mock_run_curl.call_args_list[1].args[0]
+            payload = json.loads(curl_args[curl_args.index("--data") + 1])
+            self.assertEqual(
+                payload["range"],
+                {
+                    "start_line": 2,
+                    "start_character": 0,
+                    "end_line": 3,
+                    "end_character": 15,
+                },
+            )
+            self.assertEqual(payload["line"], 3)
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_whole_line_range_counts_utf16_code_units(self, mock_run_curl):
+        """Gerrit counts characters as Java does: an emoji takes two."""
+
+        async def run_test():
+            mock_run_curl.side_effect = [
+                _base64("a\U0001f600b\n"),
+                json.dumps({"id": "draft-emoji"}),
+            ]
+
+            await main.post_draft_comment(
+                change_id="456",
+                file_path="README.md",
+                message="Spell it out.",
+                start_line=1,
+                end_line=1,
+            )
+
+            curl_args = mock_run_curl.call_args_list[1].args[0]
+            payload = json.loads(curl_args[curl_args.index("--data") + 1])
+            self.assertEqual(payload["range"]["end_character"], 4)
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_whole_line_range_past_the_end_refused(self, mock_run_curl):
+        async def run_test():
+            mock_run_curl.side_effect = [
+                _base64("one\ntwo\nthree\n"),
+                json.dumps({"id": "draft-past-end"}),
+            ]
+
+            with self.assertRaises(ValueError) as context:
+                await main.post_draft_comment(
+                    change_id="456",
+                    file_path="src/main.py",
+                    message="Done.",
+                    start_line=2,
+                    end_line=5,
+                )
+
+            self.assertIn("src/main.py", str(context.exception))
+            self.assertIn("3", str(context.exception))
+            self.assertEqual(mock_run_curl.call_count, 1)
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_reply_selects_whole_lines_on_the_parent_patch_set(self, mock_run_curl):
+        async def run_test():
+            parent_range = {
+                "start_line": 2,
+                "start_character": 0,
+                "end_line": 3,
+                "end_character": 15,
+            }
+            parent_comments = {
+                "src/main.py": [
+                    {"id": "parent", "patch_set": 3, "line": 3, "range": parent_range}
+                ]
+            }
+            mock_run_curl.side_effect = [
+                json.dumps(parent_comments),
+                _base64("line one\nline two\nthird line here\n"),
+                json.dumps({"id": "draft-reply-lines"}),
+            ]
+
+            await main.post_draft_comment(
+                change_id="456",
+                message="Done.",
+                start_line=2,
+                end_line=3,
+                in_reply_to="parent",
+                gerrit_base_url="https://gerrit-review.googlesource.com",
+            )
+
+            content_url = mock_run_curl.call_args_list[1].args[0][-1]
+            self.assertIn("/revisions/3/files/src%2Fmain.py/content", content_url)
+            curl_args = mock_run_curl.call_args_list[2].args[0]
+            self.assertTrue(curl_args[-1].endswith("/revisions/3/drafts"))
+            payload = json.loads(curl_args[curl_args.index("--data") + 1])
+            self.assertEqual(payload["range"], parent_range)
 
         asyncio.run(run_test())
 
