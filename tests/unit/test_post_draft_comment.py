@@ -12,6 +12,9 @@ def _base64(text):
     return base64.b64encode(text.encode("utf-8")).decode("ascii")
 
 
+_NO_DRAFTS = json.dumps({})
+
+
 class TestPostDraftComment(unittest.TestCase):
     @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
     def test_post_draft_comment_success(self, mock_run_curl):
@@ -311,6 +314,7 @@ class TestPostDraftComment(unittest.TestCase):
             }
             mock_run_curl.side_effect = [
                 json.dumps(parent_comments),
+                _NO_DRAFTS,
                 json.dumps({"id": "draft-reply-lines"}),
             ]
 
@@ -396,6 +400,7 @@ class TestPostDraftComment(unittest.TestCase):
             }
             mock_run_curl.side_effect = [
                 json.dumps(parent_comments),
+                _NO_DRAFTS,
                 json.dumps({"id": "draft-reply-1"}),
             ]
 
@@ -432,6 +437,7 @@ class TestPostDraftComment(unittest.TestCase):
             }
             mock_run_curl.side_effect = [
                 json.dumps(parent_comments),
+                _NO_DRAFTS,
                 json.dumps({"id": "draft-ps3"}),
             ]
 
@@ -442,7 +448,7 @@ class TestPostDraftComment(unittest.TestCase):
                 gerrit_base_url="https://gerrit-review.googlesource.com",
             )
 
-            curl_args = mock_run_curl.call_args_list[1].args[0]
+            curl_args = mock_run_curl.call_args.args[0]
             self.assertEqual(
                 curl_args[-1],
                 "https://gerrit-review.googlesource.com/changes/456/revisions/3/drafts",
@@ -468,6 +474,7 @@ class TestPostDraftComment(unittest.TestCase):
             }
             mock_run_curl.side_effect = [
                 json.dumps(parent_comments),
+                _NO_DRAFTS,
                 json.dumps({"id": "draft-base"}),
             ]
 
@@ -475,7 +482,7 @@ class TestPostDraftComment(unittest.TestCase):
                 change_id="456", message="Done.", in_reply_to="parent-base"
             )
 
-            curl_args = mock_run_curl.call_args_list[1].args[0]
+            curl_args = mock_run_curl.call_args.args[0]
             payload = json.loads(curl_args[curl_args.index("--data") + 1])
             self.assertEqual(payload["side"], "PARENT")
             self.assertEqual(payload["parent"], 2)
@@ -556,6 +563,7 @@ class TestPostDraftComment(unittest.TestCase):
             }
             mock_run_curl.side_effect = [
                 json.dumps(parent_comments),
+                _NO_DRAFTS,
                 json.dumps({"id": "draft-base"}),
             ]
 
@@ -567,7 +575,7 @@ class TestPostDraftComment(unittest.TestCase):
                 in_reply_to="parent-base",
             )
 
-            curl_args = mock_run_curl.call_args_list[1].args[0]
+            curl_args = mock_run_curl.call_args.args[0]
             payload = json.loads(curl_args[curl_args.index("--data") + 1])
             self.assertEqual(payload["line"], 5)
             self.assertEqual(payload.get("side"), "PARENT")
@@ -649,6 +657,7 @@ class TestPostDraftComment(unittest.TestCase):
             }
             mock_run_curl.side_effect = [
                 json.dumps(parent_comments),
+                _NO_DRAFTS,
                 json.dumps({"id": "draft-abc"}),
             ]
 
@@ -662,7 +671,7 @@ class TestPostDraftComment(unittest.TestCase):
             self.assertEqual(result["file_path"], "src/main.py")
             self.assertEqual(result["line"], 42)
 
-            put_call = mock_run_curl.call_args_list[1]
+            put_call = mock_run_curl.call_args
             curl_args = put_call.args[0]
             payload = json.loads(curl_args[curl_args.index("--data") + 1])
             self.assertEqual(payload["path"], "src/main.py")
@@ -687,6 +696,7 @@ class TestPostDraftComment(unittest.TestCase):
             }
             mock_run_curl.side_effect = [
                 json.dumps(parent_comments),
+                _NO_DRAFTS,
                 json.dumps({"id": "draft-xyz"}),
             ]
 
@@ -697,7 +707,7 @@ class TestPostDraftComment(unittest.TestCase):
                 gerrit_base_url="https://gerrit-review.googlesource.com",
             )
 
-            put_call = mock_run_curl.call_args_list[1]
+            put_call = mock_run_curl.call_args
             curl_args = put_call.args[0]
             payload = json.loads(curl_args[curl_args.index("--data") + 1])
             self.assertEqual(payload["path"], "src/main.py")
@@ -716,6 +726,7 @@ class TestPostDraftComment(unittest.TestCase):
             }
             mock_run_curl.side_effect = [
                 json.dumps(parent_comments),
+                _NO_DRAFTS,
                 json.dumps({"id": "draft-ps"}),
             ]
 
@@ -725,7 +736,7 @@ class TestPostDraftComment(unittest.TestCase):
 
             self.assertEqual(result["file_path"], "/PATCHSET_LEVEL")
             self.assertIsNone(result["line"])
-            curl_args = mock_run_curl.call_args_list[1].args[0]
+            curl_args = mock_run_curl.call_args.args[0]
             payload = json.loads(curl_args[curl_args.index("--data") + 1])
             self.assertEqual(payload["path"], "/PATCHSET_LEVEL")
             self.assertNotIn("line", payload)
@@ -789,6 +800,7 @@ class TestPostDraftComment(unittest.TestCase):
             }
             mock_run_curl.side_effect = [
                 json.dumps(parent_comments),
+                _NO_DRAFTS,
                 json.dumps({"id": "draft-same-range"}),
             ]
 
@@ -802,10 +814,109 @@ class TestPostDraftComment(unittest.TestCase):
                 end_character=18,
             )
 
-            curl_args = mock_run_curl.call_args_list[1].args[0]
+            curl_args = mock_run_curl.call_args.args[0]
             payload = json.loads(curl_args[curl_args.index("--data") + 1])
             self.assertEqual(payload["range"], parent_range)
             self.assertEqual(payload["line"], 42)
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_second_own_draft_in_a_thread_refused(self, mock_run_curl):
+        """Gerrit would publish both drafts as two replies in one thread."""
+
+        async def run_test():
+            published = {
+                "src/main.py": [
+                    {"id": "root", "patch_set": 2, "line": 5},
+                    {"id": "answer", "patch_set": 2, "line": 5, "in_reply_to": "root"},
+                ]
+            }
+            drafts = {
+                "src/main.py": [
+                    {
+                        "id": "my-draft",
+                        "patch_set": 2,
+                        "line": 5,
+                        "in_reply_to": "root",
+                        "message": "Will fix.",
+                    }
+                ]
+            }
+            mock_run_curl.side_effect = [
+                json.dumps(published),
+                json.dumps(drafts),
+                json.dumps({"id": "second-draft"}),
+            ]
+
+            with self.assertRaises(ValueError) as context:
+                await main.post_draft_comment(
+                    change_id="456", message="Done.", in_reply_to="answer"
+                )
+
+            self.assertIn("my-draft", str(context.exception))
+            self.assertIn("Will fix.", str(context.exception))
+            for call in mock_run_curl.call_args_list:
+                self.assertNotIn("PUT", call.args[0])
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_own_draft_in_another_thread_allows_the_reply(self, mock_run_curl):
+        async def run_test():
+            published = {
+                "src/main.py": [
+                    {"id": "root", "patch_set": 2, "line": 5},
+                    {"id": "other-root", "patch_set": 2, "line": 9},
+                ]
+            }
+            drafts = {
+                "src/main.py": [
+                    {
+                        "id": "my-draft",
+                        "patch_set": 2,
+                        "line": 9,
+                        "in_reply_to": "other-root",
+                        "message": "Will fix.",
+                    }
+                ]
+            }
+            mock_run_curl.side_effect = [
+                json.dumps(published),
+                json.dumps(drafts),
+                json.dumps({"id": "reply-draft"}),
+            ]
+
+            result = await main.post_draft_comment(
+                change_id="456", message="Done.", in_reply_to="root"
+            )
+
+            self.assertEqual(result["draft_id"], "reply-draft")
+
+        asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_own_draft_that_answers_nothing_allows_the_reply(self, mock_run_curl):
+        """A draft on the parent's line without in_reply_to is a thread of its own."""
+
+        async def run_test():
+            published = {"src/main.py": [{"id": "root", "patch_set": 2, "line": 5}]}
+            drafts = {
+                "src/main.py": [
+                    {"id": "my-note", "patch_set": 2, "line": 5, "message": "Rename."}
+                ]
+            }
+            mock_run_curl.side_effect = [
+                json.dumps(published),
+                json.dumps(drafts),
+                json.dumps({"id": "reply-draft"}),
+            ]
+
+            result = await main.post_draft_comment(
+                change_id="456", message="Done.", in_reply_to="root"
+            )
+
+            self.assertEqual(result["draft_id"], "reply-draft")
 
         asyncio.run(run_test())
 

@@ -59,7 +59,7 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
   whole file, or the whole patch set. A range given by `start_line` and
   `end_line` alone covers those lines whole. With `in_reply_to`, the draft is a
   reply in the thread of that comment, saved where the parent comment is: on its
-  patch set, file, line, and range.
+  patch set, file, line, and range. A thread holds at most one of your drafts.
 - **list_draft_comments**: Lists your draft comments on a CL, on every patch
   set, each with its patch set, file, line, and the comment it replies to.
 - **delete_draft_comment**: Deletes one of your draft comments, on whichever

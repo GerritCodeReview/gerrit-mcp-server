@@ -1935,6 +1935,30 @@ async def get_bugs_from_cl(change_id: str, gerrit_base_url: Optional[str] = None
     ]
 
 
+async def _published_comments_by_id(
+    base_url: str, change_id: str
+) -> Dict[str, Dict[str, Any]]:
+    """Fetches the published comments of a CL, keyed by comment ID.
+
+    Each comment dict gets an additional ``path`` key naming the file the
+    comment was posted on. Raises ValueError, with Gerrit's answer, when that
+    answer is not JSON.
+    """
+    url = f"{base_url}/changes/{change_id}/comments"
+    result_str = await run_curl([url], base_url)
+    try:
+        comments_by_file = json.loads(result_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse comments response.\n{result_str}") from e
+
+    return {
+        comment["id"]: {**comment, "path": file_path}
+        for file_path, comments in comments_by_file.items()
+        for comment in comments
+        if "id" in comment
+    }
+
+
 async def _fetch_comment_by_id(
     base_url: str, change_id: str, comment_id: str
 ) -> Optional[Dict[str, Any]]:
@@ -1945,19 +1969,37 @@ async def _fetch_comment_by_id(
     ValueError, with Gerrit's answer, when that answer is not JSON.
 
     """
-    url = f"{base_url}/changes/{change_id}/comments"
-    result_str = await run_curl([url], base_url)
-    try:
-        comments_by_file = json.loads(result_str)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to parse comments response.\n{result_str}") from e
+    comments_by_id = await _published_comments_by_id(base_url, change_id)
+    return comments_by_id.get(comment_id)
 
-    for file_path, comments in comments_by_file.items():
-        for comment in comments:
-            if comment.get("id") == comment_id:
-                enriched = dict(comment)
-                enriched["path"] = file_path
-                return enriched
+
+def _thread_root_id(comment_id: str, comments_by_id: Dict[str, Dict[str, Any]]) -> str:
+    """The ID of the first comment of the thread that comment_id is in."""
+    while comments_by_id.get(comment_id, {}).get("in_reply_to") in comments_by_id:
+        comment_id = comments_by_id[comment_id]["in_reply_to"]
+    return comment_id
+
+
+async def _own_draft_in_thread(
+    base_url: str,
+    change_id: str,
+    comment_id: str,
+    comments_by_id: Dict[str, Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    """One of the caller's drafts that replies in the thread of comment_id.
+
+    Returns None when the caller has no draft in that thread.
+    """
+    thread_id = _thread_root_id(comment_id, comments_by_id)
+    drafts_by_file = await _list_drafts_all_revisions(base_url, change_id)
+    for drafts in drafts_by_file.values():
+        for draft in drafts:
+            parent_id = draft.get("in_reply_to")
+            if (
+                parent_id in comments_by_id
+                and _thread_root_id(parent_id, comments_by_id) == thread_id
+            ):
+                return draft
     return None
 
 
@@ -2206,13 +2248,16 @@ async def post_draft_comment(
     comment. It goes where the parent is: on its patch set, file, line, range
     and side. file_path, line_number and the range can be left unset, and
     when given they must be the parent's. start_line and end_line given alone
-    must be the lines of the parent's range.
+    must be the lines of the parent's range. A thread holds at most one of
+    your drafts: a reply in a thread that has one is refused, and that draft
+    stays.
 
     Raises ValueError when the range has one character offset without the
     other, selects lines the file does not hold, or has no offsets on a path
     that starts with /. Also raises ValueError when the parent comment is
-    not found, a location given for a reply is not the parent's, the draft
-    has no file, or Gerrit refuses the draft.
+    not found, a location given for a reply is not the parent's, the thread
+    already holds your draft, the draft has no file, or Gerrit refuses the
+    draft.
     """
     comment_range = {
         "start_line": start_line,
@@ -2243,7 +2288,8 @@ async def post_draft_comment(
     revision = "current"
     inherited: Dict[str, Any] = {}
     if in_reply_to is not None:
-        parent = await _fetch_comment_by_id(base_url, change_id, in_reply_to)
+        published = await _published_comments_by_id(base_url, change_id)
+        parent = published.get(in_reply_to)
         if parent is None:
             raise ValueError(
                 f"Failed to create draft comment: parent comment "
@@ -2253,6 +2299,17 @@ async def post_draft_comment(
         mismatch = _reply_location_mismatch(parent, file_path, line_number, given_range)
         if mismatch:
             raise ValueError(f"Failed to create draft comment: {mismatch}")
+        own_draft = await _own_draft_in_thread(
+            base_url, change_id, parent["id"], published
+        )
+        if own_draft is not None:
+            raise ValueError(
+                f"Failed to create draft comment: your draft "
+                f"{own_draft.get('id')!r} already replies in this thread: "
+                f"{own_draft.get('message', '')!r}. Gerrit would publish both "
+                "drafts as two replies. Delete that draft with "
+                "delete_draft_comment before posting another, or keep it."
+            )
         revision = parent.get("patch_set", "current")
         file_path = parent.get("path")
         inherited = _inherited_location(parent)
