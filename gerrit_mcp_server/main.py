@@ -754,11 +754,87 @@ async def get_file_content(
     }
 
 
-@mcp.tool()
-async def list_change_comments(change_id: str, gerrit_base_url: Optional[str] = None):
+class _ThreadComment(TypedDict):
+    id: str
+    author: str
+    updated: str
+    message: str
+    in_reply_to: Optional[str]
+    unresolved: bool
+
+
+class _CommentThread(TypedDict):
+    file_path: str
+    line: Optional[int]
+    patch_set: Optional[int]
+    unresolved: bool
+    comments: List[_ThreadComment]
+
+
+class _ChangeCommentsResult(TypedDict):
+    change_id: str
+    threads: List[_CommentThread]
+
+
+def _comment_threads(
+    comments_by_file: Dict[str, List[Dict[str, Any]]],
+) -> List[_CommentThread]:
+    """Groups Gerrit's comments into threads, each in the order it was written.
+
+    A reply joins the thread of the comment it answers, so a thread sits where
+    its first comment does. A thread is unresolved when its latest comment is,
+    as in the Gerrit web UI.
     """
-    list_change_comments is useful for reviewing feedback, reading comments
-    on a change, analyzing comments, and responding to comments.
+    comments_by_id: Dict[str, Dict[str, Any]] = {}
+    paths: Dict[str, str] = {}
+    for file_path, comments in comments_by_file.items():
+        for comment in comments:
+            comments_by_id[comment["id"]] = comment
+            paths[comment["id"]] = file_path
+
+    threads: Dict[str, _CommentThread] = {}
+    for comment in sorted(comments_by_id.values(), key=lambda c: c.get("updated", "")):
+        first = comment
+        while first.get("in_reply_to") in comments_by_id:
+            first = comments_by_id[first["in_reply_to"]]
+        if first["id"] not in threads:
+            threads[first["id"]] = {
+                "file_path": paths[first["id"]],
+                "line": first.get("line"),
+                "patch_set": first.get("patch_set"),
+                "unresolved": False,
+                "comments": [],
+            }
+        thread = threads[first["id"]]
+        thread["comments"].append(
+            {
+                "id": comment["id"],
+                "author": comment.get("author", {}).get("name", "Unknown"),
+                "updated": comment.get("updated", ""),
+                "message": comment.get("message", ""),
+                "in_reply_to": comment.get("in_reply_to"),
+                "unresolved": comment.get("unresolved", False),
+            }
+        )
+        thread["unresolved"] = comment.get("unresolved", False)
+    return sorted(
+        threads.values(),
+        key=lambda t: (t["file_path"], t["patch_set"] or 0, t["line"] or 0),
+    )
+
+
+@mcp.tool()
+async def list_change_comments(
+    change_id: str, gerrit_base_url: Optional[str] = None
+) -> _ChangeCommentsResult:
+    """
+    Lists the published comments on a CL, grouped into threads.
+
+    A thread is a comment and the replies under it, on the patch set, file
+    and line of its first comment, oldest comment first. A thread is
+    unresolved when its latest comment is, as in the Gerrit web UI. To answer
+    in a thread, pass the id of one of its comments as in_reply_to. Raises
+    ValueError when Gerrit's answer is not JSON.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -766,39 +842,12 @@ async def list_change_comments(change_id: str, gerrit_base_url: Optional[str] = 
         _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
     )
     url = f"{base_url}/changes/{change_id}/comments"
-    result_json_str = await run_curl([url], base_url)
+    result_str = await run_curl([url], base_url)
     try:
-        comments_by_file = json.loads(result_json_str)
-    except json.JSONDecodeError:
-        return [
-            {
-                "type": "text",
-                "text": (
-                    "Failed to parse JSON response from Gerrit. "
-                    f"Raw response:\n{result_json_str}"
-                ),
-            }
-        ]
-
-    output = f"Comments for CL {change_id}:\n"
-    found_comments = False
-    for file_path, comments in comments_by_file.items():
-        output += f"---\nFile: {file_path}\n"
-        found_comments = True
-        for comment in comments:
-            line = comment.get("line", "File")
-            author = comment.get("author", {}).get("name", "Unknown")
-            timestamp = comment.get("updated", "No date")
-            message = comment["message"]
-            status = "UNRESOLVED" if comment.get("unresolved", False) else "RESOLVED"
-            comment_id = comment.get("id", "")
-            output += f"L{line}: [{author}] ({timestamp}) - {status} id={comment_id}\n"
-            output += f"  {message}\n"
-
-    if not found_comments:
-        return [{"type": "text", "text": f"No comments found for CL {change_id}."}]
-
-    return [{"type": "text", "text": output}]
+        comments_by_file = json.loads(result_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse comments response.\n{result_str}") from e
+    return {"change_id": change_id, "threads": _comment_threads(comments_by_file)}
 
 
 @mcp.tool()
