@@ -258,25 +258,20 @@ async def test_list_change_comments(mock_run_curl):
     result = await main.list_change_comments(
         gerrit_base_url="https://fuchsia-review.googlesource.com", change_id="123"
     )
-    text = result[0]["text"]
-    assert "Comments for CL 123" in text
-    assert "File: file1.txt" in text
-    assert (
-        "L10: [user1@example.com] (2025-07-15T11:00:00Z) - UNRESOLVED id=comment-aaa"
-        in text
-    )
-    assert "Comment 1" in text
-    assert (
-        "L12: [user2@example.com] (2025-07-15T11:05:00Z) - RESOLVED id=comment-bbb"
-        in text
-    )
-    assert "Comment 2" in text
-    assert "File: file2.txt" in text
-    assert (
-        "L5: [user1@example.com] (2025-07-15T11:10:00Z) - UNRESOLVED id=comment-ccc"
-        in text
-    )
-    assert "Comment 3" in text
+    assert result["change_id"] == "123"
+    assert [
+        (
+            thread["file_path"],
+            thread["line"],
+            thread["unresolved"],
+            [(c["id"], c["author"], c["message"]) for c in thread["comments"]],
+        )
+        for thread in result["threads"]
+    ] == [
+        ("file1.txt", 10, True, [("comment-aaa", "user1@example.com", "Comment 1")]),
+        ("file1.txt", 12, False, [("comment-bbb", "user2@example.com", "Comment 2")]),
+        ("file2.txt", 5, True, [("comment-ccc", "user1@example.com", "Comment 3")]),
+    ]
 
 
 @pytest.mark.asyncio
@@ -286,6 +281,7 @@ async def test_list_change_comments_no_unresolved(mock_run_curl):
         {
             "file1.txt": [
                 {
+                    "id": "comment-bbb",
                     "line": 12,
                     "author": {"name": "user2@example.com"},
                     "message": "Comment 2",
@@ -298,19 +294,17 @@ async def test_list_change_comments_no_unresolved(mock_run_curl):
     result = await main.list_change_comments(
         gerrit_base_url="https://fuchsia-review.googlesource.com", change_id="123"
     )
-    text = result[0]["text"]
-    assert "Comments for CL 123" in text
-    assert "L12: [user2@example.com] (2025-07-15T11:05:00Z) - RESOLVED" in text
+    assert [thread["unresolved"] for thread in result["threads"]] == [False]
 
 
 @pytest.mark.asyncio
 async def test_list_change_comments_json_decode_error(mock_run_curl):
     """Tests handling of invalid JSON response when listing comments."""
     mock_run_curl.return_value = "this is not json"
-    result = await main.list_change_comments(
-        gerrit_base_url="https://fuchsia-review.googlesource.com", change_id="123"
-    )
-    assert "Failed to parse JSON" in result[0]["text"]
+    with pytest.raises(ValueError, match="this is not json"):
+        await main.list_change_comments(
+            gerrit_base_url="https://fuchsia-review.googlesource.com", change_id="123"
+        )
 
 
 @pytest.mark.asyncio

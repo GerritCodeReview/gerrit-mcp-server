@@ -95,7 +95,7 @@
     }
   },
   "list_change_comments": {
-    "description": "Fetches all published comments for a CL.",
+    "description": "Fetches all published comments for a CL, grouped into threads.",
     "parameters": {
       "gerrit_base_url": {
         "type": "string",

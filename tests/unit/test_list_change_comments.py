@@ -19,101 +19,196 @@ from unittest.mock import AsyncMock, patch
 
 from gerrit_mcp_server import main
 
+GERRIT_BASE_URL = "https://gerrit.example.com"
+
+
+def _comment(comment_id, updated, unresolved, in_reply_to=None, **location):
+    comment = {
+        "id": comment_id,
+        "author": {"name": "Reviewer"},
+        "message": f"message of {comment_id}",
+        "unresolved": unresolved,
+        "updated": updated,
+        **location,
+    }
+    if in_reply_to is not None:
+        comment["in_reply_to"] = in_reply_to
+    return comment
+
+
+def _listed(comment_id, updated, unresolved, in_reply_to=None):
+    return {
+        "id": comment_id,
+        "author": "Reviewer",
+        "updated": updated,
+        "message": f"message of {comment_id}",
+        "in_reply_to": in_reply_to,
+        "unresolved": unresolved,
+    }
+
 
 class TestListChangeComments(unittest.TestCase):
-    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
-    def test_list_change_comments_unresolved(self, mock_run_curl):
-        async def run_test():
-            # Arrange
-            change_id = "11223"
-            mock_response = {
-                "src/main.py": [
-                    {
-                        "line": 10,
-                        "author": {"name": "user1@example.com"},
-                        "message": "This is a comment.",
-                        "unresolved": True,
-                        "updated": "2025-07-15T10:00:00Z",
-                    },
-                    {
-                        "line": 15,
-                        "author": {"name": "user2@example.com"},
-                        "message": "This is resolved.",
-                        "unresolved": False,
-                        "updated": "2025-07-15T10:05:00Z",
-                    },
-                ],
-                "README.md": [
-                    {
-                        "author": {"name": "user1@example.com"},
-                        "message": "Another unresolved comment.",
-                        "unresolved": True,
-                        "updated": "2025-07-15T10:10:00Z",
-                    }
-                ],
-            }
-            mock_run_curl.return_value = json.dumps(mock_response)
-            gerrit_base_url = "https://my-gerrit.com"
-
-            # Act
-            result = await main.list_change_comments(
-                change_id, gerrit_base_url=gerrit_base_url
-            )
-
-            # Assert
-            self.assertIn("Comments for CL 11223", result[0]["text"])
-            self.assertIn("File: src/main.py", result[0]["text"])
-            self.assertIn(
-                "L10: [user1@example.com] (2025-07-15T10:00:00Z) - UNRESOLVED",
-                result[0]["text"],
-            )
-            self.assertIn("This is a comment.", result[0]["text"])
-            self.assertIn(
-                "L15: [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED",
-                result[0]["text"],
-            )
-            self.assertIn("This is resolved.", result[0]["text"])
-            self.assertIn("File: README.md", result[0]["text"])
-            self.assertIn(
-                "LFile: [user1@example.com] (2025-07-15T10:10:00Z) - UNRESOLVED",
-                result[0]["text"],
-            )
-            self.assertIn("Another unresolved comment.", result[0]["text"])
-
-        asyncio.run(run_test())
+    def _list(self, mock_run_curl, comments_by_file):
+        mock_run_curl.return_value = json.dumps(comments_by_file)
+        return asyncio.run(
+            main.list_change_comments("11223", gerrit_base_url=GERRIT_BASE_URL)
+        )
 
     @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
-    def test_list_change_comments_none_unresolved(self, mock_run_curl):
-        async def run_test():
-            # Arrange
-            change_id = "11223"
-            mock_response = {
+    def test_reply_joins_the_thread_of_its_parent(self, mock_run_curl):
+        result = self._list(
+            mock_run_curl,
+            {
                 "src/main.py": [
-                    {
-                        "line": 15,
-                        "author": {"name": "user2@example.com"},
-                        "message": "This is resolved.",
-                        "unresolved": False,
-                        "updated": "2025-07-15T10:05:00Z",
-                    }
+                    _comment("root", "2026-10-01 10:00:00", True, line=10, patch_set=3),
+                    _comment("reply", "2026-10-02 10:00:00", False, "root", line=10),
                 ]
-            }
-            mock_run_curl.return_value = json.dumps(mock_response)
-            gerrit_base_url = "https://my-gerrit.com"
+            },
+        )
 
-            # Act
-            result = await main.list_change_comments(
-                change_id, gerrit_base_url=gerrit_base_url
+        self.assertEqual(
+            result,
+            {
+                "change_id": "11223",
+                "threads": [
+                    {
+                        "file_path": "src/main.py",
+                        "line": 10,
+                        "range": None,
+                        "patch_set": 3,
+                        "side": "REVISION",
+                        "parent": None,
+                        "unresolved": False,
+                        "comments": [
+                            _listed("root", "2026-10-01 10:00:00", True),
+                            _listed("reply", "2026-10-02 10:00:00", False, "root"),
+                        ],
+                    }
+                ],
+            },
+        )
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_thread_sits_on_the_side_and_range_of_its_first_comment(
+        self, mock_run_curl
+    ):
+        selection = {
+            "start_line": 3,
+            "start_character": 4,
+            "end_line": 5,
+            "end_character": 12,
+        }
+        result = self._list(
+            mock_run_curl,
+            {
+                "src/main.py": [
+                    _comment(
+                        "root",
+                        "2026-10-01 10:00:00",
+                        True,
+                        line=5,
+                        range=selection,
+                        side="PARENT",
+                        parent=2,
+                    ),
+                    _comment("reply", "2026-10-02 10:00:00", False, "root"),
+                ]
+            },
+        )
+
+        thread = result["threads"][0]
+        self.assertEqual(
+            (thread["side"], thread["parent"], thread["line"], thread["range"]),
+            ("PARENT", 2, 5, selection),
+        )
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_reply_to_a_reply_joins_the_first_comment_thread(self, mock_run_curl):
+        result = self._list(
+            mock_run_curl,
+            {
+                "src/main.py": [
+                    _comment("second", "2026-10-02 10:00:00", True, "first", line=7),
+                    _comment("first", "2026-10-01 10:00:00", True, line=7),
+                    _comment("third", "2026-10-03 10:00:00", True, "second", line=7),
+                ]
+            },
+        )
+
+        self.assertEqual(len(result["threads"]), 1)
+        self.assertEqual(
+            [c["id"] for c in result["threads"][0]["comments"]],
+            ["first", "second", "third"],
+        )
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_thread_state_is_the_state_of_its_latest_comment(self, mock_run_curl):
+        result = self._list(
+            mock_run_curl,
+            {
+                "src/main.py": [
+                    _comment("root", "2026-10-01 10:00:00", True, line=4),
+                    _comment("done", "2026-10-02 10:00:00", False, "root", line=4),
+                    _comment("reopen", "2026-10-03 10:00:00", True, "done", line=4),
+                ]
+            },
+        )
+
+        self.assertTrue(result["threads"][0]["unresolved"])
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_comments_on_one_line_without_replies_are_separate_threads(
+        self, mock_run_curl
+    ):
+        result = self._list(
+            mock_run_curl,
+            {
+                "src/main.py": [
+                    _comment("one", "2026-10-01 10:00:00", True, line=5),
+                    _comment("two", "2026-10-01 11:00:00", False, line=5),
+                ]
+            },
+        )
+
+        self.assertEqual(
+            [
+                (t["comments"][0]["id"], t["unresolved"], len(t["comments"]))
+                for t in result["threads"]
+            ],
+            [("one", True, 1), ("two", False, 1)],
+        )
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_file_and_patch_set_level_threads_have_no_line(self, mock_run_curl):
+        result = self._list(
+            mock_run_curl,
+            {
+                "README.md": [_comment("file", "2026-10-01 10:00:00", True)],
+                "/PATCHSET_LEVEL": [_comment("ps", "2026-10-01 09:00:00", True)],
+            },
+        )
+
+        self.assertEqual(
+            [(t["file_path"], t["line"]) for t in result["threads"]],
+            [("/PATCHSET_LEVEL", None), ("README.md", None)],
+        )
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_no_comments_gives_no_threads(self, mock_run_curl):
+        result = self._list(mock_run_curl, {})
+
+        self.assertEqual(result, {"change_id": "11223", "threads": []})
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_non_json_answer_raises_with_its_text(self, mock_run_curl):
+        mock_run_curl.return_value = "Not found: 11223"
+
+        with self.assertRaises(ValueError) as context:
+            asyncio.run(
+                main.list_change_comments("11223", gerrit_base_url=GERRIT_BASE_URL)
             )
 
-            # Assert
-            self.assertIn("Comments for CL 11223", result[0]["text"])
-            self.assertIn(
-                "L15: [user2@example.com] (2025-07-15T10:05:00Z) - RESOLVED",
-                result[0]["text"],
-            )
-
-        asyncio.run(run_test())
+        self.assertIn("Not found: 11223", str(context.exception))
 
 
 if __name__ == "__main__":
