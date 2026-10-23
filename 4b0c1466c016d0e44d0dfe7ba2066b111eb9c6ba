@@ -22,6 +22,30 @@
       },
       "revId": "4b0c1466c016d0e44d0dfe7ba2066b111eb9c6ba",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5843be67_ebe24e17",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 886,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-23T11:50:18Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "b948abf3_0e0e8432",
+      "range": {
+        "startLine": 881,
+        "startChar": 0,
+        "endLine": 886,
+        "endChar": 34
+      },
+      "revId": "4b0c1466c016d0e44d0dfe7ba2066b111eb9c6ba",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
