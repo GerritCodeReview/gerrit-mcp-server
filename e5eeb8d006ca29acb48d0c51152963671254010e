@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "02755a0f_f31a229c",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 2227,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-10-23T02:41:08Z",
+      "side": 1,
+      "message": "Since a reply takes its range from the parent anyway, wouldn\u0027t it be simpler to skip the fetch for replies and just check `start_line`/`end_line` against `parent[\"range\"]`?",
+      "range": {
+        "startLine": 2224,
+        "startChar": 0,
+        "endLine": 2227,
+        "endChar": 9
+      },
+      "revId": "e5eeb8d006ca29acb48d0c51152963671254010e",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
