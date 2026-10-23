@@ -3,6 +3,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "14a6e35b_0b65a122",
+        "filename": ".python-version",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-23T05:38:55Z",
+      "side": 1,
+      "message": "I think you want this instead:\n```suggestion\n\u003e\u003d3.12,\u003c3.15\n```\n\nas noted in https://docs.astral.sh/uv/concepts/python-versions/#python-version-files",
+      "revId": "bcc75e512eb039dfbfc40e2b6ade30e319f614a2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "fd4f0fc0_d9d96987",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
