@@ -18,6 +18,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "46db49f2_ba54ee66",
+        "filename": ".python-version",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-23T11:49:24Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "14a6e35b_0b65a122",
+      "revId": "bcc75e512eb039dfbfc40e2b6ade30e319f614a2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fd4f0fc0_d9d96987",
@@ -31,6 +49,30 @@
       "writtenOn": "2026-10-23T02:30:53Z",
       "side": 1,
       "message": "I\u0027m sure if that\u0027s the case. I tried it with uv 0.11: an existing 3.12 `.venv` got removed and rebuilt on 3.14 on the next `uv run`. With `UV_PYTHON_DOWNLOADS\u003dnever` and no local 3.14, `uv sync` fails with \"No interpreter found for Python 3.14\". Maybe call that out here.",
+      "range": {
+        "startLine": 16,
+        "startChar": 61,
+        "endLine": 17,
+        "endChar": 44
+      },
+      "revId": "bcc75e512eb039dfbfc40e2b6ade30e319f614a2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d3f28269_e2baff2d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-23T11:49:24Z",
+      "side": 1,
+      "message": "Adjusted according to the Nasser\u0027s words.",
+      "parentUuid": "fd4f0fc0_d9d96987",
       "range": {
         "startLine": 16,
         "startChar": 61,
