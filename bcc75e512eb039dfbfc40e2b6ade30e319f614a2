@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fd4f0fc0_d9d96987",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-10-23T02:30:53Z",
+      "side": 1,
+      "message": "I\u0027m sure if that\u0027s the case. I tried it with uv 0.11: an existing 3.12 `.venv` got removed and rebuilt on 3.14 on the next `uv run`. With `UV_PYTHON_DOWNLOADS\u003dnever` and no local 3.14, `uv sync` fails with \"No interpreter found for Python 3.14\". Maybe call that out here.",
+      "range": {
+        "startLine": 16,
+        "startChar": 61,
+        "endLine": 17,
+        "endChar": 44
+      },
+      "revId": "bcc75e512eb039dfbfc40e2b6ade30e319f614a2",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
