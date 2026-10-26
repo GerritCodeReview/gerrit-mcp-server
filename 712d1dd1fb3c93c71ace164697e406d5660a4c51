@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9e253ef5_110e8e51",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-26T19:45:28Z",
+      "side": 1,
+      "message": "I think this is a subset of what\u0027s done in 644811: Group the comments of list_change_comments into threads | https://gerrit-review.googlesource.com/c/gerrit-mcp-server/+/644811",
+      "revId": "712d1dd1fb3c93c71ace164697e406d5660a4c51",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
