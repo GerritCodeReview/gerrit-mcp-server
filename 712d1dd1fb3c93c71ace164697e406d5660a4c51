@@ -16,6 +16,24 @@
       "message": "I think this is a subset of what\u0027s done in 644811: Group the comments of list_change_comments into threads | https://gerrit-review.googlesource.com/c/gerrit-mcp-server/+/644811",
       "revId": "712d1dd1fb3c93c71ace164697e406d5660a4c51",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "db24fb88_956ca299",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-10-27T15:43:51Z",
+      "side": 1,
+      "message": "**Major:** Agreed: since 644811, `list_change_comments` on master lists each thread with its `patch_set` and its `unresolved` flag, and each comment with its `in_reply_to`. Gerrit accepts a reply only on the patch set of the comment it answers, so the `patch_set` this change adds per comment equals the thread\u0027s (`CommentsUtil.ensureValidInReplyTo`). The change also conflicts with master in `gerrit_mcp_server/main.py` and `docs/available_tools.md`, so please abandon it.",
+      "parentUuid": "9e253ef5_110e8e51",
+      "revId": "712d1dd1fb3c93c71ace164697e406d5660a4c51",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
