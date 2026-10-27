@@ -57,9 +57,7 @@ def load_gerrit_config() -> Dict[str, Any]:
     if not config_path.exists():
         raise FileNotFoundError(
             f"Configuration file not found at {config_path}. "
-            "Please create this file to proceed. You can copy "
-            "'gerrit_mcp_server/gerrit_config.sample.json' to "
-            "'gerrit_mcp_server/gerrit_config.json' as a starting point. "
+            "Run /gerrit:setup (Claude Code) to create it. "
             "Refer to the README.md for more details on the configuration options."
         )
     try:
