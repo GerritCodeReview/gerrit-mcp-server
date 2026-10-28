@@ -18,6 +18,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "50c07884_940ddd7f",
+        "filename": ".github/pull_request_template.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-28T23:50:08Z",
+      "side": 1,
+      "message": "Updated the PR template to use the absolute canonical URL for docs/contributing.md.",
+      "parentUuid": "18fcb7ad_61e0f86c",
+      "revId": "54f9d670e02f40e840072e6ab047c8199f1a7f84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bd3658a2_87b02771",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-10-06T12:29:03Z",
       "side": 1,
       "message": "**Minor:** This line sends readers to `AGENTS.md` for the Change-Id requirements, but `AGENTS.md` has none. Without the `commit-msg` hook Gerrit rejects this push by default, and in a clone of the GitHub mirror `origin` does not point to Gerrit. Please add the Gerrit clone URL and the hook installation step, or link `skills/gerrit-workflow/references/change-id-details.md`.",
+      "revId": "54f9d670e02f40e840072e6ab047c8199f1a7f84",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f74e0e19_a9597506",
+        "filename": "docs/contributing.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-28T23:50:08Z",
+      "side": 1,
+      "message": "Added the canonical Gerrit clone URL, commit-msg hook installation, and instructions for repointing origin in a GitHub-mirror clone. The guide now explains adding and preserving Change-Id, including amending a commit created before installing the hook. AGENTS.md is linked only for setup and testing.",
+      "parentUuid": "bd3658a2_87b02771",
       "revId": "54f9d670e02f40e840072e6ab047c8199f1a7f84",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
