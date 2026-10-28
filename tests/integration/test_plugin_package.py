@@ -3,6 +3,8 @@ import os
 import subprocess
 from pathlib import Path
 
+import yaml
+
 PROJECT_ROOT = Path(__file__).parents[2]
 
 
@@ -24,7 +26,12 @@ def _skill_metadata(path: Path) -> dict[str, str]:
     return metadata
 
 
-def _run_config_hook(tmp_path: Path, return_code: int) -> subprocess.CompletedProcess:
+def _run_config_hook(
+    tmp_path: Path,
+    return_code: int,
+    *,
+    codex_environment: bool = False,
+) -> subprocess.CompletedProcess:
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
     args_path = tmp_path / "uv-args"
@@ -41,10 +48,18 @@ def _run_config_hook(tmp_path: Path, return_code: int) -> subprocess.CompletedPr
 
     plugin_data = tmp_path / "plugin-data"
     environment = os.environ.copy()
+    environment.pop("CLAUDE_PLUGIN_ROOT", None)
+    environment.pop("CLAUDE_PLUGIN_DATA", None)
+    environment.pop("PLUGIN_ROOT", None)
+    environment.pop("PLUGIN_DATA", None)
     environment.update(
         {
-            "CLAUDE_PLUGIN_ROOT": str(PROJECT_ROOT),
-            "CLAUDE_PLUGIN_DATA": str(plugin_data),
+            "PLUGIN_ROOT" if codex_environment else "CLAUDE_PLUGIN_ROOT": str(
+                PROJECT_ROOT
+            ),
+            "PLUGIN_DATA" if codex_environment else "CLAUDE_PLUGIN_DATA": str(
+                plugin_data
+            ),
             "FAKE_UV_ARGS_PATH": str(args_path),
             "FAKE_UV_ENVIRONMENT_PATH": str(environment_path),
             "FAKE_UV_OUTPUT": "controlled uv output",
@@ -130,6 +145,64 @@ def test_config_hook_reports_invalid_configuration(tmp_path):
 
 def test_config_hook_passes_plugin_paths_to_uv(tmp_path):
     result = _run_config_hook(tmp_path, return_code=0)
+
+    assert result.returncode == 0
+    assert (tmp_path / "uv-args").read_text().strip() == (
+        f"run --directory {PROJECT_ROOT} gerrit-check-config"
+    )
+    assert (tmp_path / "uv-environment").read_text().strip() == (
+        f"{tmp_path / 'plugin-data'}/.venv"
+    )
+
+
+def test_codex_plugin_manifest_identifies_gerrit():
+    manifest = _load_json("plugin.json")
+
+    assert manifest["$schema"] == (
+        "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+    )
+    assert manifest["name"] == "gerrit"
+    assert manifest["version"]
+    assert manifest["license"] == "Apache-2.0"
+    assert manifest["extensions"]["com.openai"]["hooks"] == ("./hooks/hooks.json")
+
+
+def test_codex_mcp_manifest_uses_codex_plugin_runtime():
+    server = _load_json("mcp.json")["mcpServers"]["gerrit"]
+
+    assert server["type"] == "stdio"
+    assert server["command"] == "uv"
+    assert server["args"] == [
+        "run",
+        "--directory",
+        "${PLUGIN_ROOT}",
+        "gerrit-mcp-server",
+    ]
+    assert server["env"] == {
+        "UV_PROJECT_ENVIRONMENT": "${PLUGIN_DATA}/.venv",
+    }
+
+
+def test_codex_setup_skill_disables_implicit_invocation():
+    metadata = yaml.safe_load(
+        (PROJECT_ROOT / "skills/setup/agents/openai.yaml").read_text()
+    )
+
+    assert metadata["policy"]["allow_implicit_invocation"] is False
+
+
+def test_codex_mcp_manifest_forwards_config_and_extension_environment():
+    server = _load_json(".codex-plugin/plugin.json")["mcpServers"]["gerrit"]
+
+    assert server.get("env_vars") == [
+        "GERRIT_CONFIG_PATH",
+        "XDG_CONFIG_HOME",
+        "GERRIT_MCP_EXTENSIONS",
+    ]
+
+
+def test_config_hook_accepts_codex_plugin_paths(tmp_path):
+    result = _run_config_hook(tmp_path, return_code=0, codex_environment=True)
 
     assert result.returncode == 0
     assert (tmp_path / "uv-args").read_text().strip() == (

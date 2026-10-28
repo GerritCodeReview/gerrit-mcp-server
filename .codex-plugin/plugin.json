@@ -1,0 +1,13 @@
+{
+  "name": "gerrit",
+  "mcpServers": {
+    "gerrit": {
+      "command": "uv",
+      "env_vars": [
+        "GERRIT_CONFIG_PATH",
+        "XDG_CONFIG_HOME",
+        "GERRIT_MCP_EXTENSIONS"
+      ]
+    }
+  }
+}
