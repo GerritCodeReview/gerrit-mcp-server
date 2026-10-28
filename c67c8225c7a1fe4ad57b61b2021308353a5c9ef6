@@ -18,6 +18,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "86d0f20e_f1ff76bd",
+        "filename": "docs/codex.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-28T23:42:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "62e36fd7_bf1b5741",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4edb4e1a_6174f202",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-10-06T12:28:18Z",
       "side": 1,
       "message": "**Minor:** In Codex the server reads this file from the plugin cache, `$CODEX_HOME/plugins/cache/gerrit-mcp/gerrit/1.0.0/`. A repeated `codex plugin add` or a `codex plugin remove` deletes that directory with the configuration in it, while `${PLUGIN_DATA}` survives both (Codex CLI 0.155.1). Please keep the configuration under `${PLUGIN_DATA}`, or document that setup must run again after a reinstall.",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b7c8e19_6b5be850",
+        "filename": "docs/codex.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-28T23:42:33Z",
+      "side": 1,
+      "message": "Fixed, but by moving config outside the plugin in parent change 651090.",
+      "parentUuid": "4edb4e1a_6174f202",
       "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
@@ -52,6 +88,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8daa9fb5_00b70603",
+        "filename": "docs/codex.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-28T23:42:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b63714e3_559b8efe",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1eb777b3_0acbce8b",
@@ -65,6 +119,24 @@
       "writtenOn": "2026-10-06T12:28:18Z",
       "side": 1,
       "message": "**Minor:** The generic `PLUGIN_ROOT` and `PLUGIN_DATA` take precedence over the `CLAUDE_PLUGIN_*` names. In Claude Code, an unrelated `PLUGIN_DATA` in the user\u0027s environment makes the hook check a virtual environment that the server does not use. Please read the `CLAUDE_PLUGIN_*` names first: Codex hooks receive both pairs with equal values (Codex CLI 0.155.1).",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1039f974_2887ae8f",
+        "filename": "hooks/check-config.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-28T23:42:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1eb777b3_0acbce8b",
       "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
@@ -86,6 +158,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "152e50aa_8208cac4",
+        "filename": "hooks/check-config.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-28T23:42:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e2cd3741_797d52d5",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ba6b3195_9881b4de",
@@ -103,6 +193,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "56358315_46bfb45e",
+        "filename": "skills/setup/SKILL.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-28T23:42:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba6b3195_9881b4de",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5fe9b8f2_fc193ccc",
@@ -116,6 +224,24 @@
       "writtenOn": "2026-10-06T12:28:18Z",
       "side": 1,
       "message": "**Minor:** This substring check also passes when the line is commented out or sits under `interface:` instead of `policy:`, where Codex does not read it. The test then stays green while Codex can start the setup skill on its own. Please add PyYAML to the dev dependencies, parse the file, and assert that `policy.allow_implicit_invocation` is `False`.",
+      "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e2789834_ef002921",
+        "filename": "tests/integration/test_plugin_package.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-28T23:42:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5fe9b8f2_fc193ccc",
       "revId": "c67c8225c7a1fe4ad57b61b2021308353a5c9ef6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
