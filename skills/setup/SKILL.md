@@ -9,14 +9,23 @@ Help the user create or update their Gerrit MCP Server configuration.
 
 ## Build check
 
-Before touching the config, verify the server environment and config state by
-running:
+Before touching the config, Claude Code can verify the server environment and
+config state with:
 
 ```
 UV_PROJECT_ENVIRONMENT="${CLAUDE_PLUGIN_DATA}/.venv" uv run --directory "${CLAUDE_PLUGIN_ROOT}" gerrit-check-config
 ```
 
-Interpret the result as follows:
+Codex does not expose `PLUGIN_ROOT` or `PLUGIN_DATA` to Bash commands, so do not
+run a separate Codex build check from this skill. Codex validates the MCP server
+command and environment when it starts; treat an MCP startup failure as the
+environment/configuration check and repair the setup as needed.
+
+When invoked as a Claude Code skill, use `/gerrit:setup`. When invoked as a
+Codex skill, use `$gerrit:setup`. Both forms are explicit-only and interactively
+guide the user through the same configuration flow.
+
+For the Claude Code check, interpret the result as follows:
 
 - **`uv run` itself fails** (uv not found, env broken, package not installed):
   offer to run `./build-gerrit.sh` from the repo root. Do not proceed until it
@@ -31,7 +40,8 @@ Interpret the result as follows:
 
 ## Config file location
 
-Use the `GERRIT_CONFIG_PATH` override when nonempty; otherwise resolve
+Both Claude Code and Codex use the same config location. Use the
+`GERRIT_CONFIG_PATH` override when nonempty; otherwise resolve
 `platformdirs.user_config_path("gerrit-mcp") / "gerrit_config.json"` as
 described in `references/gerrit-config.md`. Check whether that file already
 exists. Create its parent directory when needed. Do not write into the plugin

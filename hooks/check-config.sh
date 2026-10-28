@@ -16,11 +16,13 @@
 set -uo pipefail
 
 # pyproject.toml (which defines the gerrit-check-config console script) lives at
-# the repo root = ${CLAUDE_PLUGIN_ROOT}, so `uv run --directory $PLUGIN_ROOT` is
-# correct here. The fallback (hooks/..) resolves to the repo root for standalone
-# runs. ENV_PATH mirrors .mcp.json so the build target and MCP server agree.
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
-ENV_PATH="${CLAUDE_PLUGIN_DATA:-$PLUGIN_ROOT}/.venv"
+# the plugin root, so `uv run --directory $PLUGIN_ROOT` is correct here. Codex
+# provides PLUGIN_ROOT and PLUGIN_DATA; Claude Code provides the CLAUDE_* names.
+# The fallback resolves the repo root for standalone runs. ENV_PATH mirrors the
+# MCP manifests so the build target and MCP server agree.
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}}"
+PLUGIN_DATA="${CLAUDE_PLUGIN_DATA:-${PLUGIN_DATA:-$PLUGIN_ROOT}}"
+ENV_PATH="${PLUGIN_DATA}/.venv"
 
 out=$(UV_PROJECT_ENVIRONMENT="$ENV_PATH" \
       uv run --directory "$PLUGIN_ROOT" gerrit-check-config 2>&1)
@@ -55,14 +57,14 @@ case "$rc" in
     # disable-model-invocation (skills/setup/SKILL.md), so the model must ask
     # the USER to run it.
     emit \
-      "⚠️  Gerrit MCP server has no config yet. Run /gerrit:setup to configure it." \
-      "The gerrit MCP server has NO configuration file yet (gerrit-check-config exited 1). This is the normal first-run state, NOT a broken install. Do NOT call gerrit MCP tools. Tell the user to run the /gerrit:setup slash command (it is interactive and cannot be invoked by the model). Do not offer to create the config yourself."
+      "⚠️  Gerrit MCP server has no config yet. Run /gerrit:setup (Claude Code) or \$gerrit:setup (Codex) to configure it." \
+      "The gerrit MCP server has NO configuration file yet (gerrit-check-config exited 1). This is the normal first-run state, NOT a broken install. Do NOT call gerrit MCP tools. Tell the user to run /gerrit:setup in Claude Code or \$gerrit:setup in Codex (it is interactive and cannot be invoked by the model). Do not offer to create the config yourself."
     ;;
   2)
     # Config present but invalid (bad JSON / URL mismatch). Same: user runs setup.
     emit \
-      "⚠️  Gerrit MCP server config is invalid. Run /gerrit:setup to fix it." \
-      "The gerrit MCP server config is INVALID (gerrit-check-config exited 2). Do NOT call gerrit MCP tools. Tell the user to run the /gerrit:setup slash command to repair it. Error detail: ${out}"
+      "⚠️  Gerrit MCP server config is invalid. Run /gerrit:setup (Claude Code) or \$gerrit:setup (Codex) to fix it." \
+      "The gerrit MCP server config is INVALID (gerrit-check-config exited 2). Do NOT call gerrit MCP tools. Tell the user to run /gerrit:setup in Claude Code or \$gerrit:setup in Codex to repair it. Error detail: ${out}"
     ;;
   *)
     # Env failure: uv/venv not built, package not installed, etc. This is the
@@ -70,7 +72,7 @@ case "$rc" in
     rebuild="UV_PROJECT_ENVIRONMENT=\"$ENV_PATH\" bash \"$PLUGIN_ROOT/build-gerrit.sh\""
     echo "gerrit-check-config env failure (rc=$rc): $out" >&2
     emit \
-      "⚠️  Gerrit MCP server environment is not built. Claude can rebuild it for you." \
+      "⚠️  Gerrit MCP server environment is not built. The assistant can rebuild it for you." \
       "The gerrit MCP server Python environment is broken or not built (gerrit-check-config could not be spawned, rc=${rc}). Do NOT call gerrit MCP tools until this is fixed. OFFER to run this exact command for the user (it is non-interactive), then re-run the check: ${rebuild}"
     ;;
 esac

@@ -20,6 +20,7 @@ For detailed information, please see the documents in the `docs/` directory:
   use this server.
 - **[Claude Code Setup](docs/claude-code.md)**: How to use this server as a
   Claude Code plugin.
+- **[Codex Setup](docs/codex.md)**: How to use this server as a Codex plugin.
 - **[Best Practices](docs/best_practices.md)**: Tips for using the server
   effectively.
 - **[Contributing](docs/contributing.md)**: Guidelines for contributing to the
