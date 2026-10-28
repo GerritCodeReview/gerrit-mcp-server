@@ -16,7 +16,7 @@ def test_check_config_exits_1_when_config_unset(monkeypatch, tmp_path):
     # Pin the fallback path to a guaranteed-missing file so this test does not
     # depend on whether the dev happens to have a local gerrit_config.json.
     monkeypatch.setattr(
-        "gerrit_mcp_server.main.CONFIG_FILE_PATH", tmp_path / "nonexistent.json"
+        "gerrit_mcp_server.main.user_config_path", lambda app, *, appauthor: tmp_path
     )
     with pytest.raises(SystemExit) as exc_info:
         check_config_main()
@@ -59,3 +59,39 @@ def test_check_config_exits_2_when_default_url_mismatch(monkeypatch, tmp_path):
     with pytest.raises(SystemExit) as exc_info:
         check_config_main()
     assert exc_info.value.code == 2
+
+
+@pytest.mark.parametrize("override", [None, ""])
+def test_load_config_uses_user_config_directory(monkeypatch, tmp_path, override):
+    from gerrit_mcp_server.main import load_gerrit_config
+
+    if override is None:
+        monkeypatch.delenv("GERRIT_CONFIG_PATH", False)
+    else:
+        monkeypatch.setenv("GERRIT_CONFIG_PATH", override)
+    monkeypatch.setattr(
+        "gerrit_mcp_server.main.user_config_path",
+        lambda app, *, appauthor: tmp_path / app,
+    )
+    config_path = tmp_path / "gerrit-mcp" / "gerrit_config.json"
+    config_path.parent.mkdir()
+    config_path.write_text('{"gerrit_hosts": []}')
+
+    assert load_gerrit_config() == {"gerrit_hosts": []}
+
+
+def test_missing_override_does_not_fall_back(monkeypatch, tmp_path):
+    from gerrit_mcp_server.main import load_gerrit_config
+
+    monkeypatch.setattr(
+        "gerrit_mcp_server.main.user_config_path",
+        lambda app, *, appauthor: tmp_path / app,
+    )
+    default_path = tmp_path / "gerrit-mcp" / "gerrit_config.json"
+    default_path.parent.mkdir()
+    default_path.write_text('{"gerrit_hosts": []}')
+    missing_path = tmp_path / "missing.json"
+    monkeypatch.setenv("GERRIT_CONFIG_PATH", str(missing_path))
+
+    with pytest.raises(FileNotFoundError, match=str(missing_path)):
+        load_gerrit_config()

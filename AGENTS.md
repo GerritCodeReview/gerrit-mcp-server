@@ -136,7 +136,9 @@ To check without modifying: `uv run mdformat --check .`
 
 ### Configuration
 
-The server is configured via `gerrit_mcp_server/gerrit_config.json`.
+The server uses
+`platformdirs.user_config_path("gerrit-mcp") / "gerrit_config.json"` by default,
+outside the plugin installation.
 
 - **Environment Variable:** `GERRIT_CONFIG_PATH` can be used to point to a
   custom config file.
