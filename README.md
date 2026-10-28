@@ -56,15 +56,19 @@ dependencies.
 
 ### 3. Configure the Server
 
-You will need to create a `gerrit_config.json` file inside the
-`gerrit_mcp_server` directory. Copy the provided sample file
-`gerrit_mcp_server/gerrit_config.sample.json` and customize it for your
-environment. See the **[Configuration Guide](docs/configuration.md)** for
-details on all available options.
+Create the shared user config file described in the
+**[Configuration Guide](docs/configuration.md)**. Copy the sample to the default
+location (using the project virtual environment's Python):
 
 ```bash
-cp gerrit_mcp_server/gerrit_config.sample.json gerrit_mcp_server/gerrit_config.json
+config_path=$(uv run python -c 'from platformdirs import user_config_path; print(user_config_path("gerrit-mcp") / "gerrit_config.json")')
+mkdir -p "$(dirname "$config_path")"
+cp gerrit_mcp_server/gerrit_config.sample.json "$config_path"
 ```
+
+Customize it for your environment. `GERRIT_CONFIG_PATH` overrides the default.
+Existing repo-local configs must be moved or explicitly selected with that
+variable; they are not migrated automatically.
 
 Alternatively, if your harness supports skills (tested with Claude Code), the
 `/gerrit:setup` skill can create or repair this file for you interactively. See

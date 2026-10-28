@@ -31,9 +31,11 @@ Interpret the result as follows:
 
 ## Config file location
 
-The config file is `gerrit_mcp_server/gerrit_config.json` relative to the repo
-root (see `references/gerrit-config.md` for the override env var). Check whether
-it already exists before proceeding.
+Use the `GERRIT_CONFIG_PATH` override when nonempty; otherwise resolve
+`platformdirs.user_config_path("gerrit-mcp") / "gerrit_config.json"` as
+described in `references/gerrit-config.md`. Check whether that file already
+exists. Create its parent directory when needed. Do not write into the plugin
+cache.
 
 ## What to do
 
@@ -51,7 +53,7 @@ update the default URL. Apply the change and write the updated file.
 3. Collect the additional fields required by the chosen method.
 4. Ask if they have more Gerrit hosts to add; repeat steps 2–3 for each.
 5. Set `default_gerrit_base_url` to the first host's URL.
-6. Write the complete JSON to `gerrit_mcp_server/gerrit_config.json` and confirm
+6. Write the complete JSON to the selected config path above and confirm
    success.
 
 ## Configuration details

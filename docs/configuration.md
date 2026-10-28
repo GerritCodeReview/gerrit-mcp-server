@@ -1,8 +1,16 @@
 # Gerrit MCP Server Configuration (`gerrit_config.json`)
 
-The `gerrit_mcp_server` is configured via a central JSON file located at
-`gerrit_mcp_server/gerrit_config.json`. This file allows you to define
-connection and authentication details for multiple Gerrit instances.
+Honor a nonempty `GERRIT_CONFIG_PATH` first. Otherwise use
+`platformdirs.user_config_path("gerrit-mcp") / "gerrit_config.json"`:
+
+- Linux: `${XDG_CONFIG_HOME:-~/.config}/gerrit-mcp/gerrit_config.json`.
+- macOS: `~/Library/Application Support/gerrit-mcp/gerrit_config.json`.
+- Windows: `%LOCALAPPDATA%\gerrit-mcp\gerrit_config.json`.
+
+This location is outside the plugin installation and survives updates. A missing
+or invalid override is reported without falling back to another file. Move an
+existing repo-local config to this location, or keep using it by setting
+`GERRIT_CONFIG_PATH`; credentials are not migrated automatically.
 
 A sample file is provided at `gerrit_mcp_server/gerrit_config.sample.json` which
 you can copy and customize.

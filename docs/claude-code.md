@@ -84,9 +84,9 @@ stdout goes to the model's context rather than the user's terminal.
 ## `/gerrit:setup` skill
 
 `skills/setup/SKILL.md` provides an interactive `/gerrit:setup` skill that
-guides the user through creating or updating
-`gerrit_mcp_server/gerrit_config.json`. The exit-code 1 and 2 states above ask
-the user to run it. See
+guides the user through creating or updating the
+[shared user config file](configuration.md). The exit-code 1 and 2 states above
+ask the user to run it. See
 [Interactive Setup](configuration.md#interactive-setup-gerritsetup) in the
 configuration guide for details.
 
