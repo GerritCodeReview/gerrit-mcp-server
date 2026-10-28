@@ -26,6 +26,7 @@ from typing import Any, Callable, Dict, List, Literal, Optional, TypedDict
 from urllib.parse import quote, urlparse
 
 from mcp.server.fastmcp import Context, FastMCP
+from platformdirs import user_config_path
 
 from gerrit_mcp_server.bug_utils import extract_bugs_from_commit_message
 from gerrit_mcp_server.extensions import ExtensionContext, ExtensionLoader
@@ -43,7 +44,6 @@ from gerrit_mcp_server.sort_util import sort_changes_by_date
 PKG_PATH = Path(__file__).parent
 SERVER_ROOT_PATH = PKG_PATH.parent
 LOG_FILE_PATH = SERVER_ROOT_PATH / "server.log"
-CONFIG_FILE_PATH = PKG_PATH / "gerrit_config.json"
 
 
 def load_gerrit_config() -> Dict[str, Any]:
@@ -52,7 +52,9 @@ def load_gerrit_config() -> Dict[str, Any]:
     if config_path_str:
         config_path = Path(config_path_str)
     else:
-        config_path = CONFIG_FILE_PATH
+        config_path = (
+            user_config_path("gerrit-mcp", appauthor=False) / "gerrit_config.json"
+        )
 
     if not config_path.exists():
         raise FileNotFoundError(

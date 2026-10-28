@@ -7,11 +7,17 @@ duplicating the details.
 
 ## Config file location
 
-The config file is `gerrit_mcp_server/gerrit_config.json` relative to the repo
-root.
+Honor a nonempty `GERRIT_CONFIG_PATH` first. Otherwise use
+`platformdirs.user_config_path("gerrit-mcp") / "gerrit_config.json"`:
 
-The `GERRIT_CONFIG_PATH` environment variable can override this to point at a
-custom config file.
+- Linux: `${XDG_CONFIG_HOME:-~/.config}/gerrit-mcp/gerrit_config.json`.
+- macOS: `~/Library/Application Support/gerrit-mcp/gerrit_config.json`.
+- Windows: `%LOCALAPPDATA%\gerrit-mcp\gerrit_config.json`.
+
+This location is outside the plugin installation and survives updates. A missing
+or invalid override is reported without falling back to another file. Move an
+existing repo-local config to this location, or keep using it by setting
+`GERRIT_CONFIG_PATH`; credentials are not migrated automatically.
 
 ## Authentication methods
 
