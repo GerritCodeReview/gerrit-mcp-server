@@ -57,7 +57,7 @@ def load_gerrit_config() -> Dict[str, Any]:
     if not config_path.exists():
         raise FileNotFoundError(
             f"Configuration file not found at {config_path}. "
-            "Run /gerrit:setup (Claude Code) to create it. "
+            "Run /gerrit:setup (Claude Code) or $gerrit:setup (Codex) to create it. "
             "Refer to the README.md for more details on the configuration options."
         )
     try:

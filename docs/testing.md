@@ -46,6 +46,25 @@ In the new session, verify that the `gerrit` MCP tools are available and that
 test configuration rather than production credentials when exercising the setup
 flow.
 
+## Codex Plugin Smoke Test
+
+The automated tests also validate the portable Codex plugin manifest, MCP
+configuration, native plugin paths, and explicit-only setup policy. They do not
+launch Codex or modify the user's plugin configuration.
+
+For a manual local smoke test, add the repository or its marketplace to Codex:
+
+```bash
+codex plugin marketplace add <path-to-gerrit-mcp-server>
+codex plugin list --available --json
+codex plugin add gerrit@gerrit-mcp --json
+```
+
+Start a new Codex session after installation. Verify that the plugin appears in
+`/plugins`, the Gerrit MCP tools are available, and `$gerrit:setup` can be
+invoked explicitly when no configuration file exists. Use a temporary or test
+configuration rather than production credentials.
+
 ## Test Structure
 
 The tests are organized as follows:
