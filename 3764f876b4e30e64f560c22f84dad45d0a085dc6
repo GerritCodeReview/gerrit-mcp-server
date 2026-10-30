@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ea521932_57d6364a",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-10-30T08:48:49Z",
+      "side": 1,
+      "message": "Doesn\u0027t need to be resolved here but I think if we expect the callers to act on these fields then it should probably be a `TypedDict` instead.",
+      "range": {
+        "startLine": 404,
+        "startChar": 8,
+        "endLine": 409,
+        "endChar": 9
+      },
+      "revId": "3764f876b4e30e64f560c22f84dad45d0a085dc6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
