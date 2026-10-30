@@ -1,0 +1,49 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0ab1e098_cf921d9e",
+        "filename": "docs/configuration.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-10-30T09:20:41Z",
+      "side": 1,
+      "message": "On Windows `user_config_path(\"gerrit-mcp\")` defaults `appauthor` to the app name, so the real path is `%LOCALAPPDATA%\\gerrit-mcp\\gerrit-mcp\\gerrit_config.json`. The setup skill reads this same line from `references/gerrit-config.md`, so on Windows it would write a file the server never finds. Either fix the docs (both files) or pass `appauthor\u003dFalse` in `main.py` and in the README snippet.",
+      "fixSuggestions": [
+        {
+          "fixId": "75e3ba89_96ed4a35",
+          "description": "Make the documented Windows path match what platformdirs returns",
+          "replacements": [
+            {
+              "path": "docs/configuration.md",
+              "range": {
+                "startLine": 8,
+                "startChar": 0,
+                "endLine": 8,
+                "endChar": 58
+              },
+              "replacement": "- Windows: `%LOCALAPPDATA%\\gerrit-mcp\\gerrit-mcp\\gerrit_config.json`."
+            },
+            {
+              "path": "skills/setup/references/gerrit-config.md",
+              "range": {
+                "startLine": 15,
+                "startChar": 0,
+                "endLine": 15,
+                "endChar": 58
+              },
+              "replacement": "- Windows: `%LOCALAPPDATA%\\gerrit-mcp\\gerrit-mcp\\gerrit_config.json`."
+            }
+          ]
+        }
+      ],
+      "revId": "82a2d83b6ecba72e75597ca8672381e560241b11",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
