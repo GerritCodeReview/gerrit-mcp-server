@@ -16,6 +16,24 @@
       "message": "This error would probably also show up for Gemini CLI (`gemini-extension.json` runs the same server). Maybe keep a fallback like\n\n```suggestion\n            \"Run /gerrit:setup (Claude Code) to create it or copy \"\n            \"\u0027gerrit_mcp_server/gerrit_config.sample.json\u0027 to that path and edit it. \"\n```",
       "revId": "18dc463c1bb446daf9e495b2675811232d8e92d1",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "86d8f1d5_5207d7be",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-30T18:30:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "761c6b60_6ef6ba4b",
+      "revId": "18dc463c1bb446daf9e495b2675811232d8e92d1",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
