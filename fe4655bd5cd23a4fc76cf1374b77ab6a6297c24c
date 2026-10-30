@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "36e84430_e0695603",
+        "filename": "docs/contributing.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-10-30T09:34:08Z",
+      "side": 1,
+      "message": "Maybe add a short note about getting googlesource push credentials",
+      "revId": "fe4655bd5cd23a4fc76cf1374b77ab6a6297c24c",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
