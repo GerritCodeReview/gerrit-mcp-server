@@ -44,6 +44,24 @@
       ],
       "revId": "82a2d83b6ecba72e75597ca8672381e560241b11",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2bbfbe02_98b710ff",
+        "filename": "docs/configuration.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-30T18:30:37Z",
+      "side": 1,
+      "message": "Thanks for catching that. Seems like `appauthor\u003dFalse` is the cleaner path and recommended by the platformdirs API.",
+      "parentUuid": "0ab1e098_cf921d9e",
+      "revId": "82a2d83b6ecba72e75597ca8672381e560241b11",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
