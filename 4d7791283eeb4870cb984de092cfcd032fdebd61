@@ -22,6 +22,30 @@
       },
       "revId": "4d7791283eeb4870cb984de092cfcd032fdebd61",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "42a8aaf2_ef2867ce",
+        "filename": ".codex-plugin/plugin.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-30T18:30:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba8c4e15_47f5ef3b",
+      "range": {
+        "startLine": 6,
+        "startChar": 6,
+        "endLine": 6,
+        "endChar": 59
+      },
+      "revId": "4d7791283eeb4870cb984de092cfcd032fdebd61",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
