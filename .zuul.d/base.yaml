@@ -21,6 +21,13 @@
     description: Run tests
     run: .zuul.d/playbooks/run_tests.yaml
 
+- job:
+    name: gerrit-mcp-run-e2e-tests
+    parent: gerrit-mcp-base
+    description: Run E2E tests against a disposable Gerrit container
+    run: .zuul.d/playbooks/run_e2e_tests.yaml
+    timeout: 1800
+
 - project:
     description: Run linters, formatters, and tests
     check:
@@ -28,3 +35,4 @@
         - gerrit-mcp-check-style
         - gerrit-mcp-check-docs-format
         - gerrit-mcp-run-tests
+        - gerrit-mcp-run-e2e-tests

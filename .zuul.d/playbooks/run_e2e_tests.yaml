@@ -1,0 +1,42 @@
+- hosts: all
+  roles:
+    - role: ensure-docker
+  tasks:
+    - name: Allow the test user to access Docker
+      become: true
+      user:
+        name: '{{ ansible_user }}'
+        groups: docker
+        append: true
+
+    - name: Refresh Docker group membership
+      meta: reset_connection
+
+    - name: Run container-backed E2E tests
+      block:
+        - name: Create E2E results directory
+          file:
+            path: '{{ zuul.project.src_dir }}/e2e-results'
+            state: directory
+
+        - name: pytest E2E
+          command: >-
+            {{ ensure_uv_executable }} run pytest tests/e2e
+            --e2e-backend=container
+            --e2e-artifacts=e2e-results
+            --junitxml=e2e-results/junit.xml
+          args:
+            chdir: '{{ zuul.project.src_dir }}'
+      always:
+        - name: Create published E2E log directory
+          file:
+            path: '{{ zuul.executor.log_root }}/e2e'
+            state: directory
+          delegate_to: localhost
+
+        - name: Collect E2E logs and JUnit results
+          synchronize:
+            src: '{{ zuul.project.src_dir }}/e2e-results/'
+            dest: '{{ zuul.executor.log_root }}/e2e/'
+            mode: pull
+          ignore_errors: true

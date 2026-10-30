@@ -12,3 +12,5 @@ dist/
 build/
 /.venv/
 /.claude/settings.local.json
+/tests/e2e/e2e_config.json
+/e2e-results/

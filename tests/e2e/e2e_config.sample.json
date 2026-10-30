@@ -1,7 +1,8 @@
 {
-  "gerrit_base_url": "https://fuchsia-review.googlesource.com",
+  "gerrit_base_url": "https://gerrit.example.com",
+  "gerrit_config_path": "~/.config/gerrit-mcp/test_gerrit_config.json",
   "known_cl": "12345",
-  "known_user": "googler@google.com",
+  "known_user": "tester@example.com",
   "test_project": "",
-  "test_reviewer": ""
+  "test_branch": "main"
 }

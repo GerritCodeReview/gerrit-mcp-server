@@ -23,7 +23,8 @@ dev = [
     "pytest-asyncio",
     "pytest-env",
     "pyyaml",
-    "ruff"
+    "ruff",
+    "testcontainers>=4.14,<5"
 ]
 
 [tool.pytest.ini_options]
