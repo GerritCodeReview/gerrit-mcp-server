@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a99f8393_ddc231e7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-30T19:55:25Z",
+      "side": 1,
+      "message": "I\u0027m adding Codex support in change 636785, but Codex doesn\u0027t seem to use `allowed-tools` even if we also add a `agents/openai.yaml` section for the mcp server dependency. Codex recognizes the names currently in the skill doc, like `mcp__gerrit__get_change_details`, but I guess that doesn\u0027t matter if it doesn\u0027t use the field anyway.",
+      "revId": "b53543beb40284ab0d0a97a9e55afd3db9157058",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f39cfc1a_9e4d7f57",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-30T19:55:25Z",
+      "side": 1,
+      "message": "We can make this read a little better and explain the Codex case so it\u0027s future proofed\n```suggestion\nFix tool pre-approval in the Gerrit task query skill\n\nGerrit task queries still require permission prompts in Claude Code,\nblocking headless sessions despite the skill\u0027s allowed-tools list.\nThe bare mcp__gerrit__ prefix does not match plugin-bundled tools.\n\nUse mcp__plugin_gerrit_gerrit__ for all five allowed MCP tools to match\nthe names Claude Code exposes through the Gerrit plugin.\n\nCodex recognizes bare names such as mcp__gerrit__get_change_details,\nbut ignores allowed-tools for permission grants, even with an MCP\nserver dependency declared in agents/openai.yaml. Using Claude Code\u0027s\nplugin-scoped names therefore does not affect Codex permissions.\n\nIn a headless session (claude -p, default permission mode) with the\nskill loaded, Claude Code 2.1.303 refused get_change_details and\nget_task_tree before this change. With the updated list, both calls\ncompleted without a permission prompt.\n```",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 67
+      },
+      "revId": "b53543beb40284ab0d0a97a9e55afd3db9157058",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
