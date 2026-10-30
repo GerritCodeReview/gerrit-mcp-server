@@ -22,6 +22,30 @@
       },
       "revId": "3764f876b4e30e64f560c22f84dad45d0a085dc6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "04eef3e1_dc13b3d1",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-10-30T16:28:31Z",
+      "side": 1,
+      "message": "Yeah, we can merge this and follow up with a change that converts it all to TypedDict, or we can replace this change with the TypedDict one. I prefer the latter so we just fix it once. Both the `query()` and `query_changes_by_date_and_filters()` tools should be able to use the same TypedDict.\n\nRelated, we should look to see if we actually need `query_changes_by_date_and_filters()` since I think we could replace it with a skill, a specific \"date-based query operator builder\" tool, or maybe even (I would defer this until later) a generic \"build query string\" tool.",
+      "parentUuid": "ea521932_57d6364a",
+      "range": {
+        "startLine": 404,
+        "startChar": 8,
+        "endLine": 409,
+        "endChar": 9
+      },
+      "revId": "3764f876b4e30e64f560c22f84dad45d0a085dc6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
