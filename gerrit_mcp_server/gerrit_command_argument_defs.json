@@ -220,6 +220,34 @@
         "required": false
       }
     }
+  },
+  "post_review_comments": {
+    "description": "Posts multiple review comments on a CL as a single, atomic review.",
+    "parameters": {
+      "gerrit_base_url": {
+        "type": "string",
+        "description": "The base URL of the Gerrit instance. This is configured via the gerrit_config.json file or the GERRIT_BASE_URL environment variable.",
+        "required": false
+      },
+      "change_id": {
+        "type": "string",
+        "description": "The numeric change ID.",
+        "required": true
+      },
+      "comments": {
+        "type": "array",
+        "description": "The comments to post. Each item is an object with 'message' (string) and optionally 'file_path' (string), 'line_number' (number), 'unresolved' (boolean, default true) and 'in_reply_to' (string), as for post_review_comment. 'file_path' is required unless 'in_reply_to' is given.",
+        "required": true
+      },
+      "message": {
+        "type": "string",
+        "description": "An optional top-level review message shown on the change."
+      },
+      "labels": {
+        "type": "object",
+        "description": "A dictionary of labels to apply to the review (e.g., {'Code-Review': 1})."
+      }
+    }
   }
 }
 
