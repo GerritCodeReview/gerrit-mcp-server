@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3c8ebd69_71d386e7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-10-31T06:12:49Z",
+      "side": 1,
+      "message": "Thanks @nasser.grainawi@oss.qualcomm.com for the review. PS4 is rebased on master (including the CI Python fix) and addresses the remaining comment. PTAL.",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
