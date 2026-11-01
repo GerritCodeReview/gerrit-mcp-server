@@ -204,7 +204,7 @@ def _apply_authenticated_prefix(url: str, host: Dict[str, Any]) -> str:
     """Appends /a to the URL if the host's auth type requires it for API access."""
     auth_type = host.get("authentication", {}).get("type")
 
-    if auth_type in ("http_basic", "git_cookies"):
+    if auth_type in ("http_basic", "git_cookies", "git_credentials"):
         return url + "/a"
 
     return url
@@ -280,7 +280,9 @@ async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     """Executes a curl command and returns the output."""
     config = load_gerrit_config()
     obs_headers = build_curl_header_args(_request_obs.get())
-    auth = get_curl_command_for_gerrit_url(gerrit_base_url, config)
+    auth = await asyncio.to_thread(
+        get_curl_command_for_gerrit_url, gerrit_base_url, config
+    )
     command = auth.argv + obs_headers + args
     logged_command = " ".join(auth.redacted_argv + obs_headers + args)
     with open(LOG_FILE_PATH, "a") as log_file:
@@ -288,17 +290,27 @@ async def run_curl(args: List[str], gerrit_base_url: str) -> str:
 
     process = await asyncio.create_subprocess_exec(
         *command,
+        **({"stdin": asyncio.subprocess.PIPE} if auth.stdin is not None else {}),
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    stdout, stderr = await process.communicate()
+    if auth.stdin is not None:
+        stdout, stderr = await process.communicate(input=auth.stdin)
+    else:
+        stdout, stderr = await process.communicate()
 
     stdout_str = stdout.decode()
     stderr_str = stderr.decode()
+    logged_stdout = stdout_str
+    if auth.stdin is not None:
+        for secret in auth.secrets:
+            if secret:
+                logged_stdout = logged_stdout.replace(secret, "<redacted>")
+                stderr_str = stderr_str.replace(secret, "<redacted>")
 
     with open(LOG_FILE_PATH, "a") as log_file:
         log_file.write("[gerrit-mcp-server] curl command finished.\n")
-        log_file.write(f"[gerrit-mcp-server] stdout:\n{stdout_str}\n")
+        log_file.write(f"[gerrit-mcp-server] stdout:\n{logged_stdout}\n")
         log_file.write(f"[gerrit-mcp-server] stderr:\n{stderr_str}\n")
 
     if process.returncode != 0:

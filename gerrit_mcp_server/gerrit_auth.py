@@ -17,8 +17,11 @@ This module handles the creation of authentication-specific curl commands for Ge
 """
 
 import os
-from dataclasses import dataclass
+import subprocess
+import tempfile
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Tuple
+from urllib.parse import urlsplit, urlunsplit
 
 REDACTED = "<redacted>"
 
@@ -33,7 +36,8 @@ class CurlAuth:
     """
 
     argv: List[str]
-    secrets: Tuple[str, ...] = ()
+    secrets: Tuple[str, ...] = field(default=(), repr=False)
+    stdin: bytes | None = field(default=None, repr=False)
 
     @property
     def redacted_argv(self) -> List[str]:
@@ -79,6 +83,107 @@ def _get_auth_for_http_basic(config: Dict[str, Any]) -> CurlAuth:
         )
     credentials = f"{username}:{auth_token}"
     return CurlAuth(["curl", "--user", credentials, "-L"], secrets=(credentials,))
+
+
+def _get_auth_for_git_credentials(
+    gerrit_base_url: str, config: Dict[str, Any]
+) -> CurlAuth:
+    """Look up HTTP credentials using Git's user/system credential helpers."""
+    if any(ord(c) < 32 for c in gerrit_base_url):
+        raise ValueError("Git credential URL must not contain control characters.")
+    url = urlsplit(gerrit_base_url)
+    path = url.path.rstrip("/")
+    if path.endswith("/a"):
+        path = path[:-2]
+    if (
+        url.scheme not in ("http", "https")
+        or not url.hostname
+        or url.username is not None
+        or url.query
+        or url.fragment
+    ):
+        raise ValueError("Git credentials require an HTTP(S) Gerrit base URL.")
+    credential_url = urlunsplit((url.scheme, url.netloc, path, "", ""))
+    username = config.get("username")
+    if username is not None and (not isinstance(username, str) or not username):
+        raise ValueError("Git credentials username must be a non-empty string.")
+    request = f"url={credential_url}\n"
+    if username:
+        request += f"username={username}\n"
+    if any(c in credential_url + (username or "") for c in "\r\n\0"):
+        raise ValueError("Git credential input must not contain control characters.")
+
+    env = os.environ.copy()
+    # Do not let the agent's repository select credential helpers.
+    for key in (
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_COMMON_DIR",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_CONFIG",
+        "GIT_CONFIG_COUNT",
+        "GIT_CONFIG_PARAMETERS",
+    ):
+        env.pop(key, None)
+    env.update(GIT_TERMINAL_PROMPT="0", GIT_ASKPASS="", SSH_ASKPASS="")
+    try:
+        with tempfile.TemporaryDirectory(prefix="gerrit-credentials-") as cwd:
+            # Stop discovery before reaching a repository containing the temp dir.
+            env["GIT_CEILING_DIRECTORIES"] = cwd
+            result = subprocess.run(
+                [
+                    "git",
+                    "-c",
+                    "core.askPass=",
+                    "-c",
+                    "credential.interactive=false",
+                    "credential",
+                    "fill",
+                ],
+                input=request + "\n",
+                text=True,
+                capture_output=True,
+                timeout=30,
+                cwd=cwd,
+                env=env,
+                check=False,
+            )
+    except (OSError, subprocess.TimeoutExpired):
+        raise ValueError(
+            "Git credential lookup failed or timed out. Check that Git is installed "
+            "and your credential helper/keyring is available."
+        ) from None
+    if result.returncode:
+        # Helper stderr and exceptions may contain credentials: never relay them.
+        raise ValueError(
+            "Git credential lookup failed. Configure a Git credential helper "
+            "and unlock its credential store; interactive prompting is disabled."
+        )
+    credentials = {}
+    for line in result.stdout.splitlines():
+        key, separator, value = line.partition("=")
+        if separator:
+            credentials[key] = value
+    user = credentials.get("username")
+    password = credentials.get("password")
+    if not user or not password:
+        raise ValueError(
+            "Git credential helper did not return a username and password."
+        )
+    if ":" in user or any(ord(c) < 32 for c in user + password):
+        raise ValueError(
+            "Git credential helper returned unsupported credential characters."
+        )
+
+    # curl config quoting: secrets travel over stdin, never argv or a disk file.
+    value = (user + ":" + password).replace("\\", "\\\\").replace('"', '\\"')
+    return CurlAuth(
+        ["curl", "--config", "-", "-L"],
+        secrets=(password,),
+        stdin=f'user = "{value}"\n'.encode(),
+    )
 
 
 def _get_auth_for_gitcookies(gerrit_base_url: str, config: Dict[str, Any]) -> CurlAuth:

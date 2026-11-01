@@ -187,6 +187,20 @@ class TestGerritConfig(unittest.TestCase):
             "https://gerrit.example.com/a",
         )
 
+    def test_normalize_gerrit_url_adds_a_prefix_for_git_credentials(self):
+        """Tests that Git credential auth adds /a after the installation path."""
+        gerrit_hosts = [
+            {
+                "name": "Self-hosted",
+                "external_url": "https://example.com/gerrit/",
+                "authentication": {"type": "git_credentials"},
+            }
+        ]
+        self.assertEqual(
+            _normalize_gerrit_url("https://example.com/gerrit/", gerrit_hosts),
+            "https://example.com/gerrit/a",
+        )
+
     @patch("gerrit_mcp_server.main.load_gerrit_config")
     def test_normalize_gerrit_url_no_a_prefix_for_gob_curl(self, mock_load_config):
         mock_load_config.return_value = {

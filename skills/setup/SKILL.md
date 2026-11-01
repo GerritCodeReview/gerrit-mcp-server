@@ -45,9 +45,9 @@ update the default URL. Apply the change and write the updated file.
 
 1. Ask for their primary Gerrit instance URL (or use `$ARGUMENTS` if a URL was
    provided).
-2. Ask which authentication method they use for that host — present the three
+2. Ask which authentication method they use for that host — present the four
    options from `references/gerrit-config.md` (`git_cookies`, `gob_curl`,
-   `http_basic`).
+   `http_basic`, `git_credentials`).
 3. Collect the additional fields required by the chosen method.
 4. Ask if they have more Gerrit hosts to add; repeat steps 2–3 for each.
 5. Set `default_gerrit_base_url` to the first host's URL.

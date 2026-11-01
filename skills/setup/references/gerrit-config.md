@@ -52,6 +52,21 @@ Alternatively, store the credentials inline (both fields required):
 {"type": "http_basic", "username": "YOUR_USERNAME", "auth_token": "YOUR_HTTP_TOKEN"}
 ```
 
+**`git_credentials`** — use Git's user/system credential helpers, including
+keyring-backed helpers. Configure the helper in Git, not in this JSON. The
+optional username selects an account; no password is stored here.
+
+```json
+{"type": "git_credentials", "username": "YOUR_USERNAME"}
+```
+
+Omit `username` to let Git select it. Provision credentials with the helper
+beforehand: lookup disables terminal/askpass prompting, times out after 30
+seconds, and fails without falling back to other authentication methods.
+Repository-local Git configuration is not used. See
+[the configuration guide](../../../docs/configuration.md#4-git_credentials-git-credential-helpers)
+for details.
+
 ## Config schema
 
 ```json

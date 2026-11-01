@@ -15,6 +15,7 @@
 import asyncio
 import json
 import os
+import subprocess
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -569,3 +570,41 @@ async def test_run_curl_does_not_log_credentials(tmp_path, monkeypatch):
     assert "s3cr3t-token" not in logged
     assert "--user <redacted>" in logged
     assert "https://example.com/a/changes/" in logged
+
+
+@pytest.mark.asyncio
+async def test_curl_receives_credentials_only_on_stdin(tmp_path, monkeypatch):
+    """Tests that helper credentials reach curl stdin, not argv or logs."""
+    monkeypatch.setattr(main, "LOG_FILE_PATH", tmp_path / "server.log")
+    config = {
+        "gerrit_hosts": [
+            {
+                "external_url": "https://example.com/",
+                "authentication": {"type": "git_credentials"},
+            }
+        ]
+    }
+    process = AsyncMock()
+    process.returncode = 0
+    process.communicate.return_value = (b"{}", b"")
+    with (
+        patch.object(main, "load_gerrit_config", return_value=config),
+        patch(
+            "gerrit_mcp_server.gerrit_auth.subprocess.run",
+            return_value=subprocess.CompletedProcess(
+                [], 0, "username=testuser\npassword=s3cr3t\n", ""
+            ),
+        ) as git_run,
+        patch("asyncio.create_subprocess_exec", return_value=process) as execute,
+    ):
+        assert (
+            await main.run_curl(
+                ["https://example.com/a/changes/"], "https://example.com/a"
+            )
+            == "{}"
+        )
+    assert execute.call_args.kwargs["stdin"] == main.asyncio.subprocess.PIPE
+    assert "s3cr" not in str(execute.call_args)
+    assert "s3cr" in process.communicate.call_args.kwargs["input"].decode()
+    assert "s3cr" not in (tmp_path / "server.log").read_text()
+    assert git_run.call_args.kwargs["input"] == "url=https://example.com\n\n"

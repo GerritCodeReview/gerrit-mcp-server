@@ -26,6 +26,13 @@
       }
     },
     {
+      "name": "Git Credential Helper Example",
+      "external_url": "https://review.opendev.org/",
+      "authentication": {
+        "type": "git_credentials"
+      }
+    },
+    {
       "name": "GitCookies Auth Example",
       "external_url": "https://another-gerrit.com/",
       "authentication": {

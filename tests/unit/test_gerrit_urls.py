@@ -110,6 +110,29 @@ class TestGerritUrlsDispatcher(unittest.TestCase):
         mock_get_auth.assert_called_once_with(auth_config)
         self.assertEqual(command.argv, ["curl", "--user", "test:token", "-L"])
 
+    @patch("gerrit_mcp_server.gerrit_auth._get_auth_for_git_credentials")
+    def test_dispatches_to_git_credentials(self, mock_get_auth):
+        """Tests that Git credential authentication receives the URL and config."""
+        auth_config = {"type": "git_credentials", "username": "testuser"}
+        mock_get_auth.return_value = gerrit_auth.CurlAuth(
+            ["curl", "--config", "-", "-L"],
+            stdin=b'user = "testuser:secret"\n',
+        )
+        config = {
+            "gerrit_hosts": [
+                {
+                    "name": "Self-hosted",
+                    "external_url": "https://example.com/gerrit/",
+                    "authentication": auth_config,
+                }
+            ]
+        }
+        url = "https://example.com/gerrit/a"
+        command = gerrit_urls.get_curl_command_for_gerrit_url(url, config)
+        mock_get_auth.assert_called_once_with(url, auth_config)
+        self.assertEqual(command.argv, ["curl", "--config", "-", "-L"])
+        self.assertEqual(command.stdin, b'user = "testuser:secret"\n')
+
     def test_http_basic_without_credentials_dispatches_to_netrc(self):
         """End-to-end: an http_basic host with no inline credentials produces a
         --netrc curl command (auth function not mocked)."""

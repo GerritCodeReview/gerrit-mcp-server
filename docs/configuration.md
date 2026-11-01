@@ -59,7 +59,7 @@ ______________________________________________________________________
 
 The `authentication` object is the most important part of the configuration. It
 tells the server how to authenticate its `curl` requests to the Gerrit API. You
-must specify a `type` for each host. There are three supported types.
+must specify a `type` for each host. There are four supported types.
 
 ### 1. `git_cookies` (Recommended)
 
@@ -175,6 +175,55 @@ must set both.
 }
 ```
 
+### 4. `git_credentials` (Git credential helpers)
+
+Use Git's configured credential helpers to retrieve a username and Gerrit HTTP
+password. This reuses an existing keyring-backed Git setup without putting the
+password in this configuration or a netrc file.
+
+```json
+{
+  "name": "OpenDev",
+  "external_url": "https://review.opendev.org/",
+  "authentication": {
+    "type": "git_credentials",
+    "username": "your-username"
+  }
+}
+```
+
+- **`type`**: `"git_credentials"`.
+- **`username`**: (Optional) Select an account when several use the same host.
+  Otherwise Git and its helpers determine the username.
+
+Configure helpers in Git, not in this JSON. If a working helper is already
+configured, no further helper configuration is needed. For example, if the
+`libsecret` helper is installed:
+
+```gitconfig
+[credential "https://review.opendev.org"]
+    helper = libsecret
+    username = your-username
+```
+
+Other helpers include Git Credential Manager and `osxkeychain`; use whichever is
+available on your system. Security depends on the configured helper: Git's
+`store` helper saves plaintext, whereas keyring-backed helpers can keep the
+password in the system credential store. Provision the Gerrit HTTP password
+using your helper's normal workflow before starting the server.
+
+The server runs `git credential fill` outside any repository, using user/system
+Git configuration rather than the agent's current repository configuration. It
+queries the actual Gerrit base URL (including an installation subpath, but
+excluding the REST `/a` suffix), honouring Git's `credential.useHttpPath` rules.
+No credentials are cached by the server, approved, or rejected.
+
+Terminal/askpass prompting is disabled and lookup has a 30-second timeout.
+Helpers may still display their own keyring-unlock UI. Missing credentials,
+lookup failures, and timeouts produce an error; there is no fallback to netrc or
+unauthenticated access. Retrieved credentials are passed to curl over stdin, not
+in command-line arguments or temporary credential files.
+
 ## Complete Configuration Example
 
 Here is an example of a `gerrit_config.json` file that defines multiple hosts
@@ -207,6 +256,14 @@ using all available authentication methods.
       "authentication": {
         "type": "git_cookies",
         "gitcookies_path": "~/.gitcookies"
+      }
+    },
+    {
+      "name": "OpenDev (via Git credential helpers)",
+      "external_url": "https://review.opendev.org/",
+      "authentication": {
+        "type": "git_credentials",
+        "username": "your-username"
       }
     }
   ]

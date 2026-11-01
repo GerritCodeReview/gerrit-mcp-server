@@ -17,6 +17,7 @@ Tests for the gerrit_auth module.
 """
 
 import os
+import subprocess
 import unittest
 from unittest.mock import mock_open, patch
 
@@ -146,6 +147,101 @@ class TestGerritAuth(unittest.TestCase):
         # No matching entry, so it falls back to an unauthenticated request.
         self.assertEqual(command.argv, ["curl", "-s", "-L"])
         self.assertEqual(command.secrets, ())
+
+    @patch("gerrit_mcp_server.gerrit_auth.subprocess.run")
+    def test_get_auth_for_git_credentials_success(self, mock_run):
+        """Tests Git lookup, repository isolation, and safe curl config quoting."""
+        mock_run.return_value = subprocess.CompletedProcess(
+            [], 0, 'username=testuser\npassword=s3cr"et\\token\n', ""
+        )
+        with patch.dict(os.environ, {"GIT_DIR": "/unrelated/repository"}):
+            command = gerrit_auth._get_auth_for_git_credentials(
+                "https://example.com/gerrit/a/", {"username": "testuser"}
+            )
+        args, kwargs = mock_run.call_args
+        self.assertEqual(args[0][-2:], ["credential", "fill"])
+        self.assertEqual(
+            kwargs["input"], "url=https://example.com/gerrit\nusername=testuser\n\n"
+        )
+        self.assertEqual(kwargs["timeout"], 30)
+        self.assertEqual(kwargs["env"]["GIT_TERMINAL_PROMPT"], "0")
+        self.assertEqual(kwargs["env"]["GIT_ASKPASS"], "")
+        self.assertNotIn("GIT_DIR", kwargs["env"])
+        self.assertEqual(command.argv, ["curl", "--config", "-", "-L"])
+        self.assertEqual(command.stdin, b'user = "testuser:s3cr\\"et\\\\token"\n')
+        self.assertNotIn("s3cr", repr(command))
+        self.assertNotIn("s3cr", " ".join(command.redacted_argv))
+
+    @patch("gerrit_mcp_server.gerrit_auth.subprocess.run")
+    def test_get_auth_for_git_credentials_without_username(self, mock_run):
+        """Tests that Git can select the username when none is configured."""
+        mock_run.return_value = subprocess.CompletedProcess(
+            [], 0, "username=testuser\npassword=secret\n", ""
+        )
+        gerrit_auth._get_auth_for_git_credentials("https://example.com/", {})
+        self.assertEqual(
+            mock_run.call_args.kwargs["input"], "url=https://example.com\n\n"
+        )
+
+    @patch("gerrit_mcp_server.gerrit_auth.subprocess.run")
+    def test_get_auth_for_git_credentials_incomplete_output(self, mock_run):
+        """Tests that both a username and a password must be returned."""
+        for output in ("", "username=testuser\n", "password=secret\n"):
+            with self.subTest(output=output):
+                mock_run.return_value = subprocess.CompletedProcess([], 0, output, "")
+                with self.assertRaisesRegex(ValueError, "username and password"):
+                    gerrit_auth._get_auth_for_git_credentials(
+                        "https://example.com/", {}
+                    )
+
+    @patch("gerrit_mcp_server.gerrit_auth.subprocess.run")
+    def test_get_auth_for_git_credentials_lookup_errors(self, mock_run):
+        """Tests that missing Git and timeouts do not disclose helper secrets."""
+        for error in (
+            FileNotFoundError("secret"),
+            subprocess.TimeoutExpired("git", 30, output="secret"),
+        ):
+            with self.subTest(error=type(error).__name__):
+                mock_run.side_effect = error
+                with self.assertRaisesRegex(ValueError, "failed or timed out") as exc:
+                    gerrit_auth._get_auth_for_git_credentials(
+                        "https://example.com/", {}
+                    )
+                self.assertNotIn("secret", str(exc.exception))
+                self.assertTrue(exc.exception.__suppress_context__)
+
+    @patch("gerrit_mcp_server.gerrit_auth.subprocess.run")
+    def test_get_auth_for_git_credentials_helper_failure(self, mock_run):
+        """Tests that helper failure output is not included in the error."""
+        mock_run.return_value = subprocess.CompletedProcess([], 1, "secret", "secret")
+        with self.assertRaisesRegex(ValueError, "lookup failed") as exc:
+            gerrit_auth._get_auth_for_git_credentials("https://example.com/", {})
+        self.assertNotIn("secret", str(exc.exception))
+
+    @patch("gerrit_mcp_server.gerrit_auth.subprocess.run")
+    def test_get_auth_for_git_credentials_invalid_input(self, mock_run):
+        """Tests that malformed lookup input is rejected before invoking Git."""
+        for url, config in (
+            ("https://example.com/\npassword=injected", {}),
+            ("https://example.com/", {"username": "user\npassword=injected"}),
+            ("https://example.com/", {"username": 42}),
+            ("https://user@example.com/", {}),
+            ("file:///tmp/repo", {}),
+            ("https://example.com/?query", {}),
+        ):
+            with self.subTest(url=url, config=config):
+                with self.assertRaises(ValueError):
+                    gerrit_auth._get_auth_for_git_credentials(url, config)
+                mock_run.assert_not_called()
+
+    @patch("gerrit_mcp_server.gerrit_auth.subprocess.run")
+    def test_get_auth_for_git_credentials_invalid_helper_username(self, mock_run):
+        """Tests that a username containing a basic-auth delimiter is rejected."""
+        mock_run.return_value = subprocess.CompletedProcess(
+            [], 0, "username=user:other\npassword=secret\n", ""
+        )
+        with self.assertRaisesRegex(ValueError, "unsupported credential"):
+            gerrit_auth._get_auth_for_git_credentials("https://example.com/", {})
 
     def test_redacted_argv_masks_the_credentials(self):
         """A credential the auth layer declared never reaches the logged command."""

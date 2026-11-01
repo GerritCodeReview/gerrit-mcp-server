@@ -74,11 +74,14 @@ def get_curl_command_for_gerrit_url(
     if auth_type == "http_basic":
         return gerrit_auth._get_auth_for_http_basic(auth_config)
 
+    if auth_type == "git_credentials":
+        return gerrit_auth._get_auth_for_git_credentials(gerrit_base_url, auth_config)
+
     if auth_type == "git_cookies":
         return gerrit_auth._get_auth_for_gitcookies(gerrit_base_url, auth_config)
 
     raise ValueError(
         "No valid authentication method found in gerrit_config.json. "
         "Please configure a supported 'type' (e.g., 'http_basic', 'gob_curl', "
-        "'git_cookies') for the relevant host."
+        "'git_cookies', 'git_credentials') for the relevant host."
     )
