@@ -1,0 +1,6 @@
+[gerrit]
+host=gerrit-review.googlesource.com
+port=443
+project=gerrit-mcp-server
+defaultbranch=master
+scheme=https
