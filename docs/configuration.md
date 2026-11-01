@@ -4,6 +4,9 @@ The `gerrit_mcp_server` is configured via a central JSON file located at
 `gerrit_mcp_server/gerrit_config.json`. This file allows you to define
 connection and authentication details for multiple Gerrit instances.
 
+Set `GERRIT_CONFIG_PATH` to use another location, such as
+`~/.config/gerrit_config.json`.
+
 A sample file is provided at `gerrit_mcp_server/gerrit_config.sample.json` which
 you can copy and customize.
 

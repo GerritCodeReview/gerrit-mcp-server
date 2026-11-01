@@ -201,6 +201,24 @@ def test_load_gerrit_config_with_env_var():
             assert config == {"key": "value"}
 
 
+@pytest.mark.parametrize("path_type", ["absolute", "relative", "home"])
+def test_load_gerrit_config_path_resolution(tmp_path, monkeypatch, path_type):
+    """Tests absolute, working-directory-relative, and home-relative paths."""
+    config_path = tmp_path / ".config" / "gerrit_config.json"
+    config_path.parent.mkdir()
+    config_path.write_text('{"key": "value"}')
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    paths = {
+        "absolute": str(config_path),
+        "relative": ".config/gerrit_config.json",
+        "home": "~/.config/gerrit_config.json",
+    }
+    monkeypatch.setenv("GERRIT_CONFIG_PATH", paths[path_type])
+
+    assert main.load_gerrit_config() == {"key": "value"}
+
+
 def test_get_gerrit_base_url_with_no_env_var(mock_load_config):
     """Tests that the default base URL is used when no environment variable is set."""
     with patch.dict(os.environ, {}, clear=True):

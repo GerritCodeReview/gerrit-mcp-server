@@ -50,7 +50,7 @@ def load_gerrit_config() -> Dict[str, Any]:
     """Loads the Gerrit configuration from the JSON file."""
     config_path_str = os.environ.get("GERRIT_CONFIG_PATH")
     if config_path_str:
-        config_path = Path(config_path_str)
+        config_path = Path(config_path_str).expanduser()
     else:
         config_path = CONFIG_FILE_PATH
 
