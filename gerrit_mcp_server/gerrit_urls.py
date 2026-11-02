@@ -23,11 +23,19 @@ from gerrit_mcp_server import gerrit_auth
 
 
 def get_curl_command_for_gerrit_url(
-    gerrit_base_url: str, config: Dict[str, Any]
+    gerrit_base_url: str,
+    config: Dict[str, Any],
+    client_authorization: str | None = None,
 ) -> gerrit_auth.CurlAuth:
     """
     Determines the appropriate curl command based on the authentication settings
     for the given Gerrit host, together with the credentials that command carries.
+
+    A non-empty ``client_authorization`` is ``Basic <credentials>`` or
+    ``Bearer <token>`` from the MCP client and is forwarded to Gerrit.
+    Configured credentials are used when that header is absent: ``http_basic``
+    sends ``username`` and ``auth_token``, and ``bearer`` sends ``auth_token``
+    as a Gerrit 3 Bearer token.
     """
     gerrit_hosts = config.get("gerrit_hosts", [])
     auth_config = None
@@ -66,6 +74,9 @@ def get_curl_command_for_gerrit_url(
             f"Please check your gerrit_config.json file."
         )
 
+    if client_authorization:
+        return gerrit_auth._get_auth_for_authorization_header(client_authorization)
+
     auth_type = auth_config.get("type")
 
     if auth_type == "gob_curl":
@@ -74,11 +85,14 @@ def get_curl_command_for_gerrit_url(
     if auth_type == "http_basic":
         return gerrit_auth._get_auth_for_http_basic(auth_config)
 
+    if auth_type == "bearer":
+        return gerrit_auth._get_auth_for_bearer(auth_config)
+
     if auth_type == "git_cookies":
         return gerrit_auth._get_auth_for_gitcookies(gerrit_base_url, auth_config)
 
     raise ValueError(
         "No valid authentication method found in gerrit_config.json. "
-        "Please configure a supported 'type' (e.g., 'http_basic', 'gob_curl', "
-        "'git_cookies') for the relevant host."
+        "Please configure a supported 'type' (e.g., 'http_basic', 'bearer', "
+        "'gob_curl', 'git_cookies') for the relevant host."
     )
