@@ -46,6 +46,30 @@
       },
       "revId": "3764f876b4e30e64f560c22f84dad45d0a085dc6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5b0dfece_c17e6ea3",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-11-02T20:25:26Z",
+      "side": 1,
+      "message": "Done in patch set 2: query_changes and query_changes_by_date_and_filters now both return the same TypedDict, `_QueryChangesResult`. It holds the query and its changes, and each change carries its number, Change-Id, project, branch, subject, status, WIP flag and update time.\n\nAgreed that whether query_changes_by_date_and_filters should stay is a separate question for later.",
+      "parentUuid": "04eef3e1_dc13b3d1",
+      "range": {
+        "startLine": 404,
+        "startChar": 8,
+        "endLine": 409,
+        "endChar": 9
+      },
+      "revId": "3764f876b4e30e64f560c22f84dad45d0a085dc6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
