@@ -26,6 +26,14 @@
       }
     },
     {
+      "name": "Gerrit 3 Bearer Token",
+      "external_url": "https://gerrit.example.com/",
+      "authentication": {
+        "type": "bearer",
+        "auth_token": "your-bearer-token"
+      }
+    },
+    {
       "name": "GitCookies Auth Example",
       "external_url": "https://another-gerrit.com/",
       "authentication": {
