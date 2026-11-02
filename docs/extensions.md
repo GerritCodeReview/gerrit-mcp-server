@@ -69,6 +69,7 @@ instance exposed by the context:
 ```python
 """my_extension.py"""
 
+
 def register(ctx):
     @ctx.mcp.tool()
     async def my_tool(change_id: str, gerrit_base_url: str | None = None) -> dict:

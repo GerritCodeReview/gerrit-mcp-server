@@ -76,6 +76,7 @@ import pytest
 from unittest.mock import patch
 from gerrit_mcp_server import main
 
+
 @pytest.mark.asyncio
 async def test_get_bugs_from_cl():
     """The hero finds the bugs hidden in the message."""

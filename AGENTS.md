@@ -196,15 +196,18 @@ support it, text fallback for those that don't.
 ```python
 from typing import List, Optional, TypedDict
 
+
 class _ParentChange(TypedDict):
     change_number: int
     subject: str
     work_in_progress: bool
 
+
 class _MyToolResult(TypedDict):
     change_id: str
     items: List[_ParentChange]
-    note: Optional[str]   # None unless there is something to say
+    note: Optional[str]  # None unless there is something to say
+
 
 @mcp.tool()
 async def my_tool(
