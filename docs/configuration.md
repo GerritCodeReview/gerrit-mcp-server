@@ -37,11 +37,11 @@ whether you write it by hand or want to understand what the skill produces.
 
 The configuration file has two main properties at its root:
 
-| Key                       | Type   | Description                                                                                                                                                   |
+| Key | Type | Description |
 | ------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `default_gerrit_base_url` | string | The full URL of the Gerrit instance to use if a tool is called without a specific `gerrit_base_url` parameter.                                                |
-| `gerrit_hosts`            | array  | A list of objects, where each object defines the connection and authentication details for a specific Gerrit instance. This is the core of the configuration. |
-| `extensions`              | object | (Optional) Namespaced configuration blocks for extensions, keyed by extension name. See [Extensions](extensions.md#namespaced-configuration).                 |
+| `default_gerrit_base_url` | string | The full URL of the Gerrit instance to use if a tool is called without a specific `gerrit_base_url` parameter. |
+| `gerrit_hosts` | array | A list of objects, where each object defines the connection and authentication details for a specific Gerrit instance. This is the core of the configuration. |
+| `extensions` | object | (Optional) Namespaced configuration blocks for extensions, keyed by extension name. See [Extensions](extensions.md#namespaced-configuration). |
 
 ______________________________________________________________________
 
@@ -53,12 +53,12 @@ given request.
 
 Each host object has the following structure:
 
-| Key              | Type   | Description                                                                                                                                                                                                                   |
+| Key | Type | Description |
 | ---------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`           | string | A user-friendly name for the Gerrit instance (e.g., "Fuchsia", "Public Gerrit").                                                                                                                                              |
-| `internal_url`   | string | (Optional) An alternative URL for the same host, often used for internal network access. The server will recognize both this and the `external_url`.                                                                          |
-| `external_url`   | string | The primary, publicly accessible URL for the Gerrit host. URLs are normalized to `https://`; a plain `http://` URL is kept only for a loopback host (`localhost`, `127.0.0.1`, `::1`, `0.0.0.0`), e.g. a local test instance. |
-| `authentication` | object | A required object that specifies which authentication method to use for this host. See the detailed section below.                                                                                                            |
+| `name` | string | A user-friendly name for the Gerrit instance (e.g., "Fuchsia", "Public Gerrit"). |
+| `internal_url` | string | (Optional) An alternative URL for the same host, often used for internal network access. The server will recognize both this and the `external_url`. |
+| `external_url` | string | The primary, publicly accessible URL for the Gerrit host. URLs are normalized to `https://`; a plain `http://` URL is kept only for a loopback host (`localhost`, `127.0.0.1`, `::1`, `0.0.0.0`), e.g. a local test instance. |
+| `authentication` | object | A required object that specifies which authentication method to use for this host. See the detailed section below. |
 
 ______________________________________________________________________
 
@@ -66,7 +66,7 @@ ______________________________________________________________________
 
 The `authentication` object is the most important part of the configuration. It
 tells the server how to authenticate its `curl` requests to the Gerrit API. You
-must specify a `type` for each host. There are three supported types.
+must specify a `type` for each host. There are four supported types.
 
 ### 1. `git_cookies` (Recommended)
 
@@ -178,6 +178,31 @@ must set both.
     "type": "http_basic",
     "username": "your-username",
     "auth_token": "your-auth-token"
+  }
+}
+```
+
+### 4. `bearer`
+
+Gerrit 3 accepts an authentication token in an `Authorization: Bearer` header.
+Use this when the predefined account is a bearer token rather than an HTTP
+password. The server sends `Authorization: Bearer <auth_token>` and calls the
+authenticated `/a/` REST prefix. A client `Authorization` header still
+overrides this account for that request.
+
+- **`type`**: `"bearer"`
+- **`auth_token`**: The Gerrit token. Store the token itself; a value that
+  already begins with `Bearer ` is accepted.
+
+**Example:**
+
+```json
+{
+  "name": "Gerrit 3",
+  "external_url": "https://gerrit.example.com/",
+  "authentication": {
+    "type": "bearer",
+    "auth_token": "your-bearer-token"
   }
 }
 ```

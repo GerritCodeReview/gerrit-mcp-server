@@ -5,6 +5,7 @@ from unittest.mock import patch
 from gerrit_mcp_server.http_headers import (
     RequestObservabilityContext,
     build_curl_header_args,
+    client_authorization,
 )
 
 
@@ -110,3 +111,54 @@ class TestBuildCurlHeaderArgs(unittest.TestCase):
         self.assertIn("X-MCP-Client: test-client", result)
         self.assertIn("X-MCP-Protocol-Version: 2025-11-25", result)
         self.assertIn("X-MCP-Tool: my_tool", result)
+
+
+class TestClientAuthorization(unittest.TestCase):
+    def test_absent_headers_return_none(self):
+        self.assertIsNone(client_authorization(None))
+        self.assertIsNone(client_authorization({}))
+
+    def test_reads_basic_case_insensitively(self):
+        value = "Basic dXNlcjp0b2tlbg=="
+        self.assertEqual(client_authorization({"Authorization": value}), value)
+        self.assertEqual(
+            client_authorization({"authorization": "BASIC dXNlcjp0b2tlbg=="}),
+            value,
+        )
+
+    def test_reads_gerrit_bearer_token(self):
+        token = "secret-token"
+        self.assertEqual(
+            client_authorization({"Authorization": f"Bearer {token}"}),
+            f"Bearer {token}",
+        )
+
+    def test_bearer_scheme_is_canonicalized_for_gerrit(self):
+        """Gerrit matches the prefix 'Bearer ' exactly."""
+        self.assertEqual(
+            client_authorization({"Authorization": "bearer secret-token"}),
+            "Bearer secret-token",
+        )
+        self.assertEqual(
+            client_authorization({"Authorization": "Bearer   secret-token"}),
+            "Bearer secret-token",
+        )
+
+    def test_blank_authorization_is_absent(self):
+        self.assertIsNone(client_authorization({"Authorization": "   "}))
+
+    def test_missing_credential_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "Basic <credentials>"):
+            client_authorization({"Authorization": "Bearer"})
+        with self.assertRaisesRegex(ValueError, "Basic <credentials>"):
+            client_authorization({"Authorization": "Basic"})
+
+    def test_unknown_scheme_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "Basic <credentials>"):
+            client_authorization({"Authorization": "Digest abc"})
+
+    def test_control_characters_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, "control characters"):
+            client_authorization({"Authorization": "Basic abc\r\nX-Injected: yes"})
+        with self.assertRaisesRegex(ValueError, "control characters"):
+            client_authorization({"Authorization": "Bearer secret\r\nX-Injected: yes"})
