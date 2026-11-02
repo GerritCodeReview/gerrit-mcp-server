@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "a9291fce_e9c0a878",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-11-02T20:21:44Z",
+      "side": 1,
+      "message": "This change has three reasons, so please split it into three commits:\n1. Refactor post_review_comment into _review_comment_input(), _check_votes_on_current_patch_set() and _post_review(), with no change in behavior. The existing post_review_comment tests prove that.\n2. Fix the tools that report success when Gerrit drops a vote. The ReviewResult label check then lives in _post_review(), so post_review_comment and publish_drafts get it too.\n3. Add the new feature on top of the two.\n\nEach commit then has one reason to review and one reason to revert. The first two can merge while the new tool is still under discussion.",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "3c8ebd69_71d386e7",
@@ -105,6 +122,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "eb9321fc_01df1fa1",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2238,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-11-02T20:21:44Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "922bbd1e_46d292bb",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b5437b39_3d6e261d",
         "filename": "gerrit_mcp_server/main.py",
         "patchSetId": 4
@@ -128,6 +163,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "5abe4183_b53bb7dd",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2467,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-11-02T20:21:44Z",
+      "side": 1,
+      "message": "When the comments mix \"current\" and a parent\u0027s patch set, this calls _current_patch_set(). Then _check_votes_on_current_patch_set() on line 2481 calls it a second time. Please work out the review\u0027s patch set once, in one helper that takes the revisions of all comments and the labels. post_review_comment is then the case of one comment, and both tools share the patch set rule and the vote rule.",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "92195318_8436be74",
         "filename": "gerrit_mcp_server/main.py",
         "patchSetId": 4
@@ -145,6 +197,64 @@
         "endLine": 2508,
         "endChar": 5
       },
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "91342863_db6cb942",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2508,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-11-02T20:21:44Z",
+      "side": 1,
+      "message": "One helper can give it to both. Please move the body of post_review_comments into a function that takes a list of comments, the message and the labels.",
+      "parentUuid": "92195318_8436be74",
+      "range": {
+        "startLine": 2495,
+        "startChar": 0,
+        "endLine": 2508,
+        "endChar": 5
+      },
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "472e2713_19f410f5",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2591,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-11-02T20:21:44Z",
+      "side": 1,
+      "message": "This block repeats the reply lookup of _review_comment_input(): it fetches the published comments, explains a missing parent, checks the location, and takes the parent\u0027s patch set, file and inherited fields. Please move that into one helper for the reply target and call it from both places. post_draft_comment would pass its range on to _reply_location_mismatch() and keep its own check for a draft already in the thread.",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "06ce12b5_a35d7197",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2890,
+      "author": {
+        "id": 4710980
+      },
+      "writtenOn": "2026-11-02T20:21:44Z",
+      "side": 1,
+      "message": "publish_drafts posts to the same review endpoint as _post_review(), but it ignores Gerrit\u0027s answer. Please call _post_review() here. publish_drafts then refuses a review that Gerrit answers with an \"error\" field, and it gets the report of dropped votes too.",
       "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
