@@ -16,6 +16,137 @@
       "message": "Thanks @nasser.grainawi@oss.qualcomm.com for the review. PS4 is rebased on master (including the CI Python fix) and addresses the remaining comment. PTAL.",
       "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "57fb0533_45378893",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-11-02T18:27:10Z",
+      "side": 1,
+      "message": "@yevhenii.yatchenko@gmail.com can you review this please since it overlaps a lot with your recent changes?",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b7a3f3a6_8da4fcef",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2140,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-11-02T18:27:10Z",
+      "side": 1,
+      "message": "Why doesn\u0027t this take a `_ReviewCommentInput`? And it seems we could have a type for the posted [`CommentInput`](https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#comment-input) and return that instead of a plain Dict (though that should get used across a number of tools, so maybe that\u0027s better as a separate refactor). Also deferred, creating a type for [`ReviewInput`](https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#review-input) and using it appropriately.",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f575e5cc_7d441747",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2141,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-11-02T18:27:10Z",
+      "side": 1,
+      "message": "Should this say \"not yet published\" comment (or something else entirely)? I don\u0027t think we\u0027re building an input for a comment that\u0027s already been published.",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7d13201c_549c3969",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2183,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-11-02T18:27:10Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we validate this with `_validate_review_comment()`? Or is that expected to be run on the inputs? If inputs, then we should do that in here so that it\u0027s shared between the two tools.",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "922bbd1e_46d292bb",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2238,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-11-02T18:27:10Z",
+      "side": 1,
+      "message": "Should we consider this deprecated since callers could switch to using post_review_comments with a single comment input?",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b5437b39_3d6e261d",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2434,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-11-02T18:27:10Z",
+      "side": 1,
+      "message": "This prefix seems good to use on line 2283 too.",
+      "range": {
+        "startLine": 2434,
+        "startChar": 26,
+        "endLine": 2434,
+        "endChar": 62
+      },
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "92195318_8436be74",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2508,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-11-02T18:27:10Z",
+      "side": 1,
+      "message": "`post_review_comment` should get this improvement too, unless we can just remove that tool now?",
+      "range": {
+        "startLine": 2495,
+        "startChar": 0,
+        "endLine": 2508,
+        "endChar": 5
+      },
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
