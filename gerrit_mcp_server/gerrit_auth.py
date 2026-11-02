@@ -17,10 +17,12 @@ This module handles the creation of authentication-specific curl commands for Ge
 """
 
 import os
+import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
 REDACTED = "<redacted>"
+_CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
 
 
 @dataclass(frozen=True)
@@ -40,6 +42,16 @@ class CurlAuth:
         """The command prefix with every credential argument masked."""
         secret_set = set(filter(None, self.secrets))
         return [REDACTED if token in secret_set else token for token in self.argv]
+
+
+def _get_auth_for_authorization_header(authorization: str) -> CurlAuth:
+    """Forward a client Authorization header to Gerrit.
+
+    ``authorization`` is ``Basic <credentials>`` or ``Bearer <token>``. It
+    replaces the username and auth_token configured for the host.
+    """
+    header = f"Authorization: {authorization}"
+    return CurlAuth(["curl", "-H", header, "-L"], secrets=(header,))
 
 
 def _get_auth_for_gob(config: Dict[str, Any]) -> CurlAuth:
@@ -79,6 +91,28 @@ def _get_auth_for_http_basic(config: Dict[str, Any]) -> CurlAuth:
         )
     credentials = f"{username}:{auth_token}"
     return CurlAuth(["curl", "--user", credentials, "-L"], secrets=(credentials,))
+
+
+def _get_auth_for_bearer(config: Dict[str, Any]) -> CurlAuth:
+    """Returns curl args for a Gerrit 3 Bearer token stored in the config.
+
+    ``auth_token`` is the token itself. A value that already starts with
+    ``Bearer `` is accepted and normalized to a single scheme prefix.
+    """
+    raw = config.get("auth_token")
+    if not isinstance(raw, str) or not raw.strip():
+        raise ValueError(
+            "For 'bearer' authentication, set 'auth_token' to the Gerrit token."
+        )
+    token = raw.strip()
+    if token.lower().startswith("bearer "):
+        token = token[7:].strip()
+    if not token or _CONTROL_CHARS.search(token):
+        raise ValueError(
+            "For 'bearer' authentication, 'auth_token' must be a single token "
+            "without control characters."
+        )
+    return _get_auth_for_authorization_header(f"Bearer {token}")
 
 
 def _get_auth_for_gitcookies(gerrit_base_url: str, config: Dict[str, Any]) -> CurlAuth:

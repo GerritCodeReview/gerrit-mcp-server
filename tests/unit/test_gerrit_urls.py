@@ -110,6 +110,83 @@ class TestGerritUrlsDispatcher(unittest.TestCase):
         mock_get_auth.assert_called_once_with(auth_config)
         self.assertEqual(command.argv, ["curl", "--user", "test:token", "-L"])
 
+    def test_client_authorization_replaces_configured_credentials(self):
+        """The MCP client's Authorization header wins over username/auth_token."""
+        header = "Basic dXNlcjp0b2tlbg=="
+        config = {
+            "gerrit_hosts": [
+                {
+                    "name": "Public",
+                    "external_url": "https://public-gerrit.com/",
+                    "authentication": {
+                        "type": "http_basic",
+                        "username": "shared",
+                        "auth_token": "shared-token",
+                    },
+                }
+            ]
+        }
+        command = gerrit_urls.get_curl_command_for_gerrit_url(
+            "https://public-gerrit.com",
+            config,
+            client_authorization=header,
+        )
+        self.assertEqual(
+            command.argv, ["curl", "-H", f"Authorization: {header}", "-L"]
+        )
+        self.assertNotIn("shared-token", command.argv)
+        self.assertNotIn(header, command.redacted_argv)
+
+    def test_client_bearer_token_replaces_configured_credentials(self):
+        """A Gerrit 3 Bearer token is forwarded instead of the shared account."""
+        header = "Bearer secret-token"
+        config = {
+            "gerrit_hosts": [
+                {
+                    "name": "Public",
+                    "external_url": "https://public-gerrit.com/",
+                    "authentication": {
+                        "type": "http_basic",
+                        "username": "shared",
+                        "auth_token": "shared-token",
+                    },
+                }
+            ]
+        }
+        command = gerrit_urls.get_curl_command_for_gerrit_url(
+            "https://public-gerrit.com",
+            config,
+            client_authorization=header,
+        )
+        self.assertEqual(
+            command.argv, ["curl", "-H", f"Authorization: {header}", "-L"]
+        )
+        self.assertNotIn("--user", command.argv)
+        self.assertNotIn("secret-token", command.redacted_argv)
+
+    def test_dispatches_to_configured_bearer_token(self):
+        """A bearer host sends the configured token when the client has no header."""
+        config = {
+            "gerrit_hosts": [
+                {
+                    "name": "Gerrit 3",
+                    "external_url": "https://gerrit.example.com/",
+                    "authentication": {
+                        "type": "bearer",
+                        "auth_token": "secret-token",
+                    },
+                }
+            ]
+        }
+        command = gerrit_urls.get_curl_command_for_gerrit_url(
+            "https://gerrit.example.com", config
+        )
+        self.assertEqual(
+            command.argv,
+            ["curl", "-H", "Authorization: Bearer secret-token", "-L"],
+        )
+        self.assertNotIn("secret-token", command.redacted_argv)
+
     def test_http_basic_without_credentials_dispatches_to_netrc(self):
         """End-to-end: an http_basic host with no inline credentials produces a
         --netrc curl command (auth function not mocked)."""
