@@ -33,17 +33,50 @@ class TestCli(unittest.TestCase):
     def test_cli_main_http_mode_default_args(self, mock_mcp):
         """Tests that the server runs in HTTP mode with default host and port."""
         main.cli_main(["main.py"])
-        self.assertEqual(mock_mcp.settings.host, "localhost")
-        self.assertEqual(mock_mcp.settings.port, 6322)
-        mock_mcp.run.assert_called_once_with(transport="streamable-http")
+        mock_mcp.run.assert_called_once_with(
+            transport="streamable-http",
+            host="localhost",
+            port=6322,
+            transport_security=None,
+        )
 
     @patch("gerrit_mcp_server.main.mcp")
     def test_cli_main_http_mode_custom_args(self, mock_mcp):
         """Tests that the server runs in HTTP mode with custom host and port."""
         main.cli_main(["main.py", "--host", "0.0.0.0", "--port", "9999"])
-        self.assertEqual(mock_mcp.settings.host, "0.0.0.0")
-        self.assertEqual(mock_mcp.settings.port, 9999)
-        mock_mcp.run.assert_called_once_with(transport="streamable-http")
+        mock_mcp.run.assert_called_once_with(
+            transport="streamable-http",
+            host="0.0.0.0",
+            port=9999,
+            transport_security=None,
+        )
+
+    @patch("gerrit_mcp_server.main.mcp")
+    def test_cli_main_allow_host_includes_loopback(self, mock_mcp):
+        """--allow-host enables protection for that host and for localhost."""
+        main.cli_main(
+            [
+                "main.py",
+                "--allow-host",
+                "review.example.com",
+                "--allow-host",
+                "gerrit.example.com",
+            ]
+        )
+        settings = mock_mcp.run.call_args.kwargs["transport_security"]
+        self.assertIsNotNone(settings)
+        self.assertEqual(
+            settings.allowed_hosts,
+            [
+                "127.0.0.1:*",
+                "localhost:*",
+                "[::1]:*",
+                "review.example.com:*",
+                "gerrit.example.com:*",
+            ],
+        )
+        self.assertIn("http://review.example.com:*", settings.allowed_origins)
+        self.assertIn("http://localhost:*", settings.allowed_origins)
 
 
 if __name__ == "__main__":

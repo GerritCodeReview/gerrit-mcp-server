@@ -15,6 +15,7 @@
 import asyncio
 import json
 import os
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -458,6 +459,71 @@ async def test_run_curl_sends_x_mcp_tool_when_context_set(mock_exec, mock_load_c
     assert any(h == "X-MCP-Tool: query_changes" for h in headers)
     assert any(h == "X-MCP-Client: test-client" for h in headers)
     assert any(h == "X-MCP-Protocol-Version: 2025-11-25" for h in headers)
+
+
+@pytest.mark.asyncio
+async def test_call_tool_stamps_client_info_from_mcp2_context(mock_load_config):
+    """call_tool reads snake_case client_info off the mcp 2 Context."""
+    mock_load_config.return_value = {
+        "gerrit_hosts": [],
+        "default_gerrit_base_url": "https://example.com",
+    }
+    seen = {}
+
+    async def capture(args, base_url):
+        from gerrit_mcp_server.http_headers import _request_obs
+
+        seen["obs"] = _request_obs.get()
+        return "[]"
+
+    ctx = SimpleNamespace(
+        protocol_version="2025-11-25",
+        session=SimpleNamespace(
+            client_params=SimpleNamespace(
+                client_info=SimpleNamespace(name="cursor", version="2.0"),
+                protocol_version="2025-11-25",
+            )
+        ),
+    )
+    with patch("gerrit_mcp_server.main.run_curl", side_effect=capture):
+        await main.mcp.call_tool("query_changes", {"query": "status:open"}, ctx)
+
+    assert seen["obs"].tool_name == "query_changes"
+    assert seen["obs"].client_name == "cursor"
+    assert seen["obs"].client_version == "2.0"
+    assert seen["obs"].protocol_version == "2025-11-25"
+
+
+def test_obs_from_context_uses_session_protocol_when_context_has_none():
+    """A handshake that only populated client_params still yields a version."""
+    ctx = SimpleNamespace(
+        protocol_version=None,
+        session=SimpleNamespace(
+            client_params=SimpleNamespace(
+                client_info=SimpleNamespace(name="cursor", version="2.0"),
+                protocol_version="2025-11-25",
+            )
+        ),
+    )
+    obs = main._obs_from_context(ctx, "query_changes")
+    assert obs.protocol_version == "2025-11-25"
+    assert obs.client_name == "cursor"
+
+
+def test_obs_from_context_survives_missing_session():
+    """A context with no session still records the tool name."""
+
+    class _NoSession:
+        protocol_version = "2026-07-28"
+
+        @property
+        def session(self):
+            raise ValueError("Context is not available outside of a request")
+
+    obs = main._obs_from_context(_NoSession(), "query_changes")
+    assert obs.tool_name == "query_changes"
+    assert obs.client_name is None
+    assert obs.protocol_version == "2026-07-28"
 
 
 @pytest.mark.asyncio

@@ -25,7 +25,8 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, Optional, TypedDict
 from urllib.parse import quote, urlparse
 
-from mcp.server.fastmcp import Context, FastMCP
+from mcp.server.mcpserver import Context, MCPServer
+from mcp.server.transport_security import TransportSecuritySettings
 
 from gerrit_mcp_server.bug_utils import extract_bugs_from_commit_message
 from gerrit_mcp_server.extensions import ExtensionContext, ExtensionLoader
@@ -144,34 +145,51 @@ except Exception as e:
         )
     }
 
-# --- Initialize FastMCP Server ---
+# --- Initialize MCP Server ---
 
 
-class GerritFastMCP(FastMCP):
-    async def call_tool(self, name: str, arguments: dict) -> Any:
-        ctx = self.get_context()
-        obs = _obs_from_context(ctx, name)
+class GerritMCPServer(MCPServer):
+    """Stamps the calling client's identity onto outbound Gerrit curl requests.
+
+    mcp 2 supplies the request ``Context`` as an argument of ``call_tool``.
+    """
+
+    async def call_tool(
+        self,
+        name: str,
+        arguments: dict[str, Any],
+        context: Context | None = None,
+    ) -> Any:
+        obs = _obs_from_context(context, name)
         token = _request_obs.set(obs)
         try:
-            return await super().call_tool(name, arguments)
+            return await super().call_tool(name, arguments, context)
         finally:
             _request_obs.reset(token)
 
 
-def _obs_from_context(ctx: Context, tool_name: str) -> RequestObservabilityContext:
+def _obs_from_context(
+    ctx: Context | None, tool_name: str
+) -> RequestObservabilityContext:
     client_name = None
     client_version = None
     protocol_version = None
-    try:
-        params = ctx.session.client_params
-        if params is not None:
-            info = params.clientInfo
-            client_name = getattr(info, "name", None) or None
-            client_version = getattr(info, "version", None) or None
-            pv = params.protocolVersion
-            protocol_version = str(pv) if pv else None
-    except Exception:
-        pass
+    if ctx is not None:
+        try:
+            protocol_version = ctx.protocol_version
+        except Exception:
+            protocol_version = None
+        try:
+            params = ctx.session.client_params
+            if params is not None:
+                info = params.client_info
+                client_name = getattr(info, "name", None) or None
+                client_version = getattr(info, "version", None) or None
+                if not protocol_version:
+                    pv = params.protocol_version
+                    protocol_version = str(pv) if pv else None
+        except Exception:
+            pass
     return RequestObservabilityContext(
         tool_name=tool_name,
         client_name=client_name,
@@ -180,7 +198,7 @@ def _obs_from_context(ctx: Context, tool_name: str) -> RequestObservabilityConte
     )
 
 
-mcp = GerritFastMCP("gerrit")
+mcp = GerritMCPServer("gerrit")
 
 # --- Session State ---
 
@@ -2709,6 +2727,47 @@ def _build_extension_context() -> "ExtensionContext":
     )
 
 
+_LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "::1")
+
+
+def _host_pattern(host: str) -> str:
+    """Host allow-list pattern matching any port. IPv6 is bracketed."""
+    if host.startswith("[") and host.endswith("]"):
+        return f"{host}:*"
+    if ":" in host:
+        return f"[{host}]:*"
+    return f"{host}:*"
+
+
+def transport_security_for_hosts(
+    allow_hosts: Optional[List[str]],
+) -> Optional[TransportSecuritySettings]:
+    """DNS rebinding settings for ``--allow-host``, or None when none were given.
+
+    Each extra host is allowed together with loopback. Patterns ending in
+    ``:*`` match any port (see TransportSecurityMiddleware).
+    """
+    extras: List[str] = []
+    for raw in allow_hosts or []:
+        extras.extend(part.strip() for part in raw.split(",") if part.strip())
+    if not extras:
+        return None
+    ordered: List[str] = []
+    seen: set[str] = set()
+    for host in (*_LOOPBACK_HOSTS, *extras):
+        key = host.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered.append(host)
+    patterns = [_host_pattern(host) for host in ordered]
+    return TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=patterns,
+        allowed_origins=[f"http://{pattern}" for pattern in patterns],
+    )
+
+
 def cli_main(argv: List[str]):
     """
     The main entry point for the command-line interface.
@@ -2738,14 +2797,26 @@ def cli_main(argv: List[str]):
                 "Defaults to 6322 (close to 'gerrit' in leetspeak)."
             ),
         )
+        parser.add_argument(
+            "--allow-host",
+            action="append",
+            default=[],
+            metavar="HOST",
+            help=(
+                "Host allowed by DNS rebinding protection, in addition to "
+                "localhost. Repeat the flag or separate hosts with commas. "
+                "Without this flag, transport security is left unset."
+            ),
+        )
         args = parser.parse_args(argv[1:])
 
-        # Update the server's settings with the parsed arguments
-        mcp.settings.host = args.host
-        mcp.settings.port = args.port
-
-        # Run the server using the correct transport
-        mcp.run(transport="streamable-http")
+        # mcp 2 takes host and port as arguments of run().
+        mcp.run(
+            transport="streamable-http",
+            host=args.host,
+            port=args.port,
+            transport_security=transport_security_for_hosts(args.allow_host),
+        )
 
 
 if __name__ == "__main__":
