@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "a0f1063a_e5b7a9ba",
+        "filename": ".zuul.d/playbooks/run_e2e_tests.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002666
+      },
+      "writtenOn": "2026-11-02T21:45:00Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "2e3df7bd_f4f1cda9",
+      "revId": "2bd7499019312a159607a5c3473427a95ff57a61",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "eb8c6d95_2cea69b2",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 1
