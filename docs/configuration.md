@@ -66,7 +66,7 @@ ______________________________________________________________________
 
 The `authentication` object is the most important part of the configuration. It
 tells the server how to authenticate its `curl` requests to the Gerrit API. You
-must specify a `type` for each host. There are three supported types.
+must specify a `type` for each host. There are four supported types.
 
 ### 1. `git_cookies` (Recommended)
 
@@ -178,6 +178,31 @@ must set both.
     "type": "http_basic",
     "username": "your-username",
     "auth_token": "your-auth-token"
+  }
+}
+```
+
+### 4. `bearer`
+
+Gerrit 3 accepts an authentication token in an `Authorization: Bearer` header.
+Use this when the predefined account is a bearer token rather than an HTTP
+password. The server sends `Authorization: Bearer <auth_token>` and calls the
+authenticated `/a/` REST prefix. A client `Authorization` header still
+overrides this account for that request.
+
+- **`type`**: `"bearer"`
+- **`auth_token`**: The Gerrit token. Store the token itself; a value that
+  already begins with `Bearer ` is accepted.
+
+**Example:**
+
+```json
+{
+  "name": "Gerrit 3",
+  "external_url": "https://gerrit.example.com/",
+  "authentication": {
+    "type": "bearer",
+    "auth_token": "your-bearer-token"
   }
 }
 ```

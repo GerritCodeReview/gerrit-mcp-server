@@ -168,6 +168,26 @@ class TestGerritConfig(unittest.TestCase):
         )
 
     @patch("gerrit_mcp_server.main.load_gerrit_config")
+    def test_normalize_gerrit_url_adds_a_prefix_for_bearer(self, mock_load_config):
+        mock_load_config.return_value = {
+            "gerrit_hosts": [
+                {
+                    "name": "Gerrit 3",
+                    "external_url": "https://gerrit.example.com/",
+                    "authentication": {
+                        "type": "bearer",
+                        "auth_token": "secret-token",
+                    },
+                }
+            ]
+        }
+        gerrit_hosts = mock_load_config.return_value["gerrit_hosts"]
+        self.assertEqual(
+            _normalize_gerrit_url("gerrit.example.com", gerrit_hosts),
+            "https://gerrit.example.com/a",
+        )
+
+    @patch("gerrit_mcp_server.main.load_gerrit_config")
     def test_normalize_gerrit_url_adds_a_prefix_for_git_cookies(self, mock_load_config):
         mock_load_config.return_value = {
             "gerrit_hosts": [

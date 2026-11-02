@@ -617,3 +617,82 @@ async def test_run_curl_does_not_log_credentials(tmp_path, monkeypatch):
     assert "s3cr3t-token" not in logged
     assert "--user <redacted>" in logged
     assert "https://example.com/a/changes/" in logged
+
+
+@pytest.mark.asyncio
+async def test_run_curl_forwards_client_authorization(tmp_path, monkeypatch):
+    """A client Authorization header is sent to Gerrit and omitted from the log."""
+    from gerrit_mcp_server.http_headers import _client_authorization
+
+    config = {
+        "default_gerrit_base_url": "https://example.com/",
+        "gerrit_hosts": [
+            {
+                "name": "Public",
+                "external_url": "https://example.com/",
+                "authentication": {
+                    "type": "http_basic",
+                    "username": "shared",
+                    "auth_token": "shared-token",
+                },
+            }
+        ],
+    }
+    log_path = tmp_path / "server.log"
+    monkeypatch.setattr(main, "LOG_FILE_PATH", log_path)
+
+    process = AsyncMock()
+    process.communicate.return_value = (b"{}", b"")
+    process.returncode = 0
+    header = "Basic dXNlcjp0b2tlbg=="
+    token = _client_authorization.set(header)
+    try:
+        with (
+            patch("gerrit_mcp_server.main.load_gerrit_config", return_value=config),
+            patch(
+                "asyncio.create_subprocess_exec",
+                new_callable=AsyncMock,
+                return_value=process,
+            ) as mock_exec,
+        ):
+            await main.run_curl(
+                ["https://example.com/a/changes/"], "https://example.com/"
+            )
+    finally:
+        _client_authorization.reset(token)
+
+    cmd = mock_exec.call_args.args
+    assert f"Authorization: {header}" in cmd
+    assert "--user" not in cmd
+    assert "shared-token" not in cmd
+    logged = log_path.read_text()
+    assert header not in logged
+    assert "shared-token" not in logged
+    assert "<redacted>" in logged
+
+
+@pytest.mark.asyncio
+async def test_call_tool_captures_authorization_header(mock_load_config):
+    """call_tool stores the MCP request's Authorization header for run_curl."""
+    from gerrit_mcp_server.http_headers import _client_authorization
+
+    mock_load_config.return_value = {
+        "gerrit_hosts": [],
+        "default_gerrit_base_url": "https://example.com",
+    }
+    seen = {}
+
+    async def capture(args, base_url):
+        seen["authorization"] = _client_authorization.get()
+        return "[]"
+
+    header = "Basic dXNlcjp0b2tlbg=="
+    ctx = SimpleNamespace(
+        protocol_version=None,
+        session=SimpleNamespace(client_params=None),
+        headers={"Authorization": header},
+    )
+    with patch("gerrit_mcp_server.main.run_curl", side_effect=capture):
+        await main.mcp.call_tool("query_changes", {"query": "status:open"}, ctx)
+
+    assert seen["authorization"] == header

@@ -34,8 +34,10 @@ from gerrit_mcp_server.extensions import ExtensionContext, ExtensionLoader
 from gerrit_mcp_server.gerrit_urls import get_curl_command_for_gerrit_url
 from gerrit_mcp_server.http_headers import (
     RequestObservabilityContext,
+    _client_authorization,
     _request_obs,
     build_curl_header_args,
+    client_authorization,
 )
 from gerrit_mcp_server.plugin_registry import PluginRegistry
 from gerrit_mcp_server.sort_util import sort_changes_by_date
@@ -163,11 +165,14 @@ class GerritMCPServer(MCPServer):
         context: Context | None = None,
     ) -> Any:
         obs = _obs_from_context(context, name)
-        token = _request_obs.set(obs)
+        authorization = _client_authorization_from_context(context)
+        obs_token = _request_obs.set(obs)
+        auth_token = _client_authorization.set(authorization)
         try:
             return await super().call_tool(name, arguments, context)
         finally:
-            _request_obs.reset(token)
+            _client_authorization.reset(auth_token)
+            _request_obs.reset(obs_token)
 
 
 def _obs_from_context(
@@ -200,6 +205,17 @@ def _obs_from_context(
     )
 
 
+def _client_authorization_from_context(ctx: Context | None) -> str | None:
+    """Read the MCP HTTP Authorization header, when this transport has one."""
+    if ctx is None:
+        return None
+    try:
+        headers = ctx.headers
+    except Exception:
+        return None
+    return client_authorization(headers)
+
+
 mcp = GerritMCPServer("gerrit")
 
 # --- Session State ---
@@ -224,7 +240,7 @@ def _apply_authenticated_prefix(url: str, host: Dict[str, Any]) -> str:
     """Appends /a to the URL if the host's auth type requires it for API access."""
     auth_type = host.get("authentication", {}).get("type")
 
-    if auth_type in ("http_basic", "git_cookies"):
+    if auth_type in ("http_basic", "bearer", "git_cookies"):
         return url + "/a"
 
     return url
@@ -300,7 +316,11 @@ async def run_curl(args: List[str], gerrit_base_url: str) -> str:
     """Executes a curl command and returns the output."""
     config = load_gerrit_config()
     obs_headers = build_curl_header_args(_request_obs.get())
-    auth = get_curl_command_for_gerrit_url(gerrit_base_url, config)
+    auth = get_curl_command_for_gerrit_url(
+        gerrit_base_url,
+        config,
+        client_authorization=_client_authorization.get(),
+    )
     command = auth.argv + obs_headers + args
     logged_command = " ".join(auth.redacted_argv + obs_headers + args)
     with open(LOG_FILE_PATH, "a") as log_file:
