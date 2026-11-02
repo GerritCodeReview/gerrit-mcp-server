@@ -24,6 +24,28 @@ from gerrit_mcp_server import gerrit_auth
 
 
 class TestGerritAuth(unittest.TestCase):
+    def test_get_auth_for_basic_authorization_header(self):
+        """A client Basic Authorization header is forwarded and marked secret."""
+        header = "Basic dXNlcjp0b2tlbg=="
+        command = gerrit_auth._get_auth_for_authorization_header(header)
+        self.assertEqual(
+            command.argv,
+            ["curl", "-H", f"Authorization: {header}", "-L"],
+        )
+        self.assertEqual(command.secrets, (f"Authorization: {header}",))
+        self.assertNotIn(header, command.redacted_argv)
+
+    def test_get_auth_for_bearer_authorization_header(self):
+        """A Gerrit 3 Bearer token is forwarded and marked secret."""
+        header = "Bearer secret-token"
+        command = gerrit_auth._get_auth_for_authorization_header(header)
+        self.assertEqual(
+            command.argv,
+            ["curl", "-H", f"Authorization: {header}", "-L"],
+        )
+        self.assertEqual(command.secrets, (f"Authorization: {header}",))
+        self.assertNotIn("secret-token", command.redacted_argv)
+
     def test_get_auth_for_gob(self):
         """Tests that the correct command is returned for gob-curl."""
         self.assertEqual(gerrit_auth._get_auth_for_gob({}).argv, ["gob-curl", "-s"])
@@ -51,6 +73,30 @@ class TestGerritAuth(unittest.TestCase):
             ["curl", "--netrc-file", os.path.expanduser("~/custom_netrc"), "-L"],
         )
         self.assertEqual(command.secrets, ())
+
+    def test_get_auth_for_bearer_token(self):
+        """A configured Bearer token is sent as Authorization and redacted."""
+        command = gerrit_auth._get_auth_for_bearer({"auth_token": "secret-token"})
+        header = "Authorization: Bearer secret-token"
+        self.assertEqual(command.argv, ["curl", "-H", header, "-L"])
+        self.assertEqual(command.secrets, (header,))
+        self.assertNotIn("secret-token", command.redacted_argv)
+
+    def test_get_auth_for_bearer_strips_scheme_prefix(self):
+        """A token that already includes the Bearer scheme is not doubled."""
+        command = gerrit_auth._get_auth_for_bearer(
+            {"auth_token": "Bearer secret-token"}
+        )
+        self.assertIn("Authorization: Bearer secret-token", command.argv)
+        self.assertNotIn("Authorization: Bearer Bearer secret-token", command.argv)
+
+    def test_get_auth_for_bearer_missing_token(self):
+        with self.assertRaisesRegex(ValueError, "set 'auth_token'"):
+            gerrit_auth._get_auth_for_bearer({})
+
+    def test_get_auth_for_bearer_rejects_control_characters(self):
+        with self.assertRaisesRegex(ValueError, "control characters"):
+            gerrit_auth._get_auth_for_bearer({"auth_token": "secret\r\ninjected"})
 
     def test_get_auth_for_http_basic_missing_username(self):
         """Tests that an error is raised if only auth_token is provided."""
