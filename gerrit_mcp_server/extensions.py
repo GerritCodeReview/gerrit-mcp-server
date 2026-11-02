@@ -19,7 +19,7 @@ from importlib.metadata import entry_points
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Final
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 from gerrit_mcp_server.plugin_registry import PluginRegistry, requires_plugin
 
@@ -38,8 +38,8 @@ ENV_VAR: Final[str] = "GERRIT_MCP_EXTENSIONS"
 class ExtensionContext:
     """Stable public API passed to each extension's ``register()``."""
 
-    mcp: FastMCP
-    """FastMCP server. Register tools via ``@ctx.mcp.tool()``."""
+    mcp: MCPServer
+    """MCP server. Register tools via ``@ctx.mcp.tool()``."""
 
     get_base_url: Callable[[str | None], str]
     """Resolve a Gerrit base URL (defaults, env, normalization applied)."""

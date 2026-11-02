@@ -38,6 +38,7 @@ root alongside other workspace members.
 ```python
 from gerrit_mcp_server.extensions import ExtensionContext
 
+
 def register(ctx: ExtensionContext) -> None:
     """Register all tools for this extension."""
 
@@ -68,14 +69,17 @@ JSON `output_schema` from the annotation and produces both structured content
 ```python
 from typing import List, Optional, TypedDict
 
+
 class _MyChange(TypedDict):
     change_number: int
     subject: str
 
+
 class _MyToolResult(TypedDict):
     change_id: str
     changes: List[_MyChange]
-    note: Optional[str]   # None unless there is something to say
+    note: Optional[str]  # None unless there is something to say
+
 
 def register(ctx: ExtensionContext) -> None:
 
@@ -157,8 +161,10 @@ from typing import TypedDict
 
 from gerrit_mcp_server.extensions import ExtensionContext, requires_plugin
 
+
 class _MyPluginResult(TypedDict):
     change_id: str
+
 
 def register(ctx: ExtensionContext) -> None:
 
@@ -197,7 +203,7 @@ Store extension-specific config under `config["extensions"]["myext"]` in
 `gerrit_config.json`. Retrieve it via:
 
 ```python
-cfg = ctx.extension_config("myext")   # returns {} if absent
+cfg = ctx.extension_config("myext")  # returns {} if absent
 timeout = cfg.get("timeout_seconds", 30)
 ```
 
@@ -210,6 +216,7 @@ Append to the shared server log with the extension name as a prefix:
 
 ```python
 import sys
+
 
 def _log(ctx, msg: str) -> None:
     line = f"[myext] {msg}\n"
@@ -310,6 +317,7 @@ from unittest.mock import AsyncMock, MagicMock, call
 import pytest
 from myext.extension import register
 
+
 @pytest.fixture
 def ctx(tmp_path):
     return MagicMock(
@@ -323,10 +331,12 @@ def ctx(tmp_path):
         extension_config=MagicMock(return_value={}),
     )
 
+
 def test_register_adds_tools(ctx):
     register(ctx)
     # At least one tool was registered
     assert ctx.mcp.tool.called
+
 
 @pytest.mark.asyncio
 async def test_my_tool_returns_structured_result(ctx):
