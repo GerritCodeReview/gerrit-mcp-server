@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "44869eba_d974884f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1016008
+      },
+      "writtenOn": "2026-11-03T06:44:02Z",
+      "side": 1,
+      "message": "# i already mdformat \nuv run mdformat docs/\nuv run mdformat --check docs/\n\n# by zuul cmd\nuv run mdformat --check --exclude \".pytest_cache/**\" --exclude \".venv/**\" .\nusage: mdformat [-h] [--check] [--no-validate] [--version] [--number] [--wrap {keep,no,INTEGER}] [--end-of-line {lf,crlf,keep}] [--extensions EXTENSION] [--codeformatters LANGUAGE] [paths ...]\nmdformat: error: unrecognized arguments: --exclude --exclude .venv/** .",
+      "revId": "efedc4d9750c4a60489c90218252342fc12ebe3b",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    }
+  ]
+}
