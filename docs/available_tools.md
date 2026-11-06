@@ -58,7 +58,7 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 - **post_review_comment**: Posts a review comment in a CL, on a line, on a whole
   file, or on the whole patch set. With `in_reply_to`, the comment is a reply in
   the thread of that comment, posted where the parent comment is: on its patch
-  set, file, and line.
+  set, file, and line. It reports any vote that Gerrit did not apply.
 - **post_draft_comment**: Saves a draft comment in a CL, on a line, a range, a
   whole file, or the whole patch set. A range given by `start_line` and
   `end_line` alone covers those lines whole. With `in_reply_to`, the draft is a

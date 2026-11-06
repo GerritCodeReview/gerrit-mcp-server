@@ -2250,14 +2250,24 @@ async def _review_patch_set(
     return revision
 
 
+class _ReviewVotes(TypedDict):
+    labels: Optional[Dict[str, int]]
+    note: Optional[str]
+
+
 async def _post_review(
     base_url: str,
     change_id: str,
     revision: Any,
     payload: Dict[str, Any],
     what: str,
-) -> Dict[str, Any]:
-    """Posts a review on a patch set of a CL and returns Gerrit's ReviewResult.
+) -> _ReviewVotes:
+    """Posts a review on a patch set of a CL and reports the votes it cast.
+
+    Gerrit ignores a vote outside the label's range but still publishes the
+    review, so the votes in its ReviewResult are compared with the ones in
+    payload. Returns the votes Gerrit applied (None when payload has no
+    labels) and a note naming any vote it did not apply.
 
     Raises ValueError, with Gerrit's answer, when Gerrit refuses the review.
     `what` names what was posted, in the error and in the log.
@@ -2281,7 +2291,24 @@ async def _post_review(
                 f"[gerrit-mcp-server] Error posting {what} to CL {change_id}: {e}\n"
             )
         raise e
-    return result
+
+    requested = payload.get("labels") or {}
+    if not requested:
+        return {"labels": None, "note": None}
+    # ReviewResult.labels holds only the votes Gerrit applied.
+    applied = result.get("labels") or {}
+    not_applied = [
+        f"{label} {value}"
+        for label, value in requested.items()
+        if applied.get(label) != value
+    ]
+    note = (
+        f"Gerrit posted the {what} but did not apply these votes: "
+        + ", ".join(not_applied)
+        if not_applied
+        else None
+    )
+    return {"labels": applied, "note": note}
 
 
 async def _post_comments(
@@ -2291,12 +2318,12 @@ async def _post_comments(
     message: Optional[str],
     labels: Optional[Dict[str, int]],
     what: str,
-) -> Tuple[Any, Dict[str, List[Dict[str, Any]]], Dict[str, Any]]:
+) -> Tuple[Any, Dict[str, List[Dict[str, Any]]], _ReviewVotes]:
     """Posts comments in a CL as one review, with an optional message and labels.
 
     Returns the patch set the review went on, the CommentInputs posted by
-    file, and Gerrit's ReviewResult. The CL's published comments are fetched
-    once, for all the replies.
+    file, and the votes Gerrit applied, as _post_review reports them. The
+    CL's published comments are fetched once, for all the replies.
 
     Raises ValueError before anything is posted when a reply has no parent
     to go under, a comment has no file, the comments go on different patch
@@ -2327,8 +2354,8 @@ async def _post_comments(
         payload["message"] = message
     if labels:
         payload["labels"] = labels
-    result = await _post_review(base_url, change_id, revision, payload, what)
-    return revision, comments_by_file, result
+    votes = await _post_review(base_url, change_id, revision, payload, what)
+    return revision, comments_by_file, votes
 
 
 class _PostedCommentResult(TypedDict):
@@ -2337,6 +2364,8 @@ class _PostedCommentResult(TypedDict):
     file_path: str
     line: Optional[int]
     in_reply_to: Optional[str]
+    labels: Optional[Dict[str, int]]
+    note: Optional[str]
 
 
 @mcp.tool()
@@ -2361,6 +2390,10 @@ async def post_review_comment(
     they must be the parent's. Gerrit keeps a vote on the patch set it is
     cast on, so a reply on an older patch set cannot carry labels.
 
+    The returned labels are the votes Gerrit applied. Gerrit ignores a vote
+    outside the label's range but still posts the comment; note then names
+    the votes that were not applied.
+
     Raises ValueError when the parent comment is not found or is your
     unpublished draft, a location given for a reply is not the parent's, the
     comment has no file, or Gerrit refuses the comment.
@@ -2379,7 +2412,7 @@ async def post_review_comment(
     if in_reply_to is not None:
         comment["in_reply_to"] = in_reply_to
 
-    revision, comments_by_file, _ = await _post_comments(
+    revision, comments_by_file, votes = await _post_comments(
         base_url, change_id, [comment], None, labels, "comment"
     )
     ((posted_file, (posted,)),) = comments_by_file.items()
@@ -2390,6 +2423,8 @@ async def post_review_comment(
         "file_path": posted_file,
         "line": posted.get("line"),
         "in_reply_to": in_reply_to,
+        "labels": votes["labels"],
+        "note": votes["note"],
     }
 
 
@@ -2776,25 +2811,35 @@ async def delete_draft_comments(
     return {"change_id": change_id, "deleted": deleted, "failed": failed}
 
 
+class _PublishedDraftsResult(TypedDict):
+    change_id: str
+    message: Optional[str]
+    labels: Optional[Dict[str, int]]
+    note: Optional[str]
+
+
 @mcp.tool()
 async def publish_drafts(
     change_id: str,
     message: Optional[str] = None,
     labels: Optional[Dict[str, int]] = None,
     gerrit_base_url: Optional[str] = None,
-):
+) -> _PublishedDraftsResult:
     """
     Publishes all pending draft comments on a CL as a single review.
     This is equivalent to clicking "Send" in the Gerrit web UI — all
     draft comments become visible to other reviewers in one batch.
 
+    The returned labels are the votes Gerrit applied. Gerrit ignores a vote
+    outside the label's range but still publishes the drafts; note then
+    names the votes that were not applied. Raises ValueError, with Gerrit's
+    answer, when Gerrit refuses the review.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
     base_url = _normalize_gerrit_url(
         _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
     )
-    url = f"{base_url}/changes/{change_id}/revisions/current/review"
 
     payload: Dict[str, Any] = {"drafts": "PUBLISH_ALL_REVISIONS"}
     if message:
@@ -2802,22 +2847,13 @@ async def publish_drafts(
     if labels:
         payload["labels"] = labels
 
-    args = _create_post_args(url, payload)
-
-    try:
-        await run_curl(args, base_url)
-        return [
-            {
-                "type": "text",
-                "text": f"Successfully published all draft comments on CL {change_id}.",
-            }
-        ]
-    except Exception as e:
-        with open(LOG_FILE_PATH, "a") as log_file:
-            log_file.write(
-                f"[gerrit-mcp-server] Error publishing drafts on CL {change_id}: {e}\n"
-            )
-        raise e
+    votes = await _post_review(base_url, change_id, "current", payload, "drafts")
+    return {
+        "change_id": change_id,
+        "message": message or None,
+        "labels": votes["labels"],
+        "note": votes["note"],
+    }
 
 
 def main():

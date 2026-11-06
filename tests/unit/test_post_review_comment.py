@@ -58,6 +58,8 @@ class TestPostReviewComment(unittest.TestCase):
                 "file_path": "test.py",
                 "line": 1,
                 "in_reply_to": None,
+                "labels": {"Verified": 1},
+                "note": None,
             },
         )
         expected_payload_str = (
@@ -98,6 +100,8 @@ class TestPostReviewComment(unittest.TestCase):
                     "file_path": "src/main.py",
                     "line": 42,
                     "in_reply_to": "parent-1",
+                    "labels": None,
+                    "note": None,
                 },
             )
             curl_args = mock_run_curl.call_args_list[1].args[0]
@@ -425,6 +429,26 @@ class TestPostReviewComment(unittest.TestCase):
             self.assertEqual(result["line"], 10)
 
         asyncio.run(run_test())
+
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_vote_gerrit_did_not_apply_is_reported(self, mock_run_curl):
+        # Gerrit ignores a vote outside the label's range but posts the comment.
+        mock_run_curl.return_value = '{"labels": {}}'
+        result = asyncio.run(
+            post_review_comment(
+                change_id="123",
+                file_path="test.py",
+                line_number=1,
+                message="test comment",
+                labels={"Code-Review": 5},
+                gerrit_base_url=GERRIT_BASE_URL,
+            )
+        )
+        self.assertEqual(result["labels"], {})
+        self.assertEqual(
+            result["note"],
+            "Gerrit posted the comment but did not apply these votes: Code-Review 5",
+        )
 
 
 if __name__ == "__main__":
