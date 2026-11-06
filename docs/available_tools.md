@@ -55,10 +55,16 @@ This document lists the tools available in the Gerrit MCP Server, extracted from
 - **abandon_change**: Abandons a change.
 - **get_most_recent_cl**: Gets the most recent CL for a user.
 - **get_bugs_from_cl**: Extracts bug IDs from the commit message of a CL.
-- **post_review_comment**: Posts a review comment in a CL, on a line, on a whole
-  file, or on the whole patch set. With `in_reply_to`, the comment is a reply in
-  the thread of that comment, posted where the parent comment is: on its patch
-  set, file, and line. It reports any vote that Gerrit did not apply.
+- **post_review_comments**: Posts one or more comments in a CL as a single
+  review, optionally with a summary message and labels. Each comment goes on a
+  line, a whole file, or the whole patch set, or replies to a published comment
+  with `in_reply_to`. All comments are published atomically in one request, and
+  any vote that Gerrit did not apply is reported.
+- **post_review_comment**: Deprecated, use `post_review_comments`. Posts a
+  review comment in a CL, on a line, on a whole file, or on the whole patch set.
+  With `in_reply_to`, the comment is a reply in the thread of that comment,
+  posted where the parent comment is: on its patch set, file, and line. It
+  reports any vote that Gerrit did not apply.
 - **post_draft_comment**: Saves a draft comment in a CL, on a line, a range, a
   whole file, or the whole patch set. A range given by `start_line` and
   `end_line` alone covers those lines whole. With `in_reply_to`, the draft is a

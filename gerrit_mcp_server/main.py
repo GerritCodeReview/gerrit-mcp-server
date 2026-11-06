@@ -2133,6 +2133,37 @@ class _ReviewCommentInput(_RequiredReviewCommentInput, total=False):
     in_reply_to: str
 
 
+def _validate_review_comment(index: int, comment: Any) -> List[str]:
+    """Returns the problems with one comment to post (empty if valid)."""
+    if not isinstance(comment, dict):
+        return [f"comment {index}: must be an object"]
+    errors = []
+    message = comment.get("message")
+    if not isinstance(message, str) or not message:
+        errors.append(f"comment {index}: message must be a non-empty string")
+    if "file_path" in comment:
+        if not isinstance(comment["file_path"], str) or not comment["file_path"]:
+            errors.append(f"comment {index}: file_path must be a non-empty string")
+    elif "in_reply_to" not in comment:
+        errors.append(
+            f"comment {index}: file_path is required unless in_reply_to is given"
+        )
+    if "line_number" in comment:
+        line_number = comment["line_number"]
+        if (
+            not isinstance(line_number, int)
+            or isinstance(line_number, bool)
+            or line_number < 1
+        ):
+            errors.append(f"comment {index}: line_number must be a positive integer")
+    if "unresolved" in comment and not isinstance(comment["unresolved"], bool):
+        errors.append(f"comment {index}: unresolved must be true or false")
+    if "in_reply_to" in comment:
+        if not isinstance(comment["in_reply_to"], str) or not comment["in_reply_to"]:
+            errors.append(f"comment {index}: in_reply_to must be a comment ID")
+    return errors
+
+
 async def _reply_target(
     base_url: str,
     change_id: str,
@@ -2174,8 +2205,9 @@ async def _review_comment_input(
     patch set for a reply), the file it goes on, and the CommentInput. A
     reply goes where its parent is; published is passed on to _reply_target.
 
-    Raises ValueError when a reply has no parent to go under, or the comment
-    has no file.
+    The comment is valid as _validate_review_comment checks it: it has a file,
+    or a parent to inherit one from. Raises ValueError when a reply has no
+    parent to go under.
     """
     file_path = comment.get("file_path")
     line_number = comment.get("line_number")
@@ -2195,11 +2227,6 @@ async def _review_comment_input(
         revision = parent.get("patch_set", "current")
         file_path = parent.get("path")
         inherited = _inherited_location(parent)
-
-    if file_path is None:
-        raise ValueError(
-            "file_path is required (and could not be inherited from in_reply_to)."
-        )
 
     comment_input: Dict[str, Any] = {}
     if line_number is not None:
@@ -2325,25 +2352,42 @@ async def _post_comments(
     file, and the votes Gerrit applied, as _post_review reports them. The
     CL's published comments are fetched once, for all the replies.
 
-    Raises ValueError before anything is posted when a reply has no parent
-    to go under, a comment has no file, the comments go on different patch
-    sets, or labels would be cast on an older patch set; and, with Gerrit's
-    answer, when Gerrit refuses the review.
+    Raises ValueError before anything is posted when there are no comments,
+    a comment is invalid, a reply has no parent to go under, the comments go
+    on different patch sets, or labels would be cast on an older patch set;
+    and, with Gerrit's answer, when Gerrit refuses the review.
     """
+    if not comments:
+        raise ValueError("No comments provided; nothing was posted.")
+    errors = [
+        error
+        for index, comment in enumerate(comments)
+        for error in _validate_review_comment(index, comment)
+    ]
+    if errors:
+        raise ValueError("Invalid comments; nothing was posted:\n" + "\n".join(errors))
+
     published = None
     if any("in_reply_to" in comment for comment in comments):
         published = await _published_comments_by_id(base_url, change_id)
 
+    entries = []
+    for index, comment in enumerate(comments):
+        try:
+            entries.append(
+                await _review_comment_input(base_url, change_id, comment, published)
+            )
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid comments; nothing was posted:\ncomment {index}: {e}"
+            ) from e
+
     try:
-        entries = [
-            await _review_comment_input(base_url, change_id, comment, published)
-            for comment in comments
-        ]
         revision = await _review_patch_set(
             base_url, change_id, [entry[0] for entry in entries], labels
         )
     except ValueError as e:
-        raise ValueError(f"Failed to post {what}: {e}") from e
+        raise ValueError(f"Invalid review; nothing was posted: {e}") from e
 
     comments_by_file: Dict[str, List[Dict[str, Any]]] = {}
     for _, file_path, comment_input in entries:
@@ -2380,6 +2424,9 @@ async def post_review_comment(
     in_reply_to: Optional[str] = None,
 ) -> _PostedCommentResult:
     """
+    Deprecated: use post_review_comments, which posts one or more comments
+    as a single review and takes the same arguments for each comment.
+
     Posts a review comment in a CL: on a line of a file, on the whole file
     when line_number is omitted, or on the whole patch set when file_path is
     "/PATCHSET_LEVEL" and line_number is omitted.
@@ -2394,9 +2441,9 @@ async def post_review_comment(
     outside the label's range but still posts the comment; note then names
     the votes that were not applied.
 
-    Raises ValueError when the parent comment is not found or is your
-    unpublished draft, a location given for a reply is not the parent's, the
-    comment has no file, or Gerrit refuses the comment.
+    Raises ValueError when the comment is invalid, the parent comment is not
+    found or is your unpublished draft, a location given for a reply is not
+    the parent's, or Gerrit refuses the comment.
     """
     config = load_gerrit_config()
     gerrit_hosts = config.get("gerrit_hosts", [])
@@ -2423,6 +2470,72 @@ async def post_review_comment(
         "file_path": posted_file,
         "line": posted.get("line"),
         "in_reply_to": in_reply_to,
+        "labels": votes["labels"],
+        "note": votes["note"],
+    }
+
+
+class _PostReviewCommentsResult(TypedDict):
+    change_id: str
+    revision: str
+    comment_count: int
+    file_count: int
+    message: Optional[str]
+    labels: Optional[Dict[str, int]]
+    note: Optional[str]
+
+
+@mcp.tool()
+async def post_review_comments(
+    change_id: str,
+    comments: List[_ReviewCommentInput],
+    message: Optional[str] = None,
+    labels: Optional[Dict[str, int]] = None,
+    gerrit_base_url: Optional[str] = None,
+) -> _PostReviewCommentsResult:
+    """
+    Posts one or more review comments in a CL as a single review.
+
+    All comments are sent in one request, so they are published atomically
+    (all or nothing) and reviewers receive a single notification. Each item in
+    `comments` has a `message`, and optionally `file_path`, `line_number`
+    (1-based), `unresolved` (defaults to true) and `in_reply_to`. Without
+    line_number a comment goes on the whole file, or on the whole patch set
+    for "/PATCHSET_LEVEL". With in_reply_to, a comment is a reply in the
+    thread of that published comment and goes where its parent is: file_path
+    and line_number can be left unset, and when given they must be the
+    parent's. An optional top-level `message` and `labels` (e.g.
+    {"Code-Review": -1}) are sent with the review.
+
+    A review goes on one patch set: replies to comments on an older patch
+    set go in a call of their own, and cannot carry labels.
+
+    The returned labels are the votes Gerrit applied. Gerrit ignores a vote
+    outside the label's range but still posts the comments; note then names
+    the votes that were not applied.
+
+    Raises ValueError, and posts nothing, when a comment is invalid, a parent
+    comment is not found or is your unpublished draft, a location given for a
+    reply is not the parent's, or the comments go on different patch sets.
+    Also raises ValueError, with Gerrit's answer, when Gerrit refuses the
+    review.
+    """
+    config = load_gerrit_config()
+    gerrit_hosts = config.get("gerrit_hosts", [])
+    base_url = _normalize_gerrit_url(
+        _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
+    )
+
+    revision, comments_by_file, votes = await _post_comments(
+        base_url, change_id, comments, message, labels, "comments"
+    )
+
+    return {
+        "change_id": change_id,
+        "revision": str(revision),
+        "comment_count": len(comments),
+        "file_count": len(comments_by_file),
+        "message": message or None,
         "labels": votes["labels"],
         "note": votes["note"],
     }

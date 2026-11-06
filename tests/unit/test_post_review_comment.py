@@ -450,6 +450,23 @@ class TestPostReviewComment(unittest.TestCase):
             "Gerrit posted the comment but did not apply these votes: Code-Review 5",
         )
 
+    @patch("gerrit_mcp_server.main.run_curl", new_callable=AsyncMock)
+    def test_invalid_comment_sends_nothing(self, mock_run_curl):
+        # post_review_comment shares the checks of post_review_comments.
+        for kwargs, expected in [
+            ({"message": "", "file_path": "a.py"}, "message must"),
+            ({"message": "m", "file_path": "a.py", "line_number": 0}, "line_number"),
+        ]:
+            with self.assertRaises(ValueError) as context:
+                asyncio.run(
+                    post_review_comment(
+                        change_id="123", gerrit_base_url=GERRIT_BASE_URL, **kwargs
+                    )
+                )
+            self.assertIn("nothing was posted", str(context.exception))
+            self.assertIn(expected, str(context.exception))
+        mock_run_curl.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
