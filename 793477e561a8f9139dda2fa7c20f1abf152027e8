@@ -16,6 +16,46 @@
       "message": "please review thanks !",
       "revId": "793477e561a8f9139dda2fa7c20f1abf152027e8",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f75bbae5_899c2335",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-11-06T10:23:11Z",
+      "side": 1,
+      "message": "Could you split this into two separate changes as that\u0027d be easier to review. You can have the allowed hosts on mcp 1.x first and then migrate to mcp 2 on top of it. Also the formatting changes can go separately if required.",
+      "revId": "793477e561a8f9139dda2fa7c20f1abf152027e8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2d5541f1_9d7b9a25",
+        "filename": "pyproject.toml",
+        "patchSetId": 6
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 3255163
+      },
+      "writtenOn": "2026-11-06T10:23:11Z",
+      "side": 1,
+      "message": "Should probably be `mcp\u003e\u003d2,\u003c3` as it now imports `mcp.server.mcpserver`, which doesn\u0027t exist in 1.x",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 7,
+        "endChar": 12
+      },
+      "revId": "793477e561a8f9139dda2fa7c20f1abf152027e8",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
