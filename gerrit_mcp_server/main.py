@@ -22,7 +22,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal, Optional, TypedDict
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, TypedDict
 from urllib.parse import quote, urlparse
 
 from mcp.server.fastmcp import Context, FastMCP
@@ -2020,20 +2020,6 @@ async def _published_comments_by_id(
     }
 
 
-async def _fetch_comment_by_id(
-    base_url: str, change_id: str, comment_id: str
-) -> Optional[Dict[str, Any]]:
-    """Fetches a single published comment by ID from a CL.
-
-    Returns the comment dict with an additional ``path`` key naming the file
-    the comment was posted on, or ``None`` if no match is found. Raises
-    ValueError, with Gerrit's answer, when that answer is not JSON.
-
-    """
-    comments_by_id = await _published_comments_by_id(base_url, change_id)
-    return comments_by_id.get(comment_id)
-
-
 def _thread_root_id(comment_id: str, comments_by_id: Dict[str, Dict[str, Any]]) -> str:
     """The ID of the first comment of the thread that comment_id is in."""
     while comments_by_id.get(comment_id, {}).get("in_reply_to") in comments_by_id:
@@ -2136,6 +2122,215 @@ async def _current_patch_set(base_url: str, change_id: str) -> int:
     return current["_number"]
 
 
+class _RequiredReviewCommentInput(TypedDict):
+    message: str
+
+
+class _ReviewCommentInput(_RequiredReviewCommentInput, total=False):
+    file_path: str
+    line_number: int
+    unresolved: bool
+    in_reply_to: str
+
+
+async def _reply_target(
+    base_url: str,
+    change_id: str,
+    in_reply_to: str,
+    file_path: Optional[str],
+    line_number: Optional[int],
+    comment_range: Optional[Dict[str, int]] = None,
+    published: Optional[Dict[str, Dict[str, Any]]] = None,
+) -> Tuple[Dict[str, Any], Dict[str, Dict[str, Any]]]:
+    """The published comment a reply goes under, and the CL's published comments.
+
+    published holds the CL's published comments, keyed by ID; it is fetched
+    when None. file_path, line_number and comment_range are the location given
+    for the reply, which must be the parent's where given.
+
+    Raises ValueError when in_reply_to names no published comment of the CL
+    or is your unpublished draft, or a location given is not the parent's.
+    """
+    if published is None:
+        published = await _published_comments_by_id(base_url, change_id)
+    parent = published.get(in_reply_to)
+    if parent is None:
+        raise ValueError(await _missing_parent_reason(base_url, change_id, in_reply_to))
+    mismatch = _reply_location_mismatch(parent, file_path, line_number, comment_range)
+    if mismatch:
+        raise ValueError(mismatch)
+    return parent, published
+
+
+async def _review_comment_input(
+    base_url: str,
+    change_id: str,
+    comment: _ReviewCommentInput,
+    published: Optional[Dict[str, Dict[str, Any]]] = None,
+) -> Tuple[Any, str, Dict[str, Any]]:
+    """Builds the CommentInput that posts one comment in a review.
+
+    Returns the patch set the comment goes on ("current", or the parent's
+    patch set for a reply), the file it goes on, and the CommentInput. A
+    reply goes where its parent is; published is passed on to _reply_target.
+
+    Raises ValueError when a reply has no parent to go under, or the comment
+    has no file.
+    """
+    file_path = comment.get("file_path")
+    line_number = comment.get("line_number")
+    in_reply_to = comment.get("in_reply_to")
+
+    revision: Any = "current"
+    inherited: Dict[str, Any] = {}
+    if in_reply_to is not None:
+        parent, _ = await _reply_target(
+            base_url,
+            change_id,
+            in_reply_to,
+            file_path,
+            line_number,
+            published=published,
+        )
+        revision = parent.get("patch_set", "current")
+        file_path = parent.get("path")
+        inherited = _inherited_location(parent)
+
+    if file_path is None:
+        raise ValueError(
+            "file_path is required (and could not be inherited from in_reply_to)."
+        )
+
+    comment_input: Dict[str, Any] = {}
+    if line_number is not None:
+        comment_input["line"] = line_number
+    comment_input["message"] = comment["message"]
+    comment_input["unresolved"] = comment.get("unresolved", True)
+    comment_input.update(inherited)
+    if in_reply_to is not None:
+        comment_input["in_reply_to"] = in_reply_to
+    return revision, file_path, comment_input
+
+
+async def _review_patch_set(
+    base_url: str,
+    change_id: str,
+    revisions: List[Any],
+    labels: Optional[Dict[str, int]],
+) -> Any:
+    """The patch set a review goes on, given the patch sets of its comments.
+
+    Each comment goes on "current" or, as a reply, on its parent's patch set.
+    A review goes on one patch set, and Gerrit keeps a vote on the patch set
+    it is cast on, so labels need the current one. The current patch set is
+    fetched at most once, and only when the comments do not settle it.
+
+    Raises ValueError when the comments go on different patch sets, or
+    labels would be cast on an older patch set.
+    """
+    distinct = set(revisions) or {"current"}
+    current = None
+    if len(distinct) > 1 or (labels and distinct != {"current"}):
+        current = await _current_patch_set(base_url, change_id)
+        distinct = {current if r == "current" else r for r in distinct}
+    if len(distinct) > 1:
+        raise ValueError(
+            "the comments go on patch sets "
+            f"{', '.join(str(r) for r in sorted(distinct))}, but a review goes "
+            "on one patch set. Post the replies to each patch set in a "
+            "separate call."
+        )
+    revision = distinct.pop()
+    if labels and current is not None and revision != current:
+        raise ValueError(
+            f"the reply goes on patch set {revision}, but the current patch "
+            f"set is {current}, and Gerrit keeps a vote on the patch set it is "
+            "cast on. Post the reply and the vote separately."
+        )
+    return revision
+
+
+async def _post_review(
+    base_url: str,
+    change_id: str,
+    revision: Any,
+    payload: Dict[str, Any],
+    what: str,
+) -> Dict[str, Any]:
+    """Posts a review on a patch set of a CL and returns Gerrit's ReviewResult.
+
+    Raises ValueError, with Gerrit's answer, when Gerrit refuses the review.
+    `what` names what was posted, in the error and in the log.
+    """
+    url = f"{base_url}/changes/{change_id}/revisions/{revision}/review"
+    args = _create_post_args(url, payload)
+
+    try:
+        result_str = await run_curl(args, base_url)
+        # Gerrit answers a review with a JSON object, {} on older versions,
+        # and refuses one in plain text.
+        try:
+            result = json.loads(result_str)
+        except json.JSONDecodeError:
+            result = None
+        if not isinstance(result, dict) or "error" in result:
+            raise ValueError(f"Failed to post {what}. Response: {result_str}")
+    except Exception as e:
+        with open(LOG_FILE_PATH, "a") as log_file:
+            log_file.write(
+                f"[gerrit-mcp-server] Error posting {what} to CL {change_id}: {e}\n"
+            )
+        raise e
+    return result
+
+
+async def _post_comments(
+    base_url: str,
+    change_id: str,
+    comments: List[_ReviewCommentInput],
+    message: Optional[str],
+    labels: Optional[Dict[str, int]],
+    what: str,
+) -> Tuple[Any, Dict[str, List[Dict[str, Any]]], Dict[str, Any]]:
+    """Posts comments in a CL as one review, with an optional message and labels.
+
+    Returns the patch set the review went on, the CommentInputs posted by
+    file, and Gerrit's ReviewResult. The CL's published comments are fetched
+    once, for all the replies.
+
+    Raises ValueError before anything is posted when a reply has no parent
+    to go under, a comment has no file, the comments go on different patch
+    sets, or labels would be cast on an older patch set; and, with Gerrit's
+    answer, when Gerrit refuses the review.
+    """
+    published = None
+    if any("in_reply_to" in comment for comment in comments):
+        published = await _published_comments_by_id(base_url, change_id)
+
+    try:
+        entries = [
+            await _review_comment_input(base_url, change_id, comment, published)
+            for comment in comments
+        ]
+        revision = await _review_patch_set(
+            base_url, change_id, [entry[0] for entry in entries], labels
+        )
+    except ValueError as e:
+        raise ValueError(f"Failed to post {what}: {e}") from e
+
+    comments_by_file: Dict[str, List[Dict[str, Any]]] = {}
+    for _, file_path, comment_input in entries:
+        comments_by_file.setdefault(file_path, []).append(comment_input)
+
+    payload: Dict[str, Any] = {"comments": comments_by_file}
+    if message:
+        payload["message"] = message
+    if labels:
+        payload["labels"] = labels
+    result = await _post_review(base_url, change_id, revision, payload, what)
+    return revision, comments_by_file, result
+
+
 class _PostedCommentResult(TypedDict):
     change_id: str
     revision: str
@@ -2176,74 +2371,24 @@ async def post_review_comment(
         _get_gerrit_base_url(gerrit_base_url), gerrit_hosts
     )
 
-    revision = "current"
-    inherited: Dict[str, Any] = {}
-    if in_reply_to is not None:
-        parent = await _fetch_comment_by_id(base_url, change_id, in_reply_to)
-        if parent is None:
-            reason = await _missing_parent_reason(base_url, change_id, in_reply_to)
-            raise ValueError(f"Failed to post comment: {reason}")
-        mismatch = _reply_location_mismatch(parent, file_path, line_number)
-        if mismatch:
-            raise ValueError(f"Failed to post comment: {mismatch}")
-        revision = parent.get("patch_set", "current")
-        file_path = parent.get("path")
-        inherited = _inherited_location(parent)
-        if labels and revision != "current":
-            current = await _current_patch_set(base_url, change_id)
-            if revision != current:
-                raise ValueError(
-                    f"Failed to post comment: the reply goes on patch set "
-                    f"{revision}, but the current patch set is {current}, "
-                    "and Gerrit keeps a vote on the patch set it is cast "
-                    "on. Post the reply and the vote separately."
-                )
-
-    if file_path is None:
-        raise ValueError(
-            "Failed to post comment: file_path is required "
-            "(and could not be inherited from in_reply_to)."
-        )
-
-    url = f"{base_url}/changes/{change_id}/revisions/{revision}/review"
-
-    comment: Dict[str, Any] = {}
+    comment: _ReviewCommentInput = {"message": message, "unresolved": unresolved}
+    if file_path is not None:
+        comment["file_path"] = file_path
     if line_number is not None:
-        comment["line"] = line_number
-    comment["message"] = message
-    comment["unresolved"] = unresolved
-    comment.update(inherited)
+        comment["line_number"] = line_number
     if in_reply_to is not None:
         comment["in_reply_to"] = in_reply_to
 
-    payload: Dict[str, Any] = {"comments": {file_path: [comment]}}
-    if labels:
-        payload["labels"] = labels
-
-    args = _create_post_args(url, payload)
-
-    try:
-        result_str = await run_curl(args, base_url)
-        # Gerrit answers a review with a JSON object, {} on older versions,
-        # and refuses one in plain text.
-        try:
-            result = json.loads(result_str)
-        except json.JSONDecodeError:
-            result = None
-        if not isinstance(result, dict) or "error" in result:
-            raise ValueError(f"Failed to post comment. Response: {result_str}")
-    except Exception as e:
-        with open(LOG_FILE_PATH, "a") as log_file:
-            log_file.write(
-                f"[gerrit-mcp-server] Error posting comment to CL {change_id}: {e}\n"
-            )
-        raise e
+    revision, comments_by_file, _ = await _post_comments(
+        base_url, change_id, [comment], None, labels, "comment"
+    )
+    ((posted_file, (posted,)),) = comments_by_file.items()
 
     return {
         "change_id": change_id,
         "revision": str(revision),
-        "file_path": file_path,
-        "line": comment.get("line"),
+        "file_path": posted_file,
+        "line": posted.get("line"),
         "in_reply_to": in_reply_to,
     }
 
@@ -2363,15 +2508,13 @@ async def post_draft_comment(
     revision = "current"
     inherited: Dict[str, Any] = {}
     if in_reply_to is not None:
-        published = await _published_comments_by_id(base_url, change_id)
-        parent = published.get(in_reply_to)
-        if parent is None:
-            reason = await _missing_parent_reason(base_url, change_id, in_reply_to)
-            raise ValueError(f"Failed to create draft comment: {reason}")
         given_range = {k: comment_range[k] for k in given_range_fields} or None
-        mismatch = _reply_location_mismatch(parent, file_path, line_number, given_range)
-        if mismatch:
-            raise ValueError(f"Failed to create draft comment: {mismatch}")
+        try:
+            parent, published = await _reply_target(
+                base_url, change_id, in_reply_to, file_path, line_number, given_range
+            )
+        except ValueError as e:
+            raise ValueError(f"Failed to create draft comment: {e}") from e
         own_draft = await _own_draft_in_thread(
             base_url, change_id, parent["id"], published
         )
