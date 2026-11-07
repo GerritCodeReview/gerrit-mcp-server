@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "eb7a5922_f0ef8cfd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 1,
+      "message": "Done: split into a stack of three changes. The first only refactors, and the existing post_review_comment/post_draft_comment tests pass unchanged. The second reports dropped votes in post_review_comment and publish_drafts. This change adds the new tool on top.",
+      "parentUuid": "a9291fce_e9c0a878",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "3c8ebd69_71d386e7",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 4
@@ -69,6 +87,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d378dfef_f89c41a6",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2140,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 1,
+      "message": "Done: it takes a _ReviewCommentInput. I’d leave typed CommentInput/ReviewInput for a separate refactor across the tools.",
+      "parentUuid": "b7a3f3a6_8da4fcef",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f575e5cc_7d441747",
@@ -86,6 +122,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "697ede16_b3f3d91c",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2141,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f575e5cc_7d441747",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7d13201c_549c3969",
@@ -99,6 +153,24 @@
       "writtenOn": "2026-11-02T18:27:10Z",
       "side": 1,
       "message": "Shouldn\u0027t we validate this with `_validate_review_comment()`? Or is that expected to be run on the inputs? If inputs, then we should do that in here so that it\u0027s shared between the two tools.",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "82e5e3fe_fbb6fd38",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2183,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 1,
+      "message": "Done: _post_comments() validates every comment before anything is sent, for both tools.",
+      "parentUuid": "7d13201c_549c3969",
       "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
@@ -138,6 +210,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f7ed1019_499b6902",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2238,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 1,
+      "message": "Done: marked deprecated in favor of post_review_comments; kept working so existing clients don’t break.",
+      "parentUuid": "eb9321fc_01df1fa1",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b5437b39_3d6e261d",
@@ -161,6 +251,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f948375a_8346347f",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2434,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 1,
+      "message": "Done: both tools use the same “…; nothing was posted” prefix.",
+      "parentUuid": "b5437b39_3d6e261d",
+      "range": {
+        "startLine": 2434,
+        "startChar": 26,
+        "endLine": 2434,
+        "endChar": 62
+      },
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5abe4183_b53bb7dd",
@@ -174,6 +288,24 @@
       "writtenOn": "2026-11-02T20:21:44Z",
       "side": 1,
       "message": "When the comments mix \"current\" and a parent\u0027s patch set, this calls _current_patch_set(). Then _check_votes_on_current_patch_set() on line 2481 calls it a second time. Please work out the review\u0027s patch set once, in one helper that takes the revisions of all comments and the labels. post_review_comment is then the case of one comment, and both tools share the patch set rule and the vote rule.",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a25f7dd8_29086333",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2467,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 1,
+      "message": "Done: _review_patch_set() takes the patch sets of all comments plus the labels, fetches the current patch set at most once, and applies both rules.",
+      "parentUuid": "5abe4183_b53bb7dd",
       "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
@@ -225,6 +357,30 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d1a2593a_34d63104",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2508,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 1,
+      "message": "Done: the body is _post_comments(comments, message, labels); post_review_comment is the one-comment case, so it gets the same checks and the dropped-vote note.",
+      "parentUuid": "91342863_db6cb942",
+      "range": {
+        "startLine": 2495,
+        "startChar": 0,
+        "endLine": 2508,
+        "endChar": 5
+      },
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "472e2713_19f410f5",
@@ -242,6 +398,24 @@
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e64e48cc_2e809115",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2591,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 1,
+      "message": "Done: _reply_target() is shared by _review_comment_input() and post_draft_comment, which passes its range and keeps its own draft-in-thread check.",
+      "parentUuid": "472e2713_19f410f5",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "06ce12b5_a35d7197",
@@ -255,6 +429,24 @@
       "writtenOn": "2026-11-02T20:21:44Z",
       "side": 1,
       "message": "publish_drafts posts to the same review endpoint as _post_review(), but it ignores Gerrit\u0027s answer. Please call _post_review() here. publish_drafts then refuses a review that Gerrit answers with an \"error\" field, and it gets the report of dropped votes too.",
+      "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "185630cf_51033cf9",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2890,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 1,
+      "message": "Done in the second change: publish_drafts posts through _post_review().",
+      "parentUuid": "06ce12b5_a35d7197",
       "revId": "ac8089a4677ffa6d4433c8f40c94cdb048b71cf6",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }

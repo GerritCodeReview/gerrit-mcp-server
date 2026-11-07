@@ -22,6 +22,30 @@
       },
       "revId": "439d5ee463ed42ed2dc373aefe034edf0ff3ac12",
       "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "83b2da9d_cb930d74",
+        "filename": "gerrit_mcp_server/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 2226,
+      "author": {
+        "id": 4617916
+      },
+      "writtenOn": "2026-11-07T00:10:26Z",
+      "side": 0,
+      "message": "Done, the comment is now in _post_review().",
+      "parentUuid": "1836648b_8b55cfdd",
+      "range": {
+        "startLine": 2225,
+        "startChar": 0,
+        "endLine": 2226,
+        "endChar": 40
+      },
+      "revId": "439d5ee463ed42ed2dc373aefe034edf0ff3ac12",
+      "serverId": "173816e5-2b9a-37c3-8a2e-48639d4f1153"
     }
   ]
 }
